@@ -172,4 +172,10 @@ abstract contract ERC1967Upgrade {
             Address.functionDelegateCall(IBeacon(newBeacon).implementation(), data);
         }
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     */
+    uint256[50] private __gap;
 }
