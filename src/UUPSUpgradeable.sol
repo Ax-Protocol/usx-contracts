@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0;
 
 import "./interfaces/IERC1822.sol";
 import "./ERC1967Upgrade.sol";

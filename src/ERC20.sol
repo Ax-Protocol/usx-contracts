@@ -6,11 +6,11 @@ import "./interfaces/IERC20Metadata.sol";
 import "./Initializable.sol";
 import "./Context.sol";
 
-/// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
-/// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
+/// @notice Modern and gas efficient upgradable ERC20 + EIP-2612 implementation.
+/// @author Modified from (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
-abstract contract ERC20 is Initializable, Context, IERC20 {
+abstract contract ERC20 is Initializable, Context, IERC20Metadata {
     // METADATA STORAGE
 
     string public name;
@@ -57,7 +57,7 @@ abstract contract ERC20 is Initializable, Context, IERC20 {
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
     }
 
-    //ERC20 LOGIC
+    // ERC20 LOGIC
 
     function approve(address spender, uint256 amount) public virtual returns (bool) {
         allowance[msg.sender][spender] = amount;
