@@ -6,8 +6,9 @@ import "./Initializable.sol";
 import "./UUPSUpgradeable.sol";
 import "./Ownable.sol";
 import "./ERC20.sol";
+import "./interfaces/IUSX.sol";
 
-contract USX is Initializable, UUPSUpgradeable, Ownable, ERC20 {
+contract USX is Initializable, UUPSUpgradeable, Ownable, IUSX, ERC20 {
     function initialize() public initializer {
         __ERC20_init("USX", "USX");
 

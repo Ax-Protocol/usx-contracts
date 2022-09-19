@@ -1,12 +1,10 @@
 # USX
 
-USX will use an upgradable proxy (UUPS) or diamond pattern
+USX is a cross chain native stablecoin. This repository contains the USX implementation.
 
-USX will initially support LayerZero for bridging, but the interface architecture will support multiple 
-bridging methods down the line
+USX Uses an EIP-1967 Proxy contract to access a UUPS upgradable ERC-1967 compliant 
+modern ERC20 token with EIP-2612 Permit support.
 
-USX will initially support stablecoin deposit/redemption for mint/burn, but will later support multiple methods.
+USX initially supports mind and burn by depositing and redeeming allowlisted assets.
 
-# TODOs
-
-- consider the diamond pattern later for auditability if we must have upgrades
+USD initially supports cross chain bridging via LayerZero.
