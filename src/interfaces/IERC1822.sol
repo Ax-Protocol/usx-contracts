@@ -15,5 +15,5 @@ interface IERC1822Proxiable {
      * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this
      * function revert if invoked through a proxy.
      */
-    function proxiableUUID() external pure returns (bytes32);
+    function proxiableUUID() external view returns (bytes32);
 }
