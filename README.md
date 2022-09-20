@@ -8,3 +8,7 @@ modern ERC20 token with EIP-2612 Permit support.
 USX initially supports mind and burn by depositing and redeeming allowlisted assets.
 
 USD initially supports cross chain bridging via LayerZero.
+
+## TODOs
+
+- [ ] Make the lz app and non blocking lz app upgradable.

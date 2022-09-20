@@ -5,10 +5,10 @@ pragma solidity ^0.8.16;
 import "./Initializable.sol";
 import "./UUPSUpgradeable.sol";
 import "./Ownable.sol";
-import "./ERC20.sol";
+import "./OERC20.sol";
 import "./interfaces/IUSX.sol";
 
-contract USX is Initializable, UUPSUpgradeable, Ownable, IUSX, ERC20 {
+contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20 {
     function initialize() public initializer {
         __ERC20_init("USX", "USX");
 
@@ -19,7 +19,11 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, IUSX, ERC20 {
     // @dev required by the UUPS module
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
-    // TODO(implement mint and burn)
+    // TODO(implement mint and burn by depositing collateral)
 
-    // TODO(implement cross chain bridge)
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     */
+    uint256[50] private __gap;
 }
