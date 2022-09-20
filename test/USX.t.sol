@@ -5,7 +5,7 @@ import "ds-test/test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/Test.sol";
 import "../src/USX.sol";
-import "../src/ERC1967Proxy.sol";
+import "../src/proxy/ERC1967Proxy.sol";
 
 contract USXTest is Test {
     using stdStorage for StdStorage;

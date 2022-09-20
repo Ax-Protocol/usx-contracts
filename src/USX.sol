@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.16;
 
-import "./Initializable.sol";
-import "./UUPSUpgradeable.sol";
-import "./Ownable.sol";
-import "./OERC20.sol";
+import "./utils/Initializable.sol";
+import "./proxy/UUPSUpgradeable.sol";
+import "./utils/Ownable.sol";
+import "./bridging/OERC20.sol";
 import "./interfaces/IUSX.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20 {
@@ -20,11 +20,11 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20 {
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     // TODO(implement mint and burn by depositing collateral)
-    function mint(uint256 amount) {
+    function mint(uint256 amount) public {
         _mint(msg.sender, amount);
     }
 
-    function burn(uint256 amount) {
+    function burn(uint256 amount) public {
         _mint(msg.sender, amount);
     }
 
