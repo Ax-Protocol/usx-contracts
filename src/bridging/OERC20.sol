@@ -28,13 +28,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, ERC20 {
         uint256 _amount,
         bool _useZro,
         bytes memory _adapterParams
-    )
-        public
-        view
-        virtual
-        override
-        returns (uint256 nativeFee, uint256 zroFee)
-    {
+    ) public view virtual override returns (uint256 nativeFee, uint256 zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
@@ -48,12 +42,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, ERC20 {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes memory _adapterParams
-    )
-        public
-        payable
-        virtual
-        override
-    {
+    ) public payable virtual override {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
@@ -62,11 +51,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, ERC20 {
         bytes memory _srcAddress,
         uint64, /*_nonce*/
         bytes memory _payload
-    )
-        internal
-        virtual
-        override
-    {
+    ) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
         address toAddress;
@@ -87,10 +72,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, ERC20 {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes memory _adapterParams
-    )
-        internal
-        virtual
-    {
+    ) internal virtual {
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);

@@ -19,9 +19,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParams
-    )
-        external
-        payable;
+    ) external payable;
 
     // @notice used by the messaging library to publish verified payload
     // @param _srcChainId - the source chain identifier
@@ -37,8 +35,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
         uint64 _nonce,
         uint256 _gasLimit,
         bytes calldata _payload
-    )
-        external;
+    ) external;
 
     // @notice get the inboundNonce of a lzApp from a source chain which could be EVM or non-EVM chain
     // @param _srcChainId - the source chain identifier
@@ -61,10 +58,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
         bytes calldata _payload,
         bool _payInZRO,
         bytes calldata _adapterParam
-    )
-        external
-        view
-        returns (uint256 nativeFee, uint256 zroFee);
+    ) external view returns (uint256 nativeFee, uint256 zroFee);
 
     // @notice get this Endpoint's immutable source identifier
     function getChainId() external view returns (uint16);

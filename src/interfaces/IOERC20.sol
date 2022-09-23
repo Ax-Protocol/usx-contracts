@@ -23,10 +23,7 @@ interface IOERC20 is IERC165, IERC20Metadata {
         uint256 _amount,
         bool _useZro,
         bytes calldata _adapterParams
-    )
-        external
-        view
-        returns (uint256 nativeFee, uint256 zroFee);
+    ) external view returns (uint256 nativeFee, uint256 zroFee);
 
     /**
      * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`) from `_from`
@@ -46,9 +43,7 @@ interface IOERC20 is IERC165, IERC20Metadata {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParams
-    )
-        external
-        payable;
+    ) external payable;
 
     /**
      * @dev returns the circulating amount of tokens on current chain

@@ -188,11 +188,7 @@ library Address {
         bool success,
         bytes memory returndata,
         string memory errorMessage
-    )
-        internal
-        view
-        returns (bytes memory)
-    {
+    ) internal view returns (bytes memory) {
         if (success) {
             if (returndata.length == 0) {
                 // only check isContract if the call was successful and the return data is empty
