@@ -5,9 +5,9 @@ pragma solidity >=0.8.0;
 import "./NonBlockingLzApp.sol";
 import "../interfaces/IOERC20.sol";
 import "../introspection/ERC165.sol";
-import "../token/ERC20.sol";
+import "../token/UERC20.sol";
 
-abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, ERC20 {
+abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
     uint256 public constant NO_EXTRA_GAS = 0;
     uint256 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
