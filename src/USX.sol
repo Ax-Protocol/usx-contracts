@@ -24,12 +24,23 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     // TODO(implement mint and burn by depositing collateral)
     function mint(uint256 amount) public {
-        SafeTransferLib.safeTransferFrom(dai, msg.sender, address(this), amount);
+        SafeTransferLib.safeTransferFrom(dai, msg.sender, address(this), amount); // Delete
+        // Option 1: Transfer any of [USDC,USDT,DAI] to 3pool and receive curve LP token https://curve.fi/3pool
+        // Option 2: User already has 3pool LP tokens
+        // Transfer / Store CurveLP token in USX contract
+        // Mint USX to user at CONST exchange rate
         _mint(msg.sender, amount);
+        // Contract receives CRV rewards, or possibly stakes to Convex contract for reward boosting. CRV tokens owned by smart contract. Should be accessible by admin
     }
 
     function burn(uint256 amount) public {
-        SafeTransferLib.safeTransfer(dai, msg.sender, amount);
+        SafeTransferLib.safeTransfer(dai, msg.sender, amount); // Delete
+        // User opts to receive one of [USDC,USDT,DAI,3pool LP]
+        // Amount of USX to be redeemed at CONST exchange rate for 3pool LP tokens
+        // Unstake 3pool LP tokens if needed
+        // Option 1: send 3pool LP token to user
+        // Option 2: remove one of [USDC,USDT.DAI] from curve 3pool and send to user
+        // Burn user's USX
         _burn(msg.sender, amount);
     }
 
