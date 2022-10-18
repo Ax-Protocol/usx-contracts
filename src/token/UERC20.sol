@@ -24,7 +24,7 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
 
     mapping(address => uint256) public balanceOf;
 
-    mapping(address => mapping(address => uint256)) public allowance;
+    mapping(address => mapping(address => uint256)) public allowances;
 
     // EIP-2612 STORAGE
 
@@ -59,14 +59,22 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     // ERC20 LOGIC
 
     function approve(address spender, uint256 amount) public virtual returns (bool) {
-        allowance[msg.sender][spender] = amount;
+        allowances[msg.sender][spender] = amount;
 
         emit Approval(msg.sender, spender, amount);
 
         return true;
     }
 
+
+    function allowance(address owner, address spender) public view virtual returns (uint256) {
+        return allowances[owner][spender];
+    }
+
     function transfer(address to, uint256 amount) public virtual returns (bool) {
+        require(to != address(0), "UERC20: to must be a nonzero address.");
+        require(amount <= balanceOf[msg.sender], "UERC20: amount exceeds balance.");
+
         balanceOf[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
@@ -81,10 +89,14 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     }
 
     function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
-        uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
+        uint256 amountAllowed = allowances[from][msg.sender]; // Saves gas for limited approvals.
+        
+        require(from != address(0), "UERC20: from must be a nonzero address.");
+        require(to != address(0), "UERC20: to must be a nonzero address.");
+        require(amount <= amountAllowed, "UERC20: amount exceeds allowance.");
 
-        if (allowed != type(uint256).max) {
-            allowance[from][msg.sender] = allowed - amount;
+        if (amountAllowed != type(uint256).max) {
+            allowances[from][msg.sender] = amountAllowed - amount;
         }
 
         balanceOf[from] -= amount;
@@ -137,7 +149,7 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
 
             require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
 
-            allowance[recoveredAddress][spender] = value;
+            allowances[recoveredAddress][spender] = value;
         }
 
         emit Approval(owner, spender, value);
@@ -173,7 +185,8 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
         emit Transfer(address(0), to, amount);
     }
 
-    function _burn(address from, uint256 amount) internal virtual {
+    function _burn(address from, uint256 amount) internal virtual {        
+
         balanceOf[from] -= amount;
 
         // Cannot underflow because a user's balance

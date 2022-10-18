@@ -11,11 +11,12 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
     uint256 public constant NO_EXTRA_GAS = 0;
     uint256 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
+    address constant LAYER_ZERO_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    function __OERC20_init(address _lzEndpoint) internal initializer {
-        __OERC20_init_unchained(_lzEndpoint);
+    function __OERC20_init() internal initializer {
+        __OERC20_init_unchained(LAYER_ZERO_ENDPOINT);
     }
 
     function __OERC20_init_unchained(address _lzEndpoint) internal initializer {
@@ -43,6 +44,11 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) public payable virtual override {
+        (address toAddress) = abi.decode(_toAddress, (address));
+        require(_from != address(0), "OERC20: _from must be a nonzero address.");
+        require(toAddress != address(0), "OERC20: toAddress must be a nonzero address.");
+        require(balanceOf[_from] >= _amount, "OERC20: burn amount exceeds balance.");
+
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
@@ -54,6 +60,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
     ) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
+        
         address toAddress;
         assembly {
             toAddress := mload(add(toAddressBytes, 20))
@@ -95,11 +102,11 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
      * Might emit an {Approval} event.
      */
     function _spendAllowance(address owner, address spender, uint256 amount) internal virtual {
-        uint256 currentAllowance = allowance[owner][spender];
+        uint256 currentAllowance = allowances[owner][spender];
         if (currentAllowance != type(uint256).max) {
             require(currentAllowance >= amount, "ERC20: insufficient allowance");
             unchecked {
-                allowance[owner][spender] = currentAllowance - amount;
+                allowances[owner][spender] = currentAllowance - amount;
             }
         }
     }
