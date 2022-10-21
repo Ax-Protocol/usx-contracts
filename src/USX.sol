@@ -8,7 +8,6 @@ import "./proxy/UUPSUpgradeable.sol";
 import "./utils/Ownable.sol";
 import "./bridging/OERC20.sol";
 import "./interfaces/IUSX.sol";
-import "@solmate/utils/SafeTransferLib.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
@@ -16,9 +15,8 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     function initialize() public initializer {
         __ERC20_init("USX", "USX");
-        __OERC20_init();
-        // @dev as there is no constructor, we need to initialise the Ownable explicitly
-        __Ownable_init();
+        __OERC20_init(0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23);
+        __Ownable_init();   // @dev as there is no constructor, we need to initialise the Ownable explicitly
     }
 
     // @dev required by the UUPS module

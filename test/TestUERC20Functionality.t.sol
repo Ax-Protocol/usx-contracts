@@ -74,17 +74,9 @@ contract TestUERC20Functionality is Test {
         assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), TEST_TRANSFER_AMOUNT);
     }
 
-    function test_fail_transfer_zero_address() public {
-        // Expectations
-        vm.expectRevert("UERC20: to must be a nonzero address.");
-
-        // Act
-        IUSX(address(usx_proxy)).transfer(address(0), TEST_TRANSFER_AMOUNT);
-    }
-
     function test_fail_transfer_amount() public {
         // Expectations
-        vm.expectRevert("UERC20: amount exceeds balance.");
+        vm.expectRevert("Arithmetic over/underflow");
 
         // Act
         IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, INITIAL_TOKENS + 1);
@@ -114,28 +106,12 @@ contract TestUERC20Functionality is Test {
         assertEq(IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS), preActionAllowance - TEST_APPROVAL_AMOUNT);
     }
 
-    function test_fail_transferFrom_zero_address() public {
-        // Expectations
-        vm.expectRevert("UERC20: from must be a nonzero address.");
-
-        // Act
-        vm.prank(TEST_ADDRESS);
-        IUSX(address(usx_proxy)).transferFrom(address(0), TEST_ADDRESS, TEST_APPROVAL_AMOUNT);
-
-        // Expectations
-        vm.expectRevert("UERC20: to must be a nonzero address.");
-
-        // Act
-        vm.prank(TEST_ADDRESS);
-        IUSX(address(usx_proxy)).transferFrom(address(this), address(0), TEST_APPROVAL_AMOUNT);
-    }
-
     function test_fail_transferFrom_amount() public {
         // Setup
         IUSX(address(usx_proxy)).approve(TEST_ADDRESS, TEST_APPROVAL_AMOUNT);
 
         // Expectations
-        vm.expectRevert("UERC20: amount exceeds allowance.");
+        vm.expectRevert("Arithmetic over/underflow");
 
         // Act
         vm.prank(TEST_ADDRESS);
