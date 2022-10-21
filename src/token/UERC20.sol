@@ -82,10 +82,21 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     }
 
     function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
+<<<<<<< HEAD
         uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
         
         if (allowed != type(uint256).max) {
             allowance[from][msg.sender] = allowed - amount;
+=======
+        uint256 amountAllowed = allowances[from][msg.sender]; // Saves gas for limited approvals.
+
+        require(from != address(0), "UERC20: from must be a nonzero address.");
+        require(to != address(0), "UERC20: to must be a nonzero address.");
+        require(amount <= amountAllowed, "UERC20: amount exceeds allowance.");
+
+        if (amountAllowed != type(uint256).max) {
+            allowances[from][msg.sender] = amountAllowed - amount;
+>>>>>>> b3344a73eb7cee7e39c4a938be67e459058fb801
         }
 
         balanceOf[from] -= amount;
@@ -174,8 +185,7 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
         emit Transfer(address(0), to, amount);
     }
 
-    function _burn(address from, uint256 amount) internal virtual {        
-
+    function _burn(address from, uint256 amount) internal virtual {
         balanceOf[from] -= amount;
 
         // Cannot underflow because a user's balance

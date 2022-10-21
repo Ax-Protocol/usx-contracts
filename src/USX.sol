@@ -10,9 +10,6 @@ import "./bridging/OERC20.sol";
 import "./interfaces/IUSX.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
-
-
-
     function initialize() public initializer {
         __ERC20_init("USX", "USX");
         __OERC20_init(0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23);

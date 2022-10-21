@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-
 import "forge-std/Test.sol";
 import "../src/USX.sol";
 import "../src/proxy/ERC1967Proxy.sol";
-
 
 contract TestUERC20Functionality is Test {
     using stdStorage for StdStorage;
@@ -15,15 +13,15 @@ contract TestUERC20Functionality is Test {
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
-    uint constant INITIAL_TOKENS       = 100e18;
-    uint constant TEST_APPROVAL_AMOUNT = 10e18;
-    address constant TEST_ADDRESS      = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
-    uint constant TEST_TRANSFER_AMOUNT = 20e18;
+    uint256 constant INITIAL_TOKENS = 100e18;
+    uint256 constant TEST_APPROVAL_AMOUNT = 10e18;
+    address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
+    uint256 constant TEST_TRANSFER_AMOUNT = 20e18;
 
     // Events
     event Approval(address indexed owner, address indexed spender, uint256 amount);
     event Transfer(address indexed from, address indexed to, uint256 amount);
-    
+
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy = new ERC1967Proxy(address(usx_implementation),  abi.encodeWithSignature("initialize()"));
@@ -41,9 +39,8 @@ contract TestUERC20Functionality is Test {
     function test_initial_mint() public {
         // Assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS); 
+        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
     }
-
 
     function test_approve() public {
         // Expectations
@@ -89,7 +86,7 @@ contract TestUERC20Functionality is Test {
 
         // Setup
         IUSX(address(usx_proxy)).approve(TEST_ADDRESS, TEST_APPROVAL_AMOUNT);
-        uint preActionAllowance = IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS);
+        uint256 preActionAllowance = IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS);
 
         // Pre-action Assertions
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
@@ -103,7 +100,9 @@ contract TestUERC20Functionality is Test {
         // Post-action Assertions
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - TEST_APPROVAL_AMOUNT);
         assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), TEST_APPROVAL_AMOUNT);
-        assertEq(IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS), preActionAllowance - TEST_APPROVAL_AMOUNT);
+        assertEq(
+            IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS), preActionAllowance - TEST_APPROVAL_AMOUNT
+        );
     }
 
     function test_fail_transferFrom_amount() public {
