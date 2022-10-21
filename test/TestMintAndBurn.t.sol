@@ -6,7 +6,6 @@ import "forge-std/Test.sol";
 import "../src/USX.sol";
 import "../src/proxy/ERC1967Proxy.sol";
 
-
 contract TestMintAndBurn is Test {
     using stdStorage for StdStorage;
 
@@ -16,12 +15,12 @@ contract TestMintAndBurn is Test {
 
     // Test Constants
     address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
-    uint constant TEST_MINT_AMOUNT = 100e18;
-    uint constant TEST_BURN_AMOUNT = 10e18;
+    uint256 constant TEST_MINT_AMOUNT = 100e18;
+    uint256 constant TEST_BURN_AMOUNT = 10e18;
 
     // Events
     event Transfer(address indexed from, address indexed to, uint256 amount);
-    
+
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy = new ERC1967Proxy(address(usx_implementation),  abi.encodeWithSignature("initialize()"));
@@ -83,4 +82,3 @@ contract TestMintAndBurn is Test {
         IUSX(address(usx_proxy)).burn(TEST_MINT_AMOUNT + 1);
     }
 }
-

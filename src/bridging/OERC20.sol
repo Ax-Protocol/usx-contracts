@@ -60,7 +60,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
     ) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
-        
+
         address toAddress;
         assembly {
             toAddress := mload(add(toAddressBytes, 20))

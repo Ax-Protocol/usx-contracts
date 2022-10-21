@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-
 import "forge-std/Test.sol";
 import "../src/USX.sol";
 import "../src/proxy/ERC1967Proxy.sol";
 import "../src/interfaces/ILayerZeroEndpoint.sol";
 import "./mocks/MockLayerZeroEndpoint.t.sol";
 import "./interfaces/IMessagePassing.t.sol";
-
 
 contract TestCrossChainTransfer is Test {
     using stdStorage for StdStorage;
@@ -19,12 +17,12 @@ contract TestCrossChainTransfer is Test {
     MockLayerZeroEndpoint public mockLayerZeroEndpoint;
 
     // Test Constants
-    address constant LZ_ENDPOINT       = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
+    address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
     address constant TEST_FROM_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
-    address constant TEST_TO_ADDRESS   = 0xA72Fb6506f162974dB9B6C702238cfB1Ccc60262;
-    uint constant INITIAL_TOKENS       = 100e18;
-    uint16 constant TEST_CHAIN_ID      = 109;
-    uint constant TEST_TRANSFER_AMOUNT = 20e18;
+    address constant TEST_TO_ADDRESS = 0xA72Fb6506f162974dB9B6C702238cfB1Ccc60262;
+    uint256 constant INITIAL_TOKENS = 100e18;
+    uint16 constant TEST_CHAIN_ID = 109;
+    uint256 constant TEST_TRANSFER_AMOUNT = 20e18;
 
     // Events
     event ReceiveFromChain(
@@ -71,16 +69,12 @@ contract TestCrossChainTransfer is Test {
         // Pre-action Assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
-        
+
         // Mocks
         bytes memory mockShaaveChildCode = address(mockLayerZeroEndpoint).code;
         vm.etch(address(LZ_ENDPOINT), mockShaaveChildCode);
 
-        vm.mockCall(
-            LZ_ENDPOINT,
-            abi.encodeWithSelector(ILayerZeroEndpoint(LZ_ENDPOINT).send.selector),
-            abi.encode()
-        );
+        vm.mockCall(LZ_ENDPOINT, abi.encodeWithSelector(ILayerZeroEndpoint(LZ_ENDPOINT).send.selector), abi.encode());
 
         // Act
         IUSX(address(usx_proxy)).sendFrom(
@@ -101,7 +95,7 @@ contract TestCrossChainTransfer is Test {
     function test_fail_sendFrom_amount() public {
         // Expectations
         vm.expectRevert("OERC20: burn amount exceeds balance.");
-        
+
         // Act
         IUSX(address(usx_proxy)).sendFrom(
             address(this),
