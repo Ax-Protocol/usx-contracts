@@ -67,7 +67,6 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     }
 
     function transfer(address to, uint256 amount) public virtual returns (bool) {
-
         balanceOf[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
@@ -83,7 +82,7 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
 
     function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
         uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
-        
+
         if (allowed != type(uint256).max) {
             allowance[from][msg.sender] = allowed - amount;
         }
