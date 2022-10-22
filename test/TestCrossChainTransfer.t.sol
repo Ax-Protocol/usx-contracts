@@ -92,10 +92,7 @@ contract TestCrossChainTransfer is Test {
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - TEST_TRANSFER_AMOUNT);
     }
 
-    function test_fail_sendFrom_amount() public {
-        // Expectations
-        vm.expectRevert("OERC20: burn amount exceeds balance.");
-
+    function testFail_sendFrom_amount() public {
         // Act
         IUSX(address(usx_proxy)).sendFrom(
             address(this),
@@ -108,10 +105,7 @@ contract TestCrossChainTransfer is Test {
         );
     }
 
-    function test_fail_sendFrom_address() public {
-        // Failing From Address Expectations
-        vm.expectRevert("OERC20: _from must be a nonzero address.");
-
+    function testFail_sendFrom_from_address() public {
         // Act
         IUSX(address(usx_proxy)).sendFrom(
             address(0),
@@ -122,10 +116,9 @@ contract TestCrossChainTransfer is Test {
             address(0),
             bytes("")
         );
+    }
 
-        // Failing To Address Expectations
-        vm.expectRevert("OERC20: toAddress must be a nonzero address.");
-
+    function testFail_sendFrom_to_address() public {
         // Act
         IUSX(address(usx_proxy)).sendFrom(
             address(this),

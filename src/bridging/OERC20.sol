@@ -43,11 +43,6 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) public payable virtual override {
-        (address toAddress) = abi.decode(_toAddress, (address));
-        require(_from != address(0), "OERC20: _from must be a nonzero address.");
-        require(toAddress != address(0), "OERC20: toAddress must be a nonzero address.");
-        require(balanceOf[_from] >= _amount, "OERC20: burn amount exceeds balance.");
-
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
