@@ -13,6 +13,7 @@ contract TestUERC20Functionality is Test {
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
+    address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
     uint256 constant INITIAL_TOKENS = 100e18;
     uint256 constant TEST_APPROVAL_AMOUNT = 10e18;
     address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
@@ -24,8 +25,8 @@ contract TestUERC20Functionality is Test {
 
     function setUp() public {
         usx_implementation = new USX();
-        usx_proxy = new ERC1967Proxy(address(usx_implementation),  abi.encodeWithSignature("initialize()"));
-
+        usx_proxy =
+            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
         IUSX(address(usx_proxy)).mint(INITIAL_TOKENS);
     }
 

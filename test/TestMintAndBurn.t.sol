@@ -13,6 +13,7 @@ contract TestMintAndBurn is Test {
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
+    address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
     address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
     uint256 constant TEST_MINT_AMOUNT = 100e18;
     uint256 constant TEST_BURN_AMOUNT = 10e18;
@@ -22,7 +23,8 @@ contract TestMintAndBurn is Test {
 
     function setUp() public {
         usx_implementation = new USX();
-        usx_proxy = new ERC1967Proxy(address(usx_implementation),  abi.encodeWithSignature("initialize()"));
+        usx_proxy =
+            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
     }
 
     function test_mint() public {

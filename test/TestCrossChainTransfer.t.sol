@@ -32,7 +32,8 @@ contract TestCrossChainTransfer is Test {
 
     function setUp() public {
         usx_implementation = new USX();
-        usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
+        usx_proxy =
+            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
         mockLayerZeroEndpoint = new MockLayerZeroEndpoint();
         IUSX(address(usx_proxy)).mint(INITIAL_TOKENS);
         IMessagePassing(address(usx_proxy)).setTrustedRemote(TEST_CHAIN_ID, abi.encode(address(this)));
