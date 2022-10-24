@@ -2,8 +2,8 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../src/USX.sol";
-import "../src/proxy/ERC1967Proxy.sol";
+import "../../src/USX.sol";
+import "../../src/proxy/ERC1967Proxy.sol";
 
 contract TestMintAndBurn is Test {
     using stdStorage for StdStorage;

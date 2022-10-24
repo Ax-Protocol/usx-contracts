@@ -2,8 +2,9 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../src/USX.sol";
-import "../src/proxy/ERC1967Proxy.sol";
+import "../../src/USX.sol";
+import "../../src/proxy/ERC1967Proxy.sol";
+import "../interfaces/IUSXTest.t.sol";
 
 contract TestUERC20Functionality is Test {
     using stdStorage for StdStorage;
@@ -74,7 +75,8 @@ contract TestUERC20Functionality is Test {
 
     function testFail_transfer_amount() public {
         // Act
-        IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, INITIAL_TOKENS + 1);
+        uint256 testFailingTransferAmount = IUSX(address(usx_proxy)).balanceOf(address(this)) + 1;
+        IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, testFailingTransferAmount);
     }
 
     function test_transferFrom() public {
@@ -110,5 +112,66 @@ contract TestUERC20Functionality is Test {
         // Act
         vm.prank(TEST_ADDRESS);
         IUSX(address(usx_proxy)).transferFrom(address(this), TEST_ADDRESS, TEST_APPROVAL_AMOUNT + 1);
+    }
+
+    function test_permit() public {
+        // Test Variables
+        address testSpender = 0x2F1E029b0d642b9846Ed45551deCd7e7f07ae98d;
+        address testOwner = vm.addr(1);
+        uint256 testNonce = IUSXTest(address(usx_proxy)).nonces(testOwner);
+        uint256 weekSeconds = 604800;
+        uint256 deadline = block.timestamp + weekSeconds;
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                IUSXTest(address(usx_proxy)).DOMAIN_SEPARATOR(),
+                keccak256(
+                    abi.encode(
+                        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
+                        testOwner,
+                        testSpender,
+                        TEST_APPROVAL_AMOUNT,
+                        testNonce++,
+                        deadline
+                    )
+                )
+            )
+        );
+
+        // Setup
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, messageHash);
+
+        // Expectations
+        vm.expectEmit(true, true, true, true, address(usx_proxy));
+        emit Approval(testOwner, testSpender, TEST_APPROVAL_AMOUNT);
+
+        // Pre-action Assertions
+        assertEq(IUSX(address(usx_proxy)).allowance(testOwner, testSpender), 0);
+
+        // Act
+        vm.prank(testOwner);
+        IUSXTest(address(usx_proxy)).permit(
+            testOwner, testSpender, TEST_APPROVAL_AMOUNT, block.timestamp + weekSeconds, v, r, s
+        );
+
+        // Post-action Assertions
+        assertEq(IUSX(address(usx_proxy)).allowance(testOwner, testSpender), TEST_APPROVAL_AMOUNT);
+    }
+
+    function testFail_permit_wrong_message() public {
+        // Test Variables
+        address testSpender = 0x2F1E029b0d642b9846Ed45551deCd7e7f07ae98d;
+        address testOwner = vm.addr(1);
+        uint256 weekSeconds = 604800;
+        bytes32 messageHash = keccak256("Wrong message.");
+
+        // Setup
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, messageHash);
+
+        // Act
+        vm.prank(testOwner);
+        IUSXTest(address(usx_proxy)).permit(
+            testOwner, testSpender, TEST_APPROVAL_AMOUNT, block.timestamp + weekSeconds, v, r, s
+        );
     }
 }

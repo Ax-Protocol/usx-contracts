@@ -2,11 +2,11 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../src/USX.sol";
-import "../src/proxy/ERC1967Proxy.sol";
-import "../src/interfaces/ILayerZeroEndpoint.sol";
-import "./mocks/MockLayerZeroEndpoint.t.sol";
-import "./interfaces/IMessagePassing.t.sol";
+import "../../src/USX.sol";
+import "../../src/proxy/ERC1967Proxy.sol";
+import "../../src/interfaces/ILayerZeroEndpoint.sol";
+import "../mocks/MockLayerZeroEndpoint.t.sol";
+import "../interfaces/IMessagePassing.t.sol";
 
 contract TestCrossChainTransfer is Test {
     using stdStorage for StdStorage;
@@ -62,6 +62,24 @@ contract TestCrossChainTransfer is Test {
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + TEST_TRANSFER_AMOUNT);
     }
 
+    function testFail_lzReceive_invalid_sender() public {
+        // Act
+        IMessagePassing(address(usx_proxy)).lzReceive(
+            TEST_CHAIN_ID,
+            abi.encode(address(this)),
+            1,
+            abi.encode(abi.encodePacked(address(this)), TEST_TRANSFER_AMOUNT)
+        );
+    }
+
+    function testFail_lzReceive_invalid_source_address() public {
+        // Act
+        vm.prank(LZ_ENDPOINT);
+        IMessagePassing(address(usx_proxy)).lzReceive(
+            TEST_CHAIN_ID, abi.encode(address(0)), 1, abi.encode(abi.encodePacked(address(this)), TEST_TRANSFER_AMOUNT)
+        );
+    }
+
     function test_sendFrom() public {
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
@@ -74,7 +92,6 @@ contract TestCrossChainTransfer is Test {
         // Mocks
         bytes memory mockShaaveChildCode = address(mockLayerZeroEndpoint).code;
         vm.etch(address(LZ_ENDPOINT), mockShaaveChildCode);
-
         vm.mockCall(LZ_ENDPOINT, abi.encodeWithSelector(ILayerZeroEndpoint(LZ_ENDPOINT).send.selector), abi.encode());
 
         // Act
