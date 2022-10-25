@@ -11,4 +11,6 @@ interface IUSXTest is IUSX {
     function nonces(address owner) external returns (uint256);
 
     function DOMAIN_SEPARATOR() external returns (bytes32);
+
+    function upgradeTo(address newImplementation) external;
 }
