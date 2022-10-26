@@ -36,13 +36,17 @@ contract TestCrossChainTransfer is Test {
             new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
         mockLayerZeroEndpoint = new MockLayerZeroEndpoint();
         IUSX(address(usx_proxy)).mint(INITIAL_TOKENS);
-        IMessagePassing(address(usx_proxy)).setTrustedRemote(TEST_CHAIN_ID, abi.encode(address(this)));
+        IMessagePassing(address(usx_proxy)).setTrustedRemote(
+            TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy))
+        );
     }
 
     function test_lzReceive() public {
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
-        emit ReceiveFromChain(TEST_CHAIN_ID, abi.encode(address(this)), address(this), TEST_TRANSFER_AMOUNT);
+        emit ReceiveFromChain(
+            TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy)), address(this), TEST_TRANSFER_AMOUNT
+            );
 
         // Pre-action Assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
@@ -52,7 +56,7 @@ contract TestCrossChainTransfer is Test {
         vm.prank(LZ_ENDPOINT);
         IMessagePassing(address(usx_proxy)).lzReceive(
             TEST_CHAIN_ID,
-            abi.encode(address(this)),
+            abi.encodePacked(address(usx_proxy), address(usx_proxy)),
             1,
             abi.encode(abi.encodePacked(address(this)), TEST_TRANSFER_AMOUNT)
         );
