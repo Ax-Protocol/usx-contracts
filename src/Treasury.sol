@@ -6,8 +6,9 @@ import "./interfaces/IStableSwap3Pool.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/Ownable.sol";
 import "./interfaces/IUSX.sol";
+import "./interfaces/ITreasury.sol";
 
-contract Treasury is Ownable {
+contract Treasury is Ownable, ITreasury {
     struct SupportedStable {
         bool supported;
         int128 curveIndex;
@@ -18,6 +19,10 @@ contract Treasury is Ownable {
     address public stableSwap3PoolAddress;
     address public curveToken;
     mapping(address => SupportedStable) public supportedStables;
+
+    // Events
+    event Mint(address indexed account, uint256 amount);
+    event Redemption(address indexed account, uint256 amount);
 
     function initialize(address _stableSwap3PoolAddress, address _usxToken, address _curveToken) public initializer {
         __Ownable_init();
@@ -53,6 +58,7 @@ contract Treasury is Ownable {
 
         // Mint USX tokens
         IUSX(usxToken).mint(msg.sender, mintAmount);
+        emit Mint(msg.sender, mintAmount);
     }
 
     /**
@@ -77,7 +83,8 @@ contract Treasury is Ownable {
         IERC20(_stable).transfer(msg.sender, redeemAmount);
 
         // Burn USX tokens
-        IUSX(usxToken).burn(msg.sender, redeemAmount);
+        IUSX(usxToken).burn(msg.sender, _amount);
+        emit Redemption(msg.sender, _amount);
     }
 
     function addSupportedStable(address _stable, int128 _curveIndex) public onlyOwner {

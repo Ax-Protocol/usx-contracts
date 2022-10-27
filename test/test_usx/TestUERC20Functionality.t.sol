@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../../src/USX.sol";
 import "../../src/proxy/ERC1967Proxy.sol";
 import "../interfaces/IUSXTest.t.sol";
+import "../common/constants.t.sol";
 
 contract TestUERC20Functionality is Test {
     using stdStorage for StdStorage;
@@ -14,12 +15,7 @@ contract TestUERC20Functionality is Test {
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
-    address constant TREASURY = 0xD6884bfD7f67FF747FBC6334b5718c255235Bc1E;
-    address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
-    uint256 constant INITIAL_TOKENS = 100e18;
     uint256 constant TEST_APPROVAL_AMOUNT = 10e18;
-    address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
-    uint256 constant TEST_TRANSFER_AMOUNT = 20e18;
 
     // Events
     event Approval(address indexed owner, address indexed spender, uint256 amount);
