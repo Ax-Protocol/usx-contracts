@@ -14,6 +14,7 @@ contract TestUERC20Functionality is Test {
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
+    address constant TREASURY = 0xD6884bfD7f67FF747FBC6334b5718c255235Bc1E;
     address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
     uint256 constant INITIAL_TOKENS = 100e18;
     uint256 constant TEST_APPROVAL_AMOUNT = 10e18;
@@ -28,7 +29,13 @@ contract TestUERC20Functionality is Test {
         usx_implementation = new USX();
         usx_proxy =
             new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
-        IUSX(address(usx_proxy)).mint(INITIAL_TOKENS);
+
+        // Set Treasury Admin
+        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
+
+        // Mint Initial Tokens
+        vm.prank(TREASURY);
+        IUSX(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
     }
 
     function test_metadata() public {

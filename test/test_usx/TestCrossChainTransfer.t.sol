@@ -7,6 +7,7 @@ import "../../src/proxy/ERC1967Proxy.sol";
 import "../../src/interfaces/ILayerZeroEndpoint.sol";
 import "../mocks/MockLayerZeroEndpoint.t.sol";
 import "../interfaces/IMessagePassing.t.sol";
+import "../interfaces/IUSXTest.t.sol";
 
 contract TestCrossChainTransfer is Test {
     using stdStorage for StdStorage;
@@ -17,6 +18,7 @@ contract TestCrossChainTransfer is Test {
     MockLayerZeroEndpoint public mockLayerZeroEndpoint;
 
     // Test Constants
+    address constant TREASURY = 0xD6884bfD7f67FF747FBC6334b5718c255235Bc1E;
     address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
     address constant TEST_FROM_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
     address constant TEST_TO_ADDRESS = 0xA72Fb6506f162974dB9B6C702238cfB1Ccc60262;
@@ -31,11 +33,22 @@ contract TestCrossChainTransfer is Test {
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
 
     function setUp() public {
+        // Deploy USX implementation, and link to proxy
         usx_implementation = new USX();
         usx_proxy =
             new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
+
+        // Set Treasury Admin
+        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
+
+        // Mint Initial Tokens
+        vm.prank(TREASURY);
+        IUSX(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
+
+        // Mock LayerZero Endpoint
         mockLayerZeroEndpoint = new MockLayerZeroEndpoint();
-        IUSX(address(usx_proxy)).mint(INITIAL_TOKENS);
+
+        // Set Trusted Remote for LayerZero
         IMessagePassing(address(usx_proxy)).setTrustedRemote(
             TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy))
         );
@@ -94,8 +107,8 @@ contract TestCrossChainTransfer is Test {
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
 
         // Mocks
-        bytes memory mockShaaveChildCode = address(mockLayerZeroEndpoint).code;
-        vm.etch(address(LZ_ENDPOINT), mockShaaveChildCode);
+        bytes memory mockLayerZeroEndpointCode = address(mockLayerZeroEndpoint).code;
+        vm.etch(address(LZ_ENDPOINT), mockLayerZeroEndpointCode);
         vm.mockCall(LZ_ENDPOINT, abi.encodeWithSelector(ILayerZeroEndpoint(LZ_ENDPOINT).send.selector), abi.encode());
 
         // Act

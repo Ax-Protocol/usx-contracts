@@ -13,4 +13,6 @@ interface IUSXTest is IUSX {
     function DOMAIN_SEPARATOR() external returns (bytes32);
 
     function upgradeTo(address newImplementation) external;
+
+    function manageTreasuries(address treasury, bool _mint, bool _burn) external;
 }
