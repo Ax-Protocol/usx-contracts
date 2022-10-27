@@ -8,7 +8,7 @@ import "./IOERC20.sol";
 
 // USX is an cross chain native stablecoin
 interface IUSX is IOERC20 {
-    function mint(uint256 amount) external;
+    function mint(address _account, uint256 _amount) external;
 
-    function burn(uint256 amount) external;
+    function burn(address _account, uint256 _amount) external;
 }
