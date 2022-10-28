@@ -48,6 +48,14 @@ contract TestMintAndBurn is Test {
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT);
     }
 
+    function test_fail_mint_unauthorized() public {
+        // Expectations
+        vm.expectRevert("Unauthorized.");
+
+        // Act
+        IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
+    }
+
     function test_burn() public {
         // Setup
         vm.prank(TREASURY);
@@ -78,5 +86,17 @@ contract TestMintAndBurn is Test {
         // Act
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).burn(address(this), TEST_MINT_AMOUNT + 1);
+    }
+
+    function test_fail_burn_unauthorized() public {
+        // Setup
+        vm.prank(TREASURY);
+        IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
+
+        // Expectations
+        vm.expectRevert("Unauthorized.");
+
+        // Act
+        IUSX(address(usx_proxy)).burn(address(this), TEST_BURN_AMOUNT);
     }
 }

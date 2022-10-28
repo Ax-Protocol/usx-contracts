@@ -140,6 +140,35 @@ contract TestTreasury is Test {
         // Act
         ITreasuryTest(address(treasury_proxy)).redeem(unsupportedStable, TEST_MINT_AMOUNT);
     }
+
+    function testFail_treasury_redeem_amount() public {
+        // Setup
+        vm.prank(address(treasury_proxy));
+        IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
+
+        // Expectations
+        vm.expectEmit(true, true, true, true, address(treasury_proxy));
+        emit Redemption(address(this), TEST_REDEMPTION_AMOUNT);
+
+        // Pre-action Assertions
+        assertEq(IUSX(address(usx_proxy)).totalSupply(), TEST_MINT_AMOUNT);
+        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT);
+
+        // Mock Curve
+        bytes memory mockStableSwap3PoolCode = address(mockStableSwap3Pool).code;
+        vm.etch(address(TEST_STABLE_SWAP_3POOL), mockStableSwap3PoolCode);
+        vm.mockCall(
+            TEST_STABLE_SWAP_3POOL,
+            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).remove_liquidity_one_coin.selector),
+            abi.encode(TEST_REDEMPTION_AMOUNT)
+        );
+
+        // Mock ERC20 transfer
+        vm.mockCall(TEST_WXDAI, abi.encodeWithSelector(IERC20(TEST_WXDAI).transfer.selector), abi.encode(true));
+
+        // Act
+        ITreasuryTest(address(treasury_proxy)).redeem(TEST_WXDAI, TEST_MINT_AMOUNT + 1);
+    }
 }
 
 contract TestTreasureAdmin is Test {
