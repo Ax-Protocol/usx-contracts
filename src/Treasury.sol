@@ -3,12 +3,13 @@
 pragma solidity ^0.8.16;
 
 import "./interfaces/IStableSwap3Pool.sol";
+import "./proxy/UUPSUpgradeable.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/Ownable.sol";
 import "./interfaces/IUSX.sol";
 import "./interfaces/ITreasury.sol";
 
-contract Treasury is Ownable, ITreasury {
+contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     struct SupportedStable {
         bool supported;
         int128 curveIndex;
@@ -30,6 +31,9 @@ contract Treasury is Ownable, ITreasury {
         curveToken = _curveToken;
         usxToken = _usxToken;
     }
+
+    // @dev required by the UUPS module
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     /**
      * @dev This function deposits any one of the supported stable coins to Curve, such that it
@@ -94,4 +98,10 @@ contract Treasury is Ownable, ITreasury {
     function removeSupportedStable(address _stable) public onlyOwner {
         delete supportedStables[_stable];
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     */
+    uint256[50] private __gap;
 }
