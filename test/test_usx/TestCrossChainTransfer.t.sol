@@ -162,4 +162,48 @@ contract TestCrossChainTransfer is Test {
             bytes("")
         );
     }
+
+    function test_fail_sendFrom_paused() public {
+        // Setup
+        IUSXTest(address(usx_proxy)).manageCrossChainTransfers(true);
+
+        // Expectations
+        vm.expectRevert(IUSXTest(address(usx_proxy)).Paused.selector);
+
+        // Mocks
+        bytes memory mockLayerZeroEndpointCode = address(mockLayerZeroEndpoint).code;
+        vm.etch(address(LZ_ENDPOINT), mockLayerZeroEndpointCode);
+        vm.mockCall(LZ_ENDPOINT, abi.encodeWithSelector(ILayerZeroEndpoint(LZ_ENDPOINT).send.selector), abi.encode());
+
+        // Act
+        IUSX(address(usx_proxy)).sendFrom(
+            address(this),
+            TEST_CHAIN_ID,
+            abi.encode(address(this)),
+            TEST_TRANSFER_AMOUNT,
+            payable(address(this)),
+            address(0),
+            bytes("")
+        );
+    }
+
+    function test_manageCrossChainTransfers() public {
+        // Pre-action assertions
+        assertEq(IUSXTest(address(usx_proxy)).paused(), false);
+
+        // Act
+        IUSXTest(address(usx_proxy)).manageCrossChainTransfers(true);
+
+        // Post-action assertions
+        assertEq(IUSXTest(address(usx_proxy)).paused(), true);
+    }
+
+    function test_fail_manageCrossChainTransfers_sender() public {
+        // Expectations
+        vm.expectRevert("Ownable: caller is not the owner");
+
+        // Act
+        vm.prank(TEST_ADDRESS);
+        IUSXTest(address(usx_proxy)).manageCrossChainTransfers(true);
+    }
 }
