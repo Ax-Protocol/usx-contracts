@@ -9,13 +9,6 @@ import "./bridging/OERC20.sol";
 import "./interfaces/IUSX.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
-    struct Privileges {
-        bool mint;
-        bool burn;
-    }
-
-    mapping(address => Privileges) public treasuries;
-
     function initialize(address _lzEndpoint) public initializer {
         __ERC20_init("USX", "USX");
         __OERC20_init(_lzEndpoint);
@@ -33,10 +26,6 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     function burn(address _account, uint256 _amount) public {
         require(treasuries[msg.sender].burn, "Unauthorized.");
         _burn(_account, _amount);
-    }
-
-    function manageTreasuries(address treasury, bool _mint, bool _burn) public onlyOwner {
-        treasuries[treasury] = Privileges(_mint, _burn);
     }
 
     /**

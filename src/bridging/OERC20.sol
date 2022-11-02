@@ -6,13 +6,16 @@ import "./NonBlockingLzApp.sol";
 import "../interfaces/IOERC20.sol";
 import "../introspection/ERC165.sol";
 import "../token/UERC20.sol";
+import "../admin/Privileged.sol";
 
-abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
+abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20, Privileged {
     uint256 public constant NO_EXTRA_GAS = 0;
     uint256 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
+
+    error Paused();
 
     function __OERC20_init(address _lzEndpoint) internal initializer {
         __OERC20_init_unchained(_lzEndpoint);
@@ -43,6 +46,9 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20 {
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) public payable virtual override {
+        if (paused) {
+            revert Paused();
+        }
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
