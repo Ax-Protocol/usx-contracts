@@ -7,9 +7,7 @@ import "../../src/proxy/ERC1967Proxy.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../common/constants.t.sol";
 
-contract TestUERC20Functionality is Test {
-    using stdStorage for StdStorage;
-
+contract TestUERC20 is Test {
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;

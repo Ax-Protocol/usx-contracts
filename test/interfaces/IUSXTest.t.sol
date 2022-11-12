@@ -16,6 +16,8 @@ interface IUSXTest is IUSX {
 
     function manageTreasuries(address _treasury, bool _mint, bool _burn) external;
 
+    function treasuries(address _treasury) external returns (bool mint, bool burn);
+
     function manageCrossChainTransfers(bool _paused) external;
 
     function paused() external returns (bool);
