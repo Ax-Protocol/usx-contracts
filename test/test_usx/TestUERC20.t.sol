@@ -5,20 +5,15 @@ import "forge-std/Test.sol";
 import "../../src/USX.sol";
 import "../../src/proxy/ERC1967Proxy.sol";
 import "../interfaces/IUSXTest.t.sol";
+import "../common/constants.t.sol";
 
-contract TestUERC20Functionality is Test {
-    using stdStorage for StdStorage;
-
+contract TestUERC20 is Test {
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
-    address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
-    uint256 constant INITIAL_TOKENS = 100e18;
     uint256 constant TEST_APPROVAL_AMOUNT = 10e18;
-    address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
-    uint256 constant TEST_TRANSFER_AMOUNT = 20e18;
 
     // Events
     event Approval(address indexed owner, address indexed spender, uint256 amount);
@@ -28,7 +23,13 @@ contract TestUERC20Functionality is Test {
         usx_implementation = new USX();
         usx_proxy =
             new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
-        IUSX(address(usx_proxy)).mint(INITIAL_TOKENS);
+
+        // Set Treasury Admin
+        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
+
+        // Mint Initial Tokens
+        vm.prank(TREASURY);
+        IUSX(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
     }
 
     function test_metadata() public {

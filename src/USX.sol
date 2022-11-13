@@ -18,15 +18,14 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     // @dev required by the UUPS module
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
-    // TODO: mint and burn will be revised to account for curve LP token interaction
-    function mint(uint256 amount) public {
-        require(amount > 0, "Mint amount must be greater than zero.");
-        _mint(msg.sender, amount);
+    function mint(address _account, uint256 _amount) public {
+        require(treasuries[msg.sender].mint, "Unauthorized.");
+        _mint(_account, _amount);
     }
 
-    function burn(uint256 amount) public {
-        require(balanceOf[msg.sender] >= amount, "Burn amount exceeds balance.");
-        _burn(msg.sender, amount);
+    function burn(address _account, uint256 _amount) public {
+        require(treasuries[msg.sender].burn, "Unauthorized.");
+        _burn(_account, _amount);
     }
 
     /**
