@@ -59,11 +59,12 @@ abstract contract SharedSetup is Test {
 }
 
 contract TestChainTransfers is Test, SharedSetup {
-    function test_lzReceive() public {
+    function test_lzReceive(uint256 transferAmount) public {
+        vm.assume(transferAmount <= INITIAL_TOKENS);
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit ReceiveFromChain(
-            TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy)), address(this), TEST_TRANSFER_AMOUNT
+            TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy)), address(this), transferAmount
             );
 
         // Pre-action Assertions
@@ -76,12 +77,12 @@ contract TestChainTransfers is Test, SharedSetup {
             TEST_CHAIN_ID,
             abi.encodePacked(address(usx_proxy), address(usx_proxy)),
             1,
-            abi.encode(abi.encodePacked(address(this)), TEST_TRANSFER_AMOUNT)
+            abi.encode(abi.encodePacked(address(this)), transferAmount)
         );
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + TEST_TRANSFER_AMOUNT);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + TEST_TRANSFER_AMOUNT);
+        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
+        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + transferAmount);
     }
 
     function testFail_lzReceive_invalid_sender() public {
@@ -102,10 +103,12 @@ contract TestChainTransfers is Test, SharedSetup {
         );
     }
 
-    function test_sendFrom() public {
+    function test_sendFrom(uint256 transferAmount) public {
+        vm.assume(transferAmount <= INITIAL_TOKENS);
+
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
-        emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), TEST_TRANSFER_AMOUNT);
+        emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
         // Pre-action Assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
@@ -116,15 +119,15 @@ contract TestChainTransfers is Test, SharedSetup {
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
-            TEST_TRANSFER_AMOUNT,
+            transferAmount,
             payable(address(this)),
             address(0),
             bytes("")
         );
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS - TEST_TRANSFER_AMOUNT);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - TEST_TRANSFER_AMOUNT);
+        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS - transferAmount);
+        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - transferAmount);
     }
 
     function testFail_sendFrom_amount() public {
@@ -220,20 +223,21 @@ contract TestPause is Test, SharedSetup {
      * @dev Integration tests.
      */
 
-    function test_pause_integration() public {
+    function test_pause_integration(uint256 transferAmount) public {
+        vm.assume(transferAmount <= (50 * INITIAL_TOKENS) / 100); // Divide by two
         // Test Variables
-        uint256 BALANCE_AFTER_FIRST_TRANSFER = INITIAL_TOKENS - TEST_TRANSFER_AMOUNT;
-        uint256 BALANCE_AFTER_SECOND_TRANSFER = BALANCE_AFTER_FIRST_TRANSFER - TEST_TRANSFER_AMOUNT;
+        uint256 BALANCE_AFTER_FIRST_TRANSFER = INITIAL_TOKENS - transferAmount;
+        uint256 BALANCE_AFTER_SECOND_TRANSFER = BALANCE_AFTER_FIRST_TRANSFER - transferAmount;
 
         // 1. Ensure cross-chain transfers work
         vm.expectEmit(true, true, true, true, address(usx_proxy));
-        emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), TEST_TRANSFER_AMOUNT);
+        emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
         IUSX(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
-            TEST_TRANSFER_AMOUNT,
+            transferAmount,
             payable(address(this)),
             address(0),
             bytes("")
@@ -252,7 +256,7 @@ contract TestPause is Test, SharedSetup {
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
-            TEST_TRANSFER_AMOUNT,
+            transferAmount,
             payable(address(this)),
             address(0),
             bytes("")
@@ -263,13 +267,13 @@ contract TestPause is Test, SharedSetup {
 
         // 5. Ensure cross-chain transfers work again
         vm.expectEmit(true, true, true, true, address(usx_proxy));
-        emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), TEST_TRANSFER_AMOUNT);
+        emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
         IUSX(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
-            TEST_TRANSFER_AMOUNT,
+            transferAmount,
             payable(address(this)),
             address(0),
             bytes("")
