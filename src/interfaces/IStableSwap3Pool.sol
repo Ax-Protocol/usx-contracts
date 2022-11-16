@@ -9,5 +9,6 @@ interface IStableSwap3Pool {
     function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount)
         external
         returns (uint256);
+    function get_virtual_price() external returns (uint256);
     function coins(uint256 i) external returns (address);
 }
