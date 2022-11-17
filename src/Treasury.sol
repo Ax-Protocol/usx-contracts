@@ -20,21 +20,22 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     address public stableSwap3PoolAddress;
     address public curveToken;
     mapping(address => SupportedStable) public supportedStables;
-    uint previousLpTokenPrice;
+    uint256 public previousLpTokenPrice;
 
     // Events
-    event Mint(address indexed account, uint amount);
-    event Redemption(address indexed account, uint amount);
+    event Mint(address indexed account, uint256 amount);
+    event Redemption(address indexed account, uint256 amount);
 
     function initialize(address _stableSwap3PoolAddress, address _usxToken, address _curveToken) public initializer {
-        __Ownable_init();    /// @dev No constructor, so initialize Ownable explicitly.
+        __Ownable_init();
+        /// @dev No constructor, so initialize Ownable explicitly.
         stableSwap3PoolAddress = _stableSwap3PoolAddress;
         curveToken = _curveToken;
         usxToken = _usxToken;
     }
 
-    
-    function _authorizeUpgrade(address) internal override onlyOwner {}    /// @dev Required by the UUPS module.
+    /// @dev Required by the UUPS module.
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     /**
      * @dev This function deposits any one of the supported stable coins to Curve,
@@ -43,26 +44,31 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _stable The address of the input token used to mint USX.
      * @param _amount The amount of the input token used to mint USX.
      */
-    function mint(address _stable, uint _amount) public {
+    function mint(address _stable, uint256 _amount) public {
         require(supportedStables[_stable].supported || _stable == curveToken, "Unsupported stable.");
 
         // Obtain user's input tokens
         IERC20(_stable).transferFrom(msg.sender, address(this), _amount);
 
-        uint lpTokens;
+        uint256 lpTokens;
         if (_stable != curveToken) {
+            // Obtain contract's LP token balance before adding liquidity
+            uint256 preBalance = IERC20(curveToken).balanceOf(address(this));
+
             // Add liquidity to Curve
             IERC20(_stable).approve(stableSwap3PoolAddress, _amount);
-            
-            uint[3] memory amounts;
-            amounts[uint(uint128(supportedStables[_stable].curveIndex))] = _amount;
-            lpTokens = IStableSwap3Pool(stableSwap3PoolAddress).add_liquidity(amounts, 0);
+            uint256[3] memory amounts;
+            amounts[uint256(uint128(supportedStables[_stable].curveIndex))] = _amount;
+            IStableSwap3Pool(stableSwap3PoolAddress).add_liquidity(amounts, 0);
+
+            // Calculate the amount of LP tokens received from adding liquidity
+            lpTokens = IERC20(curveToken).balanceOf(address(this)) - preBalance;
         } else {
             lpTokens = _amount;
         }
 
         // Obtain current LP token virtual price (3CRV:USX conversion factor)
-        uint lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
+        uint256 lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
 
         // Don't allow LP token price to decrease
         if (lpTokenPrice < previousLpTokenPrice) {
@@ -72,7 +78,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         }
 
         // Mint USX tokens
-        uint mintAmount = (lpTokens * lpTokenPrice) / 1e18;
+        uint256 mintAmount = (lpTokens * lpTokenPrice) / 1e18;
         IUSX(usxToken).mint(msg.sender, mintAmount);
         emit Mint(msg.sender, mintAmount);
     }
@@ -83,11 +89,11 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _stable The address of the token to withdraw.
      * @param _amount The amount of USX tokens to burn upon redemption.
      */
-    function redeem(address _stable, uint _amount) public {
+    function redeem(address _stable, uint256 _amount) public {
         require(supportedStables[_stable].supported || _stable == curveToken, "Unsupported stable.");
 
         // Obtain current LP token virtual price (3CRV:USX conversion factor)
-        uint lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
+        uint256 lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
 
         // Don't allow LP token price to decrease
         if (lpTokenPrice < previousLpTokenPrice) {
@@ -96,15 +102,21 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
             previousLpTokenPrice = lpTokenPrice;
         }
 
-        uint conversionFactor = (1e18 * 1e18 / lpTokenPrice);
-        uint lpTokens = (_amount * conversionFactor) / 1e18;
+        uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
+        uint256 lpTokens = (_amount * conversionFactor) / 1e18;
 
-        uint redeemAmount;
+        uint256 redeemAmount;
         if (_stable != curveToken) {
+            // Obtain contract's withdraw token balance before adding removing liquidity
+            uint256 preBalance = IERC20(_stable).balanceOf(address(this));
+
             // Remove liquidity from Curve
-            redeemAmount = IStableSwap3Pool(stableSwap3PoolAddress).remove_liquidity_one_coin(
+            IStableSwap3Pool(stableSwap3PoolAddress).remove_liquidity_one_coin(
                 lpTokens, supportedStables[_stable].curveIndex, 0
             );
+
+            // Calculate the amount of stablecoin received from removing liquidity
+            redeemAmount = IERC20(_stable).balanceOf(address(this)) - preBalance;
         } else {
             redeemAmount = lpTokens;
         }
@@ -131,5 +143,5 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * Storage slot management is necessary, as we're using an upgradable proxy contract.
      * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint[50] private __gap;
+    uint256[50] private __gap;
 }

@@ -84,6 +84,12 @@ contract TestTreasury is Test, SharedSetup {
             abi.encode(TEST_MINT_AMOUNT)
         );
 
+        // vm.mockCall(
+        //     TEST_STABLE_SWAP_3POOL,
+        //     abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+        //     abi.encode()
+        // );
+
         // Act
         ITreasuryTest(address(treasury_proxy)).mint(TEST_USDC, TEST_MINT_AMOUNT);
 

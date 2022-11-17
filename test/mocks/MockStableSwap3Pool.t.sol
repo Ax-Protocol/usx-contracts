@@ -12,4 +12,8 @@ contract MockStableSwap3Pool {
     function remove_liquidity_one_coin() external pure returns (uint256) {
         return TEST_REDEMPTION_AMOUNT;
     }
+
+    function get_virtual_price() external pure returns (uint256) {
+        return TEST_3CRV_VIRTUAL_PRICE;
+    }
 }

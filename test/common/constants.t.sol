@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 // uints
 uint256 constant TEST_MINT_AMOUNT = 100e18;
 uint256 constant TEST_REDEMPTION_AMOUNT = 20e18;
+uint256 constant TEST_3CRV_VIRTUAL_PRICE = 1022584408075248173;
 
 // addresses
 address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;

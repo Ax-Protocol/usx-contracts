@@ -12,10 +12,12 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     function initialize(address _lzEndpoint) public initializer {
         __ERC20_init("USX", "USX");
         __OERC20_init(_lzEndpoint);
-        __Ownable_init();      /// @dev No constructor, so initialize Ownable explicitly.
+        __Ownable_init();
+        /// @dev No constructor, so initialize Ownable explicitly.
     }
 
-    function _authorizeUpgrade(address) internal override onlyOwner {}    /// @dev Required by the UUPS module.
+    /// @dev Required by the UUPS module.
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     function mint(address _account, uint256 _amount) public {
         require(treasuries[msg.sender].mint, "Unauthorized.");
