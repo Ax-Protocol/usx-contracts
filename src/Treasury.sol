@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.16;
 
+import "solmate/utils/SafeTransferLib.sol";
 import "./interfaces/IStableSwap3Pool.sol";
 import "./proxy/UUPSUpgradeable.sol";
 import "./interfaces/IERC20.sol";
@@ -48,7 +48,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(supportedStables[_stable].supported || _stable == curveToken, "Unsupported stable.");
 
         // Obtain user's input tokens
-        IERC20(_stable).transferFrom(msg.sender, address(this), _amount);
+        SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
 
         uint256 lpTokens;
         if (_stable != curveToken) {
@@ -56,7 +56,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
             uint256 preBalance = IERC20(curveToken).balanceOf(address(this));
 
             // Add liquidity to Curve
-            IERC20(_stable).approve(stableSwap3PoolAddress, _amount);
+            SafeTransferLib.safeApprove(ERC20(_stable), stableSwap3PoolAddress, _amount);
             uint256[3] memory amounts;
             amounts[uint256(uint128(supportedStables[_stable].curveIndex))] = _amount;
             IStableSwap3Pool(stableSwap3PoolAddress).add_liquidity(amounts, 0);
@@ -122,7 +122,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         }
 
         // Transfer desired redemption tokens to user
-        IERC20(_stable).transfer(msg.sender, redeemAmount);
+        SafeTransferLib.safeTransfer(ERC20(_stable), msg.sender, redeemAmount);
 
         // Burn USX tokens
         IUSX(usxToken).burn(msg.sender, _amount);
