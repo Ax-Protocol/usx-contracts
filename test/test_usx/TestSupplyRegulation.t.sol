@@ -8,17 +8,9 @@ import "../interfaces/IUSXTest.t.sol";
 import "../common/constants.t.sol";
 
 abstract contract SharedSetup is Test {
-    /**
-     *
-     * @dev Other test contracts can use this set up by inheriting this abstract contract.
-     */
-
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;
-
-    // Test Constants
-    uint256 constant TEST_BURN_AMOUNT = 10e18;
 
     // Events
     event Transfer(address indexed from, address indexed to, uint256 amount);
