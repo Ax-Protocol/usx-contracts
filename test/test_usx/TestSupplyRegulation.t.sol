@@ -26,11 +26,14 @@ abstract contract SharedSetup is Test {
     }
 }
 
-contract TestMint is Test, SharedSetup {
-    function test_mint() public {
+contract TestMintUSX is Test, SharedSetup {
+    function test_mint(uint256 mintAmount) public {
+        // Assumptions
+        vm.assume(mintAmount < 1e11);
+
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
-        emit Transfer(address(0), address(this), TEST_MINT_AMOUNT);
+        emit Transfer(address(0), address(this), mintAmount);
 
         // Pre-action Assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), 0);
@@ -38,24 +41,28 @@ contract TestMint is Test, SharedSetup {
 
         // Act
         vm.prank(TREASURY);
-        IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
+        IUSX(address(usx_proxy)).mint(address(this), mintAmount);
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), TEST_MINT_AMOUNT);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT);
+        assertEq(IUSX(address(usx_proxy)).totalSupply(), mintAmount);
+        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), mintAmount);
     }
 
-    function test_fail_mint_unauthorized() public {
+    function test_fail_mint_unauthorized(uint256 mintAmount) public {
+        // Assumptions
+        vm.assume(mintAmount < 1e11);
+
         // Expectations
         vm.expectRevert("Unauthorized.");
 
         // Act
-        IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
+        IUSX(address(usx_proxy)).mint(address(this), mintAmount);
     }
 }
 
-contract TestBurn is Test, SharedSetup {
+contract TestBurnUSX is Test, SharedSetup {
     function test_burn(uint256 testBurnAmount) public {
+        // Assumptions
         vm.assume(testBurnAmount <= TEST_MINT_AMOUNT);
 
         // Setup
@@ -80,7 +87,9 @@ contract TestBurn is Test, SharedSetup {
     }
 
     function testFail_burn_amount(uint256 testInvalidBurnAmount) public {
+        // Assumptions
         vm.assume(testInvalidBurnAmount > TEST_MINT_AMOUNT);
+
         // Setup
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
@@ -90,7 +99,10 @@ contract TestBurn is Test, SharedSetup {
         IUSX(address(usx_proxy)).burn(address(this), testInvalidBurnAmount);
     }
 
-    function test_fail_burn_unauthorized() public {
+    function test_fail_burn_unauthorized(uint256 testBurnAmount) public {
+        // Assumptions
+        vm.assume(testBurnAmount <= TEST_MINT_AMOUNT);
+
         // Setup
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
@@ -99,11 +111,11 @@ contract TestBurn is Test, SharedSetup {
         vm.expectRevert("Unauthorized.");
 
         // Act
-        IUSX(address(usx_proxy)).burn(address(this), TEST_BURN_AMOUNT);
+        IUSX(address(usx_proxy)).burn(address(this), testBurnAmount);
     }
 }
 
-contract TestAdmin is Test, SharedSetup {
+contract TestAdminUSX is Test, SharedSetup {
     function testManageTreasuries() public {
         // Pre-action assertions
         (bool mint, bool burn) = IUSXTest(address(usx_proxy)).treasuries(TREASURY);
@@ -137,11 +149,8 @@ contract TestAdmin is Test, SharedSetup {
     }
 }
 
-contract TestTreasuries is Test, SharedSetup {
-    /**
-     *
-     * @dev Integration tests.
-     */
+contract TestTreasuriesUSX is Test, SharedSetup {
+    /// @dev Integration tests.
 
     function test_manageTreasuries_mint_integration() public {
         // Test Variables

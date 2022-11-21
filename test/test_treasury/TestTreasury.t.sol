@@ -14,7 +14,6 @@ import "../mocks/MockStableSwap3Pool.t.sol";
 import "../mocks/MockERC20.t.sol";
 import "../common/constants.t.sol";
 
-
 abstract contract SharedSetup is Test {
     // Test Contracts
     Treasury public treasury_implementation;

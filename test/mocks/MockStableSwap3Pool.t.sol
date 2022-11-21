@@ -4,8 +4,6 @@ pragma solidity ^0.8.16;
 
 import "../common/constants.t.sol";
 
-import "forge-std/console.sol";
-
 contract MockStableSwap3Pool {
     uint256 constant AMPLIFIER = 1e6;
     uint256 public counter;

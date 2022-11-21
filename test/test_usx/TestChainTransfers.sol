@@ -5,17 +5,11 @@ import "forge-std/Test.sol";
 import "../../src/USX.sol";
 import "../../src/proxy/ERC1967Proxy.sol";
 import "../../src/interfaces/ILayerZeroEndpoint.sol";
-import "../mocks/MockLayerZeroEndpoint.t.sol";
-import "../interfaces/IMessagePassing.t.sol";
 import "../interfaces/IUSXTest.t.sol";
+import "../mocks/MockLayerZeroEndpoint.t.sol";
 import "../common/constants.t.sol";
 
 abstract contract SharedSetup is Test {
-    /**
-     *
-     * @dev Other test contracts can use this set up by inheriting this abstract contract.
-     */
-
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;
@@ -43,16 +37,15 @@ abstract contract SharedSetup is Test {
 
         // Mint Initial Tokens
         vm.prank(TREASURY);
-        IUSX(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
+        IUSXTest(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
 
         // Mocks
         mockLayerZeroEndpoint = new MockLayerZeroEndpoint();
         bytes memory mockLayerZeroEndpointCode = address(mockLayerZeroEndpoint).code;
-        vm.etch(address(LZ_ENDPOINT), mockLayerZeroEndpointCode);
-        vm.mockCall(LZ_ENDPOINT, abi.encodeWithSelector(ILayerZeroEndpoint(LZ_ENDPOINT).send.selector), abi.encode());
+        vm.etch(LZ_ENDPOINT, mockLayerZeroEndpointCode);
 
         // Set Trusted Remote for LayerZero
-        IMessagePassing(address(usx_proxy)).setTrustedRemote(
+        IUSXTest(address(usx_proxy)).setTrustedRemote(
             TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy))
         );
     }
@@ -68,12 +61,12 @@ contract TestChainTransfers is Test, SharedSetup {
             );
 
         // Pre-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
+        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
+        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
 
         // Act
         vm.prank(LZ_ENDPOINT);
-        IMessagePassing(address(usx_proxy)).lzReceive(
+        IUSXTest(address(usx_proxy)).lzReceive(
             TEST_CHAIN_ID,
             abi.encodePacked(address(usx_proxy), address(usx_proxy)),
             1,
@@ -81,13 +74,13 @@ contract TestChainTransfers is Test, SharedSetup {
         );
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + transferAmount);
+        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
+        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + transferAmount);
     }
 
     function testFail_lzReceive_invalid_sender() public {
         // Act
-        IMessagePassing(address(usx_proxy)).lzReceive(
+        IUSXTest(address(usx_proxy)).lzReceive(
             TEST_CHAIN_ID,
             abi.encode(address(this)),
             1,
@@ -98,12 +91,13 @@ contract TestChainTransfers is Test, SharedSetup {
     function testFail_lzReceive_invalid_source_address() public {
         // Act
         vm.prank(LZ_ENDPOINT);
-        IMessagePassing(address(usx_proxy)).lzReceive(
+        IUSXTest(address(usx_proxy)).lzReceive(
             TEST_CHAIN_ID, abi.encode(address(0)), 1, abi.encode(abi.encodePacked(address(this)), TEST_TRANSFER_AMOUNT)
         );
     }
 
     function test_sendFrom(uint256 transferAmount) public {
+        // Setup
         vm.assume(transferAmount <= INITIAL_TOKENS);
 
         // Expectations
@@ -111,11 +105,11 @@ contract TestChainTransfers is Test, SharedSetup {
         emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
         // Pre-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
+        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
+        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
 
         // Act
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -126,13 +120,13 @@ contract TestChainTransfers is Test, SharedSetup {
         );
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS - transferAmount);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - transferAmount);
+        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS - transferAmount);
+        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - transferAmount);
     }
 
     function testFail_sendFrom_amount() public {
         // Act
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -145,7 +139,7 @@ contract TestChainTransfers is Test, SharedSetup {
 
     function testFail_sendFrom_from_address() public {
         // Act
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(0),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -164,7 +158,7 @@ contract TestChainTransfers is Test, SharedSetup {
         vm.expectRevert(IUSXTest(address(usx_proxy)).Paused.selector);
 
         // Act
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -218,10 +212,7 @@ contract TestAdmin is Test, SharedSetup {
 }
 
 contract TestPause is Test, SharedSetup {
-    /**
-     *
-     * @dev Integration tests.
-     */
+    /// @dev Integration tests.
 
     function test_pause_integration(uint256 transferAmount) public {
         vm.assume(transferAmount <= (50 * INITIAL_TOKENS) / 100); // Divide by two
@@ -233,7 +224,7 @@ contract TestPause is Test, SharedSetup {
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -243,8 +234,8 @@ contract TestPause is Test, SharedSetup {
             bytes("")
         );
 
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_TRANSFER);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_TRANSFER);
+        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_TRANSFER);
+        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_TRANSFER);
 
         // 2. Pause
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(true);
@@ -252,7 +243,7 @@ contract TestPause is Test, SharedSetup {
         // 3. Ensure cross-chain transfers are disabled
         vm.expectRevert(IUSXTest(address(usx_proxy)).Paused.selector);
 
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -269,7 +260,7 @@ contract TestPause is Test, SharedSetup {
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
-        IUSX(address(usx_proxy)).sendFrom(
+        IUSXTest(address(usx_proxy)).sendFrom(
             address(this),
             TEST_CHAIN_ID,
             abi.encode(address(this)),
@@ -279,7 +270,7 @@ contract TestPause is Test, SharedSetup {
             bytes("")
         );
 
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
     }
 }
