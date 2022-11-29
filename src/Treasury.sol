@@ -107,7 +107,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
         uint256 redeemAmount;
         if (_stable != curveToken) {
-            // Obtain contract's withdraw token balance before adding removing liquidity
+            // Obtain contract's withdrawal token balance before removing liquidity
             uint256 preBalance = IERC20(_stable).balanceOf(address(this));
 
             // Remove liquidity from Curve
@@ -121,7 +121,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
             redeemAmount = lpTokens;
         }
 
-        // Transfer desired redemption tokens to user
+        // Transfer desired withdrawal tokens to user
         SafeTransferLib.safeTransfer(ERC20(_stable), msg.sender, redeemAmount);
 
         // Burn USX tokens
@@ -129,10 +129,27 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         emit Redemption(msg.sender, _amount);
     }
 
+    /**
+     *
+     *
+     *  Admin functions
+     *
+     *
+     */
+
+    /**
+     * @dev This function allows contract admins to add supported stablecoins.
+     * @param _stable The address of stablecoin to add.
+     * @param _curveIndex The stablecoin's Curve-assigned index.
+     */
     function addSupportedStable(address _stable, int128 _curveIndex) public onlyOwner {
         supportedStables[_stable] = SupportedStable(true, _curveIndex);
     }
 
+    /**
+     * @dev This function allows contract admins to remove supported stablecoins.
+     * @param _stable The address of stablecoin to remove.
+     */
     function removeSupportedStable(address _stable) public onlyOwner {
         delete supportedStables[_stable];
     }
