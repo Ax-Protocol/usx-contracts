@@ -129,13 +129,11 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         emit Redemption(msg.sender, _amount);
     }
 
-    /**
-     *
-     *
-     *  Admin functions
-     *
-     *
-     */
+    /* ****************************************************************************
+    **
+    **  Admin Functions
+    **
+    ******************************************************************************/
 
     /**
      * @dev This function allows contract admins to add supported stablecoins.
