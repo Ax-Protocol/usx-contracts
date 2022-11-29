@@ -3,7 +3,12 @@
 pragma solidity ^0.8.16;
 
 contract MockLayerZeroEndpoint {
-    function send() public pure returns (bool) {
-        return true;
-    }
+    function send(
+        uint16 _dstChainId,
+        bytes calldata _destination,
+        bytes calldata _payload,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParams
+    ) public pure {}
 }

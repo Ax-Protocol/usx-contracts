@@ -10,4 +10,6 @@ interface ITreasuryTest is ITreasury {
     function removeSupportedStable(address _stable) external;
 
     function supportedStables(address _stable) external returns (bool, int128);
+
+    function previousLpTokenPrice() external returns (uint256);
 }

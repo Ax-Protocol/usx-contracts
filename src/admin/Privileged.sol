@@ -24,7 +24,9 @@ abstract contract Privileged is Ownable {
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
+     * variables without shifting down storage slots in the inheritance chain.
+     * Storage slot management is necessary, as we're using an upgradable proxy contract.
+     * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[50] private __gap;
 }

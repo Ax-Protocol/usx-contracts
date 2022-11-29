@@ -12,10 +12,11 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     function initialize(address _lzEndpoint) public initializer {
         __ERC20_init("USX", "USX");
         __OERC20_init(_lzEndpoint);
-        __Ownable_init(); // @dev as there is no constructor, we need to initialise the Ownable explicitly
+        __Ownable_init();
+        /// @dev No constructor, so initialize Ownable explicitly.
     }
 
-    // @dev required by the UUPS module
+    /// @dev Required by the UUPS module.
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     function mint(address _account, uint256 _amount) public {
@@ -30,7 +31,9 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
+     * variables without shifting down storage slots in the inheritance chain.
+     * Storage slot management is necessary, as we're using an upgradable proxy contract.
+     * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[50] private __gap;
 }
