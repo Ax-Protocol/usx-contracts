@@ -2,103 +2,66 @@
 
 pragma solidity >=0.8.0;
 
-import "./NonBlockingLzApp.sol";
+import "./layer_zero/LayerZero.sol";
 import "../interfaces/IOERC20.sol";
 import "../introspection/ERC165.sol";
 import "../token/UERC20.sol";
 import "../admin/Privileged.sol";
 
-abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20, Privileged {
-    uint256 public constant NO_EXTRA_GAS = 0;
-    uint256 public constant FUNCTION_TYPE_SEND = 1;
-    bool public useCustomAdapterParams;
 
-    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    error Paused();
+abstract contract OERC20 is IOERC20, LayerZero, ERC165, UERC20, Privileged {
 
-    function __OERC20_init(address _lzEndpoint) internal initializer {
-        __OERC20_init_unchained(_lzEndpoint);
-    }
-
-    function __OERC20_init_unchained(address _lzEndpoint) internal initializer {
-        __NonBlockingLzApp_init_unchained(_lzEndpoint);
-    }
-
-    function estimateSendFee(
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _amount,
-        bool _useZro,
-        bytes memory _adapterParams
-    ) public view virtual override returns (uint256 nativeFee, uint256 zroFee) {
-        // mock the payload for send()
-        bytes memory payload = abi.encode(_toAddress, _amount);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
-    }
-
+    enum BridgingProtocols { WORMHOLE, LAYER_ZERO }
+    
+    // NOTE: clean
     function sendFrom(
+        uint8 _bridgeId,
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,
         uint256 _amount,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes memory _adapterParams
+        address payable _refundAddress
     ) public payable virtual override {
         if (paused) {
             revert Paused();
         }
-        _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
+
+        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        
+        if (_bridgeId == uint8(BridgingProtocols.WORMHOLE)) {
+            // Send using Wormhole
+        } else if (_bridgeId == uint8(BridgingProtocols.LAYER_ZERO)) {
+            _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, address(0), bytes(""));
+        }
+
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
 
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64, /*_nonce*/
-        bytes memory _payload
-    ) internal virtual override {
-        // decode and load the toAddress
-        (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
+    // NOTE: clean
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
+        return interfaceId == type(IOERC20).interfaceId || interfaceId == type(IERC20).interfaceId
+            || super.supportsInterface(interfaceId);
+    }
 
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
+    // NOTE: clean
+    function circulatingSupply() public view virtual override returns (uint256) {
+        return totalSupply;
+    }
+
+
+    // NOTE: clean
+    function receiveMessage(uint16 _srcChainId, bytes memory _srcAddress, address toAddress, uint256 amount) internal override {
 
         _creditTo(_srcChainId, toAddress, amount);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
     }
-
-    function _send(
-        address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _amount,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes memory _adapterParams
-    ) internal virtual {
-        _debitFrom(_from, _dstChainId, _toAddress, _amount);
-
-        bytes memory payload = abi.encode(_toAddress, _amount);
-        if (useCustomAdapterParams) {
-            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
-        } else {
-            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
-        }
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
-    }
-
+    
+    // NOTE: clean
     /**
-     * @dev Updates `owner` s allowance for `spender` based on spent `amount`.
-     *
+     * @dev Updates `owner`'s allowance for `spender` based on spent `amount`.
      * Does not update the allowance amount in case of infinite allowance.
-     * Revert if not enough allowance is available.
-     *
      * Might emit an {Approval} event.
      */
     function _spendAllowance(address owner, address spender, uint256 amount) internal virtual {
@@ -111,20 +74,7 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20, Privilege
         }
     }
 
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
-        useCustomAdapterParams = _useCustomAdapterParams;
-        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
-    }
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IOERC20).interfaceId || interfaceId == type(IERC20).interfaceId
-            || super.supportsInterface(interfaceId);
-    }
-
-    function circulatingSupply() public view virtual override returns (uint256) {
-        return totalSupply;
-    }
-
+    // NOTE: clean
     function _debitFrom(address _from, uint16, bytes memory, uint256 _amount) internal {
         address spender = _msgSender();
         if (_from != spender) {
@@ -132,7 +82,8 @@ abstract contract OERC20 is NonBlockingLzApp, IOERC20, ERC165, UERC20, Privilege
         }
         _burn(_from, _amount);
     }
-
+    
+    // NOTE: clean
     function _creditTo(uint16, address _toAddress, uint256 _amount) internal {
         _mint(_toAddress, _amount);
     }
