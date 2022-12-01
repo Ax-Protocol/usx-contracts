@@ -18,7 +18,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     // Storage Variables
     address public usxToken;
     address public stableSwap3PoolAddress;
-    address public curveToken;
+    address public backingToken;
     mapping(address => SupportedStable) public supportedStables;
     uint256 public previousLpTokenPrice;
 
@@ -26,11 +26,11 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     event Mint(address indexed account, uint256 amount);
     event Redemption(address indexed account, uint256 amount);
 
-    function initialize(address _stableSwap3PoolAddress, address _usxToken, address _curveToken) public initializer {
+    function initialize(address _stableSwap3PoolAddress, address _usxToken, address _backingToken) public initializer {
         __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
         stableSwap3PoolAddress = _stableSwap3PoolAddress;
-        curveToken = _curveToken;
+        backingToken = _backingToken;
         usxToken = _usxToken;
     }
 
@@ -45,15 +45,15 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of the input token used to mint USX.
      */
     function mint(address _stable, uint256 _amount) public {
-        require(supportedStables[_stable].supported || _stable == curveToken, "Unsupported stable.");
+        require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
 
         // Obtain user's input tokens
         SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
 
         uint256 lpTokens;
-        if (_stable != curveToken) {
+        if (_stable != backingToken) {
             // Obtain contract's LP token balance before adding liquidity
-            uint256 preBalance = IERC20(curveToken).balanceOf(address(this));
+            uint256 preBalance = IERC20(backingToken).balanceOf(address(this));
 
             // Add liquidity to Curve
             SafeTransferLib.safeApprove(ERC20(_stable), stableSwap3PoolAddress, _amount);
@@ -62,7 +62,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
             IStableSwap3Pool(stableSwap3PoolAddress).add_liquidity(amounts, 0);
 
             // Calculate the amount of LP tokens received from adding liquidity
-            lpTokens = IERC20(curveToken).balanceOf(address(this)) - preBalance;
+            lpTokens = IERC20(backingToken).balanceOf(address(this)) - preBalance;
         } else {
             lpTokens = _amount;
         }
@@ -90,7 +90,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of USX tokens to burn upon redemption.
      */
     function redeem(address _stable, uint256 _amount) public {
-        require(supportedStables[_stable].supported || _stable == curveToken, "Unsupported stable.");
+        require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
 
         // Obtain current LP token virtual price (3CRV:USX conversion factor)
         uint256 lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
@@ -106,7 +106,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         uint256 lpTokens = (_amount * conversionFactor) / 1e18;
 
         uint256 redeemAmount;
-        if (_stable != curveToken) {
+        if (_stable != backingToken) {
             // Obtain contract's withdrawal token balance before removing liquidity
             uint256 preBalance = IERC20(_stable).balanceOf(address(this));
 
@@ -150,6 +150,18 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      */
     function removeSupportedStable(address _stable) public onlyOwner {
         delete supportedStables[_stable];
+    }
+
+    /**
+     * @dev This function allows contract admins to extract any non-backing ERC20 token.
+     * @param _token The address of token to remove.
+     */
+    function extractERC20(address _token) public onlyOwner {
+        require(_token != backingToken, "Can't withdraw backing token.");
+
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+
+        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
     }
 
     /**

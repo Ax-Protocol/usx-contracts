@@ -67,6 +67,12 @@ abstract contract LayerZero is NonBlockingLzApp {
         internal
         virtual;
 
+    /* ****************************************************************************
+    **
+    **  Admin Functions
+    **
+    ******************************************************************************/
+
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
