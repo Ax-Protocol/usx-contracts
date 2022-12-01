@@ -3,18 +3,33 @@
 pragma solidity >=0.8.0;
 
 import "./layer_zero/LayerZero.sol";
+import "./wormhole/Wormhole.sol";
 import "../interfaces/IOERC20.sol";
 import "../introspection/ERC165.sol";
 import "../token/UERC20.sol";
 import "../admin/Privileged.sol";
 
+abstract contract OERC20 is IOERC20, Wormhole, LayerZero, ERC165, UERC20, Privileged {
+    enum BridgingProtocols {
+        WORMHOLE,
+        LAYER_ZERO
+    }
 
+    function __OERC20_init(address _lzEndpoint, address _wormholeCoreBridgeAddress) internal initializer {
+        __LayerZero_init(_lzEndpoint);
+        __Wormhole_init(_wormholeCoreBridgeAddress);
+    }
 
-abstract contract OERC20 is IOERC20, LayerZero, ERC165, UERC20, Privileged {
+    /// @dev for now, just using LayerZero's estimateSendFee(), regardless of _bridgeId
+    function estimateTransferFee(uint16 _dstChainId, bytes calldata _toAddress, uint256 _amount)
+        external
+        view
+        override
+        returns (uint256 nativeFee)
+    {
+        (nativeFee,) = estimateSendFee(_dstChainId, _toAddress, _amount, false, bytes(""));
+    }
 
-    enum BridgingProtocols { WORMHOLE, LAYER_ZERO }
-    
-    // NOTE: clean
     function sendFrom(
         uint8 _bridgeId,
         address _from,
@@ -28,9 +43,9 @@ abstract contract OERC20 is IOERC20, LayerZero, ERC165, UERC20, Privileged {
         }
 
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
-        
+
         if (_bridgeId == uint8(BridgingProtocols.WORMHOLE)) {
-            // Send using Wormhole
+            _publishMessage(_from, _dstChainId, _toAddress, _amount);
         } else if (_bridgeId == uint8(BridgingProtocols.LAYER_ZERO)) {
             _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, address(0), bytes(""));
         }
@@ -38,27 +53,25 @@ abstract contract OERC20 is IOERC20, LayerZero, ERC165, UERC20, Privileged {
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
 
-    // NOTE: clean
+    function receiveMessage(uint16 _srcChainId, bytes memory _srcAddress, address toAddress, uint256 amount)
+        internal
+        virtual
+        override (Wormhole, LayerZero)
+    {
+        _creditTo(_srcChainId, toAddress, amount);
+
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
+    }
+
     function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
         return interfaceId == type(IOERC20).interfaceId || interfaceId == type(IERC20).interfaceId
             || super.supportsInterface(interfaceId);
     }
 
-    // NOTE: clean
     function circulatingSupply() public view virtual override returns (uint256) {
         return totalSupply;
     }
 
-
-    // NOTE: clean
-    function receiveMessage(uint16 _srcChainId, bytes memory _srcAddress, address toAddress, uint256 amount) internal override {
-
-        _creditTo(_srcChainId, toAddress, amount);
-
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
-    }
-    
-    // NOTE: clean
     /**
      * @dev Updates `owner`'s allowance for `spender` based on spent `amount`.
      * Does not update the allowance amount in case of infinite allowance.
@@ -74,7 +87,6 @@ abstract contract OERC20 is IOERC20, LayerZero, ERC165, UERC20, Privileged {
         }
     }
 
-    // NOTE: clean
     function _debitFrom(address _from, uint16, bytes memory, uint256 _amount) internal {
         address spender = _msgSender();
         if (_from != spender) {
@@ -82,8 +94,7 @@ abstract contract OERC20 is IOERC20, LayerZero, ERC165, UERC20, Privileged {
         }
         _burn(_from, _amount);
     }
-    
-    // NOTE: clean
+
     function _creditTo(uint16, address _toAddress, uint256 _amount) internal {
         _mint(_toAddress, _amount);
     }

@@ -5,7 +5,6 @@ pragma solidity >=0.8.0;
 import "./NonBlockingLzApp.sol";
 
 abstract contract LayerZero is NonBlockingLzApp {
-
     uint256 public constant NO_EXTRA_GAS = 0;
     uint256 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
@@ -37,7 +36,6 @@ abstract contract LayerZero is NonBlockingLzApp {
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) internal virtual {
-        
         bytes memory payload = abi.encode(_toAddress, _amount);
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
@@ -65,7 +63,9 @@ abstract contract LayerZero is NonBlockingLzApp {
     }
 
     /// @dev Abstract function: it's overriden in OERC20.sol
-    function receiveMessage(uint16 _srcChainId, bytes memory _srcAddress, address toAddress, uint256 amount) internal virtual;
+    function receiveMessage(uint16 _srcChainId, bytes memory _srcAddress, address toAddress, uint256 amount)
+        internal
+        virtual;
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;

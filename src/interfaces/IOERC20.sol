@@ -17,11 +17,10 @@ interface IOERC20 is IERC165, IERC20Metadata {
      * @param _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
      * @param _amount - amount of the tokens to transfer
      */
-    function estimateTransferFee(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint256 _amount
-    ) external view returns (uint256 nativeFee);
+    function estimateTransferFee(uint16 _dstChainId, bytes calldata _toAddress, uint256 _amount)
+        external
+        view
+        returns (uint256 nativeFee);
 
     /**
      * @dev send _amount amount of token to (`_dstChainId`, `_toAddress`) from `_from`
@@ -59,7 +58,6 @@ interface IOERC20 is IERC165, IERC20Metadata {
     event ReceiveFromChain(
         uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
     );
-    
 
     /**
      * @dev Thrown if a cross-chain transfer is initiated while paused.
