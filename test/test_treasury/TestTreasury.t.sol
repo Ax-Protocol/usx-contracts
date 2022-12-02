@@ -90,6 +90,7 @@ contract TestMint is Test, SharedSetup {
         return (lpTokens * lpTokenPrice) / 1e18;
     }
 
+    /// @dev Test that each coin can be minted in a sequential manner, not resetting chain state after each mint
     function test_mint_sequential(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e11);
         /// @dev Allocate funds for test
@@ -137,6 +138,7 @@ contract TestMint is Test, SharedSetup {
         }
     }
 
+    /// @dev Test that each coin can be minted on its own, resetting chain state after each mint
     function test_mint_independent(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e11);
 
@@ -186,6 +188,7 @@ contract TestMint is Test, SharedSetup {
         }
     }
 
+    /// @dev Test that we mint using the previous, higher conversion factor
     function test_mint_negative_price_delta(uint256 priceDelta) public {
         /// @dev Assumptions
         vm.assume(priceDelta <= TEST_3CRV_VIRTUAL_PRICE);
@@ -196,13 +199,11 @@ contract TestMint is Test, SharedSetup {
         /// @dev Allocate funds for test
         deal(TEST_DAI, TEST_USER, TEST_DEPOSIT_AMOUNT);
 
-        /**
-         *
-         *
-         *   Iteration 1, with a higher 3CRV price
-         *
-         *
-         */
+        /* ****************************************************************************
+        **
+        **  Iteration 1, with a higher 3CRV price
+        **
+        ******************************************************************************/
 
         /// @dev Mock Curve 1, setting the 3CRV price
         vm.mockCall(
@@ -229,13 +230,11 @@ contract TestMint is Test, SharedSetup {
         // Ensure that the amount of USX minted matches expectation (using higher price)
         assertEq(mintedUSX1, expectedMintAmount1);
 
-        /**
-         *
-         *
-         *  Iteration 2, with a lower 3CRV price
-         *
-         *
-         */
+        /* ****************************************************************************
+        **
+        **  Iteration 2, with a lower 3CRV price
+        **
+        ******************************************************************************/
 
         /// @dev Expectations 2: calculate expectation before lowering 3CRV price, as it shouldn't decrease
         uint256 expectedMintAmount2 = calculateMintAmount(0, testDepositAmount, TEST_DAI);
@@ -305,6 +304,7 @@ contract TestRedeem is Test, SharedSetup {
         return (usxAmount * conversionFactor) / 1e18;
     }
 
+    /// @dev Test that each coin can be redeemed in a sequential manner, not resetting chain state after each mint
     function test_redeem_sequential(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
@@ -359,6 +359,7 @@ contract TestRedeem is Test, SharedSetup {
         }
     }
 
+    /// @dev Test that each coin can be redeemed on its own, resetting chain state after each mint
     function test_redeem_independent(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
@@ -427,13 +428,11 @@ contract TestRedeem is Test, SharedSetup {
         uint256 curveAmount = calculateCurveTokenAmount(USX_AMOUNT);
         deal(TEST_3CRV, address(treasury_proxy), curveAmount);
 
-        /**
-         *
-         *
-         *   Iteration 1, with a higher 3CRV price
-         *
-         *
-         */
+        /* ****************************************************************************
+        **
+        **  Iteration 1, with a higher 3CRV price
+        **
+        ******************************************************************************/
 
         /// @dev Mock Curve 1
         vm.mockCall(
@@ -462,13 +461,12 @@ contract TestRedeem is Test, SharedSetup {
         // Ensure redemption matches expectation (using higher price)
         assertEq(redeemedAmount1, expectedRedeemAmount1);
 
-        /**
-         *
-         *
-         *   Iteration 2, with a lower 3CRV price
-         *
-         *
-         */
+        /* ****************************************************************************
+        **
+        **  Iteration 2, with a lower 3CRV price
+        **
+        ******************************************************************************/
+        
 
         /// @dev Expectations 1: calculate expectation before lowering 3CRV price, as it shouldn't decrease
         uint256 curveAmountUsed2 = calculateCurveTokenAmount(usxBurnAmount);
