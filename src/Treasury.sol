@@ -10,27 +10,6 @@ import "./utils/Ownable.sol";
 import "./interfaces/IUSX.sol";
 import "./interfaces/ITreasury.sol";
 
-
-/* Unit Tests
-
-- Unit test wormhole integration
-- Unit test that layer zero still works given new architecture
-- Unit test bridge switch
-
-- Unit test Mint/Reedem
-    - Mint: Ensure that 3CRV contract balance = 0, and that liquidity gauage balance increased to specifc amount
-    - Redeem: Ensure that liquidity gauage balance decreased by sepecifc amount
-
-- Unit test that the emergency swap works
-- After an emergency swap, test minting and redeeming
-*/
-
-
-
-
-
-
-
 contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     struct SupportedStable {
         bool supported;
@@ -51,11 +30,16 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     event Mint(address indexed account, uint256 amount);
     event Redemption(address indexed account, uint256 amount);
 
-    function initialize(address _stableSwap3PoolAddress, address _liquidityGaugeAddress, address _usxToken, address _backingToken) public initializer {
+    function initialize(
+        address _stableSwap3PoolAddress,
+        address _liquidityGaugeAddress,
+        address _usxToken,
+        address _backingToken
+    ) public initializer {
         __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
         stableSwap3PoolAddress = _stableSwap3PoolAddress;
-        liquidityGaugeAddress= _liquidityGaugeAddress;
+        liquidityGaugeAddress = _liquidityGaugeAddress;
         backingToken = _backingToken;
         usxToken = _usxToken;
     }
@@ -71,7 +55,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of the input token used to mint USX.
      */
     function mint(address _stable, uint256 _amount) public {
-
         uint256 mintAmount;
 
         if (!backingSwapped) {
@@ -79,19 +62,19 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
             SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
 
-            uint lpTokenAmount = provideLiquidity(_stable, _amount);
+            uint256 lpTokenAmount = provideLiquidity(_stable, _amount);
 
             stakeLpTokens(lpTokenAmount);
 
             mintAmount = getMintAmount(lpTokenAmount);
         } else {
             require(_stable == backingToken, "Invalid _stable.");
-            
+
             SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
 
             mintAmount = _amount;
         }
-        
+
         totalSupply += mintAmount;
         IUSX(usxToken).mint(msg.sender, mintAmount);
         emit Mint(msg.sender, mintAmount);
@@ -104,7 +87,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of USX tokens to burn upon redemption.
      */
     function redeem(address _stable, uint256 _amount) public {
-
         uint256 redeemAmount;
 
         if (!backingSwapped) {
@@ -118,7 +100,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
             // Remove liquidity from Curve
             redeemAmount = removeLiquidity(_stable, lpTokenAmount);
-            
         } else {
             require(_stable == backingToken, "Invalid _stable.");
 
@@ -131,13 +112,12 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         SafeTransferLib.safeTransfer(ERC20(_stable), msg.sender, redeemAmount);
 
         // Burn USX tokens
-        totalSupply -= redeemAmount;
+        totalSupply -= _amount;
         IUSX(usxToken).burn(msg.sender, _amount);
         emit Redemption(msg.sender, _amount);
     }
 
     function provideLiquidity(address _stable, uint256 _amount) private returns (uint256 lpTokenAmount) {
-
         if (_stable != backingToken) {
             // Obtain contract's LP token balance before adding liquidity
             uint256 preBalance = IERC20(backingToken).balanceOf(address(this));
@@ -156,7 +136,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     function removeLiquidity(address _stable, uint256 _lpTokenAmount) private returns (uint256 redeemAmount) {
-
         if (_stable != backingToken) {
             // Obtain contract's withdrawal token balance before removing liquidity
             uint256 preBalance = IERC20(_stable).balanceOf(address(this));
@@ -172,7 +151,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
             redeemAmount = _lpTokenAmount;
         }
     }
-
 
     function stakeLpTokens(uint256 _amount) private {
         // Approve LiquidityGauge to spend Treasury's 3CRV
@@ -212,7 +190,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
         uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
         lpTokenAmount = (_amount * conversionFactor) / 1e18;
-    } 
+    }
 
     /* ****************************************************************************
     **
@@ -237,7 +215,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         delete supportedStables[_stable];
     }
 
-
     /**
      * @dev Allows contract admins to swap the backing token, in an emergency.
      * @param _newBackingToken The address of the new backing token.
@@ -246,9 +223,9 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
 
         // 1. Withdraw all staked 3CRV
-        uint totalStaked = ILiquidityGauge(_newBackingToken).balanceOf(address(this));
+        uint256 totalStaked = ILiquidityGauge(_newBackingToken).balanceOf(address(this));
         unstakeLpTokens(totalStaked);
-        
+
         // 2. Remove liquidity from Curve, receiving _newBackingToken
         IStableSwap3Pool(stableSwap3PoolAddress).remove_liquidity_one_coin(
             totalStaked, supportedStables[_newBackingToken].curveIndex, 0
