@@ -5,4 +5,6 @@ interface ILiquidityGauge{
     function deposit(uint256 _amount) external;
 
     function withdraw(uint256 _amount) external;
+
+    function balanceOf(address _userAddress) external returns (uint256);
 }

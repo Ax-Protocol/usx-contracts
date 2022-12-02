@@ -10,6 +10,27 @@ import "./utils/Ownable.sol";
 import "./interfaces/IUSX.sol";
 import "./interfaces/ITreasury.sol";
 
+
+/* Unit Tests
+
+- Unit test wormhole integration
+- Unit test that layer zero still works given new architecture
+- Unit test bridge switch
+
+- Unit test Mint/Reedem
+    - Mint: Ensure that 3CRV contract balance = 0, and that liquidity gauage balance increased to specifc amount
+    - Redeem: Ensure that liquidity gauage balance decreased by sepecifc amount
+
+- Unit test that the emergency swap works
+- After an emergency swap, test minting and redeeming
+*/
+
+
+
+
+
+
+
 contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     struct SupportedStable {
         bool supported;
@@ -23,6 +44,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     address public backingToken;
     mapping(address => SupportedStable) public supportedStables;
     uint256 public previousLpTokenPrice;
+    bool public backingSwapped;
+    uint256 public totalSupply;
 
     // Events
     event Mint(address indexed account, uint256 amount);
@@ -48,12 +71,73 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of the input token used to mint USX.
      */
     function mint(address _stable, uint256 _amount) public {
-        require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
 
-        // Obtain user's input tokens
-        SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
+        uint256 mintAmount;
 
-        uint256 lpTokenAmount;
+        if (!backingSwapped) {
+            require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
+
+            SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
+
+            uint lpTokenAmount = provideLiquidity(_stable, _amount);
+
+            stakeLpTokens(lpTokenAmount);
+
+            mintAmount = getMintAmount(lpTokenAmount);
+        } else {
+            require(_stable == backingToken, "Invalid _stable.");
+            
+            SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
+
+            mintAmount = _amount;
+        }
+        
+        totalSupply += mintAmount;
+        IUSX(usxToken).mint(msg.sender, mintAmount);
+        emit Mint(msg.sender, mintAmount);
+    }
+
+    /**
+     * @dev This function facilitates redeeming a single supported stablecoin, in
+     *      exchange for USX tokens, such that USX is valued at a dollar.
+     * @param _stable The address of the token to withdraw.
+     * @param _amount The amount of USX tokens to burn upon redemption.
+     */
+    function redeem(address _stable, uint256 _amount) public {
+
+        uint256 redeemAmount;
+
+        if (!backingSwapped) {
+            require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
+
+            // Get amount of LP token based on USX burn amount
+            uint256 lpTokenAmount = getLpTokenAmount(_amount);
+
+            // Unstake LP tokens
+            unstakeLpTokens(lpTokenAmount);
+
+            // Remove liquidity from Curve
+            redeemAmount = removeLiquidity(_stable, lpTokenAmount);
+            
+        } else {
+            require(_stable == backingToken, "Invalid _stable.");
+
+            uint256 backingBalance = IERC20(_stable).balanceOf(address(this));
+            redeemAmount = ((_amount * 1e36 / totalSupply) * backingBalance) / 1e36;
+            require(redeemAmount > 0, "_amount is too small.");
+        }
+
+        // Transfer desired withdrawal tokens to user
+        SafeTransferLib.safeTransfer(ERC20(_stable), msg.sender, redeemAmount);
+
+        // Burn USX tokens
+        totalSupply -= redeemAmount;
+        IUSX(usxToken).burn(msg.sender, _amount);
+        emit Redemption(msg.sender, _amount);
+    }
+
+    function provideLiquidity(address _stable, uint256 _amount) private returns (uint256 lpTokenAmount) {
+
         if (_stable != backingToken) {
             // Obtain contract's LP token balance before adding liquidity
             uint256 preBalance = IERC20(backingToken).balanceOf(address(this));
@@ -69,54 +153,26 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         } else {
             lpTokenAmount = _amount;
         }
-
-        // Stake LP tokens
-        stakeLpTokens(lpTokenAmount);
-
-        // Mint USX
-        uint256 mintAmount = getMintAmount(lpTokenAmount);
-        IUSX(usxToken).mint(msg.sender, mintAmount);
-        emit Mint(msg.sender, mintAmount);
     }
 
-    /**
-     * @dev This function facilitates redeeming a single supported stablecoin, in
-     *      exchange for USX tokens, such that USX is valued at a dollar.
-     * @param _stable The address of the token to withdraw.
-     * @param _amount The amount of USX tokens to burn upon redemption.
-     */
-    function redeem(address _stable, uint256 _amount) public {
-        require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
+    function removeLiquidity(address _stable, uint256 _lpTokenAmount) private returns (uint256 redeemAmount) {
 
-        // Get amount of LP token based on USX burn amount
-        uint256 lpTokenAmount = getLpTokenAmount(_amount);
-
-        // Unstake LP tokens
-        unstakeLpTokens(lpTokenAmount);
-
-        uint256 redeemAmount;
         if (_stable != backingToken) {
             // Obtain contract's withdrawal token balance before removing liquidity
             uint256 preBalance = IERC20(_stable).balanceOf(address(this));
 
             // Remove liquidity from Curve
             IStableSwap3Pool(stableSwap3PoolAddress).remove_liquidity_one_coin(
-                lpTokenAmount, supportedStables[_stable].curveIndex, 0
+                _lpTokenAmount, supportedStables[_stable].curveIndex, 0
             );
 
             // Calculate the amount of stablecoin received from removing liquidity
             redeemAmount = IERC20(_stable).balanceOf(address(this)) - preBalance;
         } else {
-            redeemAmount = lpTokenAmount;
+            redeemAmount = _lpTokenAmount;
         }
-
-        // Transfer desired withdrawal tokens to user
-        SafeTransferLib.safeTransfer(ERC20(_stable), msg.sender, redeemAmount);
-
-        // Burn USX tokens
-        IUSX(usxToken).burn(msg.sender, _amount);
-        emit Redemption(msg.sender, _amount);
     }
+
 
     function stakeLpTokens(uint256 _amount) private {
         // Approve LiquidityGauge to spend Treasury's 3CRV
@@ -179,6 +235,28 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      */
     function removeSupportedStable(address _stable) public onlyOwner {
         delete supportedStables[_stable];
+    }
+
+
+    /**
+     * @dev Allows contract admins to swap the backing token, in an emergency.
+     * @param _newBackingToken The address of the new backing token.
+     */
+    function emergencySwapBacking(address _newBackingToken) public onlyOwner {
+        require(supportedStables[_newBackingToken].supported, "Token not supported.");
+
+        // 1. Withdraw all staked 3CRV
+        uint totalStaked = ILiquidityGauge(_newBackingToken).balanceOf(address(this));
+        unstakeLpTokens(totalStaked);
+        
+        // 2. Remove liquidity from Curve, receiving _newBackingToken
+        IStableSwap3Pool(stableSwap3PoolAddress).remove_liquidity_one_coin(
+            totalStaked, supportedStables[_newBackingToken].curveIndex, 0
+        );
+
+        // 3. Update State
+        backingToken = _newBackingToken;
+        backingSwapped = true;
     }
 
     /**
