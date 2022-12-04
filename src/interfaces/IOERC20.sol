@@ -62,5 +62,5 @@ interface IOERC20 is IERC165, IERC20Metadata {
     /**
      * @dev Thrown if a cross-chain transfer is initiated while paused.
      */
-    error Paused();
+    //error Paused();
 }

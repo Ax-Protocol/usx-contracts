@@ -33,7 +33,7 @@ abstract contract Privileged is Ownable {
      * @param _bridgeIds - An array of supported bridge IDs; the order must match `_privilges` array.
      * @param _privileges - An array of protocol privileges; the order must match `_bridgeIds` array.
      */
-    function manageCrossChainTransfers(BridgingProtocols[] calldata _bridgeIds, bool[] calldata _privileges)
+    function manageCrossChainTransfers(BridgingProtocols[2] calldata _bridgeIds, bool[2] calldata _privileges)
         public
         onlyOwner
     {

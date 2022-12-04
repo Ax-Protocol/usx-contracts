@@ -26,7 +26,6 @@ abstract contract SharedSetup is Test {
     address constant TEST_USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // Ethereum
     address constant TEST_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // Ethereum
     address constant TEST_STABLE = 0xaD37Cd49a9dd24BE734212AEFA1b862ead92eEF2;
-    address constant TEST_USER = 0x19Bb08638DD185b7455ffD1bB96765108B0aB556;
     address[4] TEST_COINS = [TEST_DAI, TEST_USDC, TEST_USDT, TEST_3CRV];
 
     uint256 constant DAI_AMOUNT = 1e18;
@@ -44,7 +43,7 @@ abstract contract SharedSetup is Test {
         // Deploy USX implementation, and link to proxy
         usx_implementation = new USX();
         usx_proxy =
-            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
+            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
 
         // Deploy Treasury implementation, and link to proxy
         treasury_implementation = new Treasury();

@@ -41,21 +41,18 @@ abstract contract Wormhole is Ownable {
         require(!processedMessages[vm.hash], "Message already processed.");
 
         // Enure relayer is trusted.
-        require(trustedRelayers[msg.sender]);
+        require(trustedRelayers[msg.sender], "Unauthorized relayer.");
 
         // Add the VAA to processed messages, so it can't be replayed.
         processedMessages[vm.hash] = true;
 
         // The message content can now be trusted.
-        (bytes memory srcAddress, uint16 dstChainId, bytes memory toAddressBytes, uint256 amount) =
+        (bytes memory srcAddress, , bytes memory toAddressBytes, uint256 amount) =
             abi.decode(vm.payload, (bytes, uint16, bytes, uint256));
 
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
-
-        receiveMessage(dstChainId, srcAddress, toAddress, amount);
+        (address toAddress) = abi.decode(toAddressBytes, (address));
+        
+        receiveMessage(vm.emitterChainId, srcAddress, toAddress, amount);
     }
 
     /// @dev Abstract function: it's overriden in OERC20.sol

@@ -5,19 +5,17 @@ import "../../src/USX.sol";
 import "../../src/proxy/ERC1967Proxy.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "forge-std/Test.sol";
+import "../common/constants.t.sol";
 
 contract TestERC1967Proxy is Test {
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;
 
-    // Test Constants
-    address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
-
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy =
-            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
+            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
     }
 
     function test_upgradeTo() public {

@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 
 import "./NonBlockingLzApp.sol";
 
+
 abstract contract LayerZero is NonBlockingLzApp {
     uint256 public constant NO_EXTRA_GAS = 0;
     uint256 public constant FUNCTION_TYPE_SEND = 1;

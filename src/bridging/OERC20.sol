@@ -10,6 +10,9 @@ import "../token/UERC20.sol";
 import "../admin/Privileged.sol";
 
 abstract contract OERC20 is IOERC20, Wormhole, LayerZero, ERC165, UERC20, Privileged {
+
+    error Paused();
+
     function __OERC20_init(address _lzEndpoint, address _wormholeCoreBridgeAddress) internal initializer {
         __LayerZero_init(_lzEndpoint);
         __Wormhole_init(_wormholeCoreBridgeAddress);
@@ -52,7 +55,7 @@ abstract contract OERC20 is IOERC20, Wormhole, LayerZero, ERC165, UERC20, Privil
         internal
         virtual
         override (Wormhole, LayerZero)
-    {
+    {   
         _creditTo(_srcChainId, toAddress, amount);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
