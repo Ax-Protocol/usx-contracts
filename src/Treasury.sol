@@ -223,7 +223,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
 
         // 1. Withdraw all staked 3CRV
-        uint256 totalStaked = ILiquidityGauge(_newBackingToken).balanceOf(address(this));
+        uint256 totalStaked = ILiquidityGauge(liquidityGaugeAddress).balanceOf(address(this));
         unstakeLpTokens(totalStaked);
 
         // 2. Remove liquidity from Curve, receiving _newBackingToken

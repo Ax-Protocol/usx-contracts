@@ -148,6 +148,7 @@ contract TestMint is Test, SharedSetup {
             totalMinted += mintedUSX;
             totalStaked += lpTokens;
         }
+        vm.stopPrank();
     }
 
     /// @dev Test that each coin can be minted on its own, resetting chain state after each mint
@@ -201,6 +202,7 @@ contract TestMint is Test, SharedSetup {
 
             /// @dev Revert blockchain state to before USX was minted for next iteration
             vm.revertTo(id);
+            vm.stopPrank();
         }
     }
 
@@ -273,6 +275,8 @@ contract TestMint is Test, SharedSetup {
         assertEq(ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(), TEST_3CRV_VIRTUAL_PRICE);
         // Ensure that the amount of USX minted matches expectation (using higher price)
         assertEq(mintedUSX2, expectedMintAmount2);
+
+        vm.stopPrank();
     }
 
     function test_fail_treasury_mint_unsupported_stable() public {
@@ -287,9 +291,17 @@ contract TestMint is Test, SharedSetup {
     }
 }
 
-contract TestRedeem is Test, SharedSetup {
+contract RedeemHelper is Test, SharedSetup {
+    function mintForTest(address _tokenAddress, uint256 _amount) public {
+        vm.startPrank(TEST_USER);
+        deal(_tokenAddress, TEST_USER, _amount);
+        IERC20(_tokenAddress).approve(address(treasury_proxy), _amount);
+        ITreasuryTest(address(treasury_proxy)).mint(_tokenAddress, _amount);
+        vm.stopPrank();
+    }
+
     function calculateRedeemAmount(uint256 index, uint256 lpTokens, address coin)
-        private
+        public
         returns (uint256 redeemAmount)
     {
         // Take snapshot before calculation
@@ -317,25 +329,23 @@ contract TestRedeem is Test, SharedSetup {
         vm.revertTo(id);
     }
 
-    function calculateCurveTokenAmount(uint256 usxAmount) private returns (uint256) {
+    function calculateCurveTokenAmount(uint256 usxAmount) public returns (uint256) {
         uint256 lpTokenPrice = IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price();
         uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
         return (usxAmount * conversionFactor) / 1e18;
     }
+}
 
+contract TestRedeem is Test, SharedSetup, RedeemHelper {
     /// @dev Test that each coin can be redeemed in a sequential manner, not resetting chain state after each mint
     function test_redeem_sequential(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         /// @dev Allocate funds for test
-        vm.startPrank(TEST_USER);
-        deal(TEST_DAI, TEST_USER, DAI_AMOUNT * 4 * amountMultiplier);
-        IERC20(TEST_DAI).approve(address(treasury_proxy), DAI_AMOUNT * 4 * amountMultiplier);
-        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, DAI_AMOUNT * 4 * amountMultiplier);
-        vm.stopPrank();
+        mintForTest(TEST_DAI, DAI_AMOUNT * 4 * amountMultiplier);
 
         uint256 usxInitialSupply = IUSXTest(address(usx_proxy)).totalSupply();
-        uint256 usxSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        uint256 usxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
         uint256 stakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
         for (uint256 i; i < TEST_COINS.length; i++) {
             /// @dev Expectations
@@ -351,17 +361,17 @@ contract TestRedeem is Test, SharedSetup {
 
             /// @dev Pre-action Assertions
             uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxSupply);
-            assertEq(preUserBalanceUSX, usxSupply);
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxTotalSupply);
+            assertEq(preUserBalanceUSX, usxTotalSupply);
 
             /// @dev Act
             ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[i], burnAmountUSX);
 
             /// @dev Post-action Assertions
             // Ensure USX was burned
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxSupply - burnAmountUSX);
-            assertEq(IUSXTest(address(usx_proxy)).balanceOf(TEST_USER), usxSupply - burnAmountUSX);
-            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), usxSupply - burnAmountUSX);
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxTotalSupply - burnAmountUSX);
+            assertEq(IUSXTest(address(usx_proxy)).balanceOf(TEST_USER), usxTotalSupply - burnAmountUSX);
+            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), usxTotalSupply - burnAmountUSX);
 
             // Ensure the user received the desired output token
             uint256 userERC20Balance = IERC20(TEST_COINS[i]).balanceOf(TEST_USER);
@@ -372,7 +382,7 @@ contract TestRedeem is Test, SharedSetup {
                 ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed
             );
 
-            usxSupply -= burnAmountUSX;
+            usxTotalSupply -= burnAmountUSX;
             stakedAmount -= curveAmountUsed;
             vm.stopPrank();
         }
@@ -383,33 +393,29 @@ contract TestRedeem is Test, SharedSetup {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         /// @dev Allocate funds for test
-        vm.startPrank(TEST_USER);
-        deal(TEST_DAI, TEST_USER, DAI_AMOUNT * amountMultiplier);
-        IERC20(TEST_DAI).approve(address(treasury_proxy), DAI_AMOUNT * amountMultiplier);
-        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, DAI_AMOUNT * amountMultiplier);
-        vm.stopPrank();
+        mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
 
-        uint256 usxAmount = IUSXTest(address(usx_proxy)).totalSupply();
+        uint256 usxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
         for (uint256 i; i < TEST_COINS.length; i++) {
             /// @dev Expectations
-            uint256 curveAmountUsed = calculateCurveTokenAmount(usxAmount);
+            uint256 curveAmountUsed = calculateCurveTokenAmount(usxTotalSupply);
             uint256 expectedRedeemAmount = calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
             uint256 stakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
 
             vm.expectEmit(true, true, true, true, address(treasury_proxy));
-            emit Redemption(TEST_USER, usxAmount);
+            emit Redemption(TEST_USER, usxTotalSupply);
 
             /// @dev Setup
             vm.startPrank(TEST_USER);
 
             /// @dev Pre-action Assertions
             uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxAmount);
-            assertEq(preUserBalanceUSX, usxAmount);
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxTotalSupply);
+            assertEq(preUserBalanceUSX, usxTotalSupply);
 
             /// @dev Act
             uint256 id = vm.snapshot();
-            ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[i], usxAmount);
+            ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[i], usxTotalSupply);
 
             /// @dev Post-action Assertions
             // Ensure USX was burned
@@ -426,7 +432,7 @@ contract TestRedeem is Test, SharedSetup {
                 ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed
             );
 
-            /// @dev Revert blockchain state to before USX was minted for next iteration
+            /// @dev Revert blockchain state to before USX was redeemed for next iteration
             vm.revertTo(id);
             vm.stopPrank();
         }
@@ -544,7 +550,191 @@ contract TestRedeem is Test, SharedSetup {
         ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, burnAmount);
     }
 }
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+contract TestEmergencySwap is Test, SharedSetup, RedeemHelper {
+    /// @dev Test that 3CRV can be swapped to each supported stable, resetting chain state after each emergency swap
+    function test_emergency_swap(uint256 amountMultiplier) public {
+        vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
+        /// @dev Allocate funds for test
+        mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
+
+        uint256 usxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        // Excluding last index (3CRV)
+        for (uint256 i; i < TEST_COINS.length - 1; i++) {
+            /// @dev Expectations
+            uint256 preStakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 expectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
+
+            /// @dev Pre-action Assertions
+            uint256 userBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxTotalSupply);
+            assertEq(userBalanceUSX, usxTotalSupply);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_3CRV);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), false);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), 0);
+
+            /// @dev Act
+            uint256 id = vm.snapshot();
+            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+
+            /// @dev Post-action Assertions
+            // Ensure that no USX was burned
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), usxTotalSupply);
+            assertEq(userBalanceUSX, usxTotalSupply);
+            
+            // Ensure backingToken and backingSwapped were properly updated
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
+
+            // Ensure balances were properly updated
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), expectedTokenAmount);
+
+            /// @dev Revert blockchain state to before emergency swap for next iteration
+            vm.revertTo(id);
+        }
+    }
+
+    function test_mint_after_emergency_swap(uint256 amountMultiplier) public {
+        vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
+
+        /// @dev Allocate initial funds for test
+        mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
+
+        uint256 preUsxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        // Excluding last index (3CRV)
+        for (uint256 i; i < TEST_COINS.length - 1; i++) {
+            /// @dev Expectations
+            uint256 preStakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 preExpectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
+            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+
+            /// @dev Setup
+            uint256 id = vm.snapshot();
+            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+
+            /// @dev Pre-action Assertions
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), preUsxTotalSupply);
+            assertEq(preUserBalanceUSX, preUsxTotalSupply);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount);
+
+            /// @dev Act
+            deal(TEST_COINS[i], TEST_USER, TEST_AMOUNTS[i] * amountMultiplier);
+            uint256 amount = TEST_AMOUNTS[i] * amountMultiplier;
+            vm.startPrank(TEST_USER);
+            SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
+            ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[i], amount);
+
+            /// @dev Post-action Assertions
+            uint256 postUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 mintedUSX = postUserBalanceUSX - preUserBalanceUSX;
+
+            // Ensure the correct amount of USX was minted
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), preUsxTotalSupply + mintedUSX);
+            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), preUsxTotalSupply + mintedUSX);
+
+            // Ensure the user received USX
+            assertEq(postUserBalanceUSX, preUserBalanceUSX + mintedUSX);
+
+            // Ensure there is no 3CRV in the Treasury or liquidity gauge
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+
+            // Ensure treasury backing amount was properly updated
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount + mintedUSX);
+
+            /// @dev Revert blockchain state to before minting for next iteration
+            vm.revertTo(id);
+            vm.stopPrank();
+        }
+    }
+
+    function test_redeem_after_emergency_swap(uint256 amountMultiplier) public {
+        /// @dev Allocate initial funds for test
+        mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
+
+        uint256 preUsxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        // Excluding last index (3CRV)
+        for (uint256 i; i < TEST_COINS.length - 1; i++) {
+            /// @dev Expectations
+            uint256 preStakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 preExpectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
+            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 preUserTokenBalance = IUSXTest(address(TEST_COINS[i])).balanceOf(TEST_USER);
+
+            /// @dev Setup
+            uint256 id = vm.snapshot();
+            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+
+            /// @dev Pre-action Assertions
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), preUsxTotalSupply);
+            assertEq(preUserBalanceUSX, preUsxTotalSupply);
+            assertEq(preUserTokenBalance, 0);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount);
+
+            /// @dev Act
+            vm.startPrank(TEST_USER);
+            ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[i], preUserBalanceUSX);
+
+            /// @dev Post-action Assertions
+            uint256 postUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 postUserTokenBalance = IUSXTest(address(TEST_COINS[i])).balanceOf(TEST_USER);
+
+            // Ensure the correct amount of USX was redeemed
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), 0);
+            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), 0);
+
+            // Ensure the user's balances were properly updated
+            assertEq(postUserBalanceUSX, 0);
+            assertEq(postUserTokenBalance, preExpectedTokenAmount);
+
+            // Ensure there is no 3CRV in the Treasury or liquidity gauge
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+
+            // Ensure treasury backing amount was properly updated
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), 0);
+
+            /// @dev Revert blockchain state to before minting for next iteration
+            vm.revertTo(id);
+            vm.stopPrank();
+        }
+    }
+
+    // function test_emergency_swap_unsupported() public {
+
+    // }
+
+    // function test_mint_after_emergency_swap_unsupported() public {
+
+    // }
+
+    // function test_redeem_after_emergency_swap_unsupported() public {
+
+    // }
+}
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
+// ********************************************************************************************************************************* //
 contract TestAdmin is Test, SharedSetup {
     function test_addSupportedStable() public {
         // Test Variables
