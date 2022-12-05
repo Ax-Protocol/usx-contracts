@@ -655,7 +655,7 @@ contract TestEmergencySwap is Test, SharedSetup, RedeemHelper {
             // Ensure treasury backing amount was properly updated
             assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount + mintedUSX);
 
-            /// @dev Revert blockchain state to before minting for next iteration
+            /// @dev Revert blockchain state to before emergency swap for next iteration
             vm.revertTo(id);
             vm.stopPrank();
         }
@@ -663,7 +663,7 @@ contract TestEmergencySwap is Test, SharedSetup, RedeemHelper {
 
     function test_redeem_after_emergency_swap(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
-        
+
         /// @dev Allocate initial funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
 
@@ -713,23 +713,93 @@ contract TestEmergencySwap is Test, SharedSetup, RedeemHelper {
             // Ensure treasury backing amount was properly updated
             assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), 0);
 
-            /// @dev Revert blockchain state to before minting for next iteration
+            /// @dev Revert blockchain state to before emergency swap for next iteration
             vm.revertTo(id);
             vm.stopPrank();
         }
     }
 
-    // function test_emergency_swap_unsupported() public {
+    function test_emergency_swap_unsupported() public {
+        /// @dev Allocate initial funds for test
+        mintForTest(TEST_DAI, DAI_AMOUNT);
 
-    // }
+        /// @dev Expectations
+        vm.expectRevert("Token not supported.");
 
-    // function test_mint_after_emergency_swap_unsupported() public {
+        /// @dev Act
+        // Attempt to perform emergency swap to an unsupported token
+        ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_3CRV);
+    }
 
-    // }
+    function test_mint_after_emergency_swap_unsupported() public {
+        /// @dev Allocate initial funds for test
+        mintForTest(TEST_DAI, DAI_AMOUNT );
+        
+        // Excluding last index (3CRV)
+        for (uint256 i; i < TEST_COINS.length - 1; i++) {
+            /// @dev Setup
+            uint256 id = vm.snapshot();
+            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
 
-    // function test_redeem_after_emergency_swap_unsupported() public {
+            /// @dev Expectations
+            uint256 stakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 expectedTokenAmount = calculateRedeemAmount(i, stakedAmount, TEST_COINS[i]);
+            vm.expectRevert("Invalid _stable.");
 
-    // }
+            /// @dev Pre-action Assertions
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), expectedTokenAmount);
+
+            /// @dev Act
+            // Attempt to mint with unsupported token after emergency swap
+            deal(TEST_3CRV, TEST_USER, CURVE_AMOUNT);
+            uint256 amount = CURVE_AMOUNT;
+            vm.startPrank(TEST_USER);
+            SafeTransferLib.safeApprove(ERC20(TEST_3CRV), address(treasury_proxy), amount);
+            ITreasuryTest(address(treasury_proxy)).mint(TEST_3CRV, amount);
+
+            /// @dev Revert blockchain state to before emergency swap for next iteration
+            vm.revertTo(id);
+            vm.stopPrank();
+        }
+    }
+
+    function test_redeem_after_emergency_swap_unsupported() public {
+        /// @dev Allocate initial funds for test
+        mintForTest(TEST_DAI, DAI_AMOUNT);
+
+        // Excluding last index (3CRV)
+        for (uint256 i; i < TEST_COINS.length - 1; i++) {
+            /// @dev Setup
+            uint256 id = vm.snapshot();
+            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+
+            /// @dev Expectations
+            uint256 stakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 expectedTokenAmount = calculateRedeemAmount(i, stakedAmount, TEST_COINS[i]);
+            vm.expectRevert("Invalid _stable.");
+
+            /// @dev Pre-action Assertions
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
+            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
+            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), expectedTokenAmount);
+
+            /// @dev Act
+            // Attempt to redeem with unsupported token after emergency swap
+            vm.startPrank(TEST_USER);
+            uint256 userBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            ITreasuryTest(address(treasury_proxy)).redeem(TEST_3CRV, userBalanceUSX);
+
+            /// @dev Revert blockchain state to before minting for next iteration
+            vm.revertTo(id);
+            vm.stopPrank();
+        }
+    }
 }
 // ********************************************************************************************************************************* //
 // ********************************************************************************************************************************* //
