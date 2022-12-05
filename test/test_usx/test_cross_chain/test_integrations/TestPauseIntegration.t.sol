@@ -7,8 +7,6 @@ import "../../../interfaces/IUSXTest.t.sol";
 import "../../../common/constants.t.sol";
 import "./../common/TestHelpers.t.sol";
 
-import "forge-std/console.sol";
-
 contract TestPauseIntegration is Test, CrossChainSetup {
     /// @dev Integration tests.
 

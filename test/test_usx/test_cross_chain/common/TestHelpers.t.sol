@@ -8,8 +8,6 @@ import "../../../interfaces/IUSXTest.t.sol";
 import "../../../mocks/MockLayerZero.t.sol";
 import "../../../common/constants.t.sol";
 
-import "forge-std/console.sol";
-
 abstract contract CrossChainSetup is Test {
     // Test Contracts
     USX public usx_implementation;
