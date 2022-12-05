@@ -47,11 +47,11 @@ abstract contract Wormhole is Ownable {
         processedMessages[vm.hash] = true;
 
         // The message content can now be trusted.
-        (bytes memory srcAddress, , bytes memory toAddressBytes, uint256 amount) =
+        (bytes memory srcAddress,, bytes memory toAddressBytes, uint256 amount) =
             abi.decode(vm.payload, (bytes, uint16, bytes, uint256));
 
         (address toAddress) = abi.decode(toAddressBytes, (address));
-        
+
         receiveMessage(vm.emitterChainId, srcAddress, toAddress, amount);
     }
 

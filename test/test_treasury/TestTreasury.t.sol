@@ -10,7 +10,7 @@ import "../../src/interfaces/IStableSwap3Pool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
-import "../mocks/MockStableSwap3Pool.t.sol";
+import "../mocks/MockCurve3Pool.t.sol";
 import "../common/constants.t.sol";
 
 abstract contract SharedSetup is Test {
@@ -43,7 +43,7 @@ abstract contract SharedSetup is Test {
         // Deploy USX implementation, and link to proxy
         usx_implementation = new USX();
         usx_proxy =
-            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
+        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
 
         // Deploy Treasury implementation, and link to proxy
         treasury_implementation = new Treasury();

@@ -15,7 +15,7 @@ contract TestERC1967Proxy is Test {
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy =
-            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
+        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
     }
 
     function test_upgradeTo() public {
