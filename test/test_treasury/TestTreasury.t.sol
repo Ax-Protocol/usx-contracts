@@ -662,6 +662,8 @@ contract TestEmergencySwap is Test, SharedSetup, RedeemHelper {
     }
 
     function test_redeem_after_emergency_swap(uint256 amountMultiplier) public {
+        vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
+        
         /// @dev Allocate initial funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
 
