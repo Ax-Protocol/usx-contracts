@@ -60,7 +60,7 @@ contract TestChainTransfers is Test, SharedSetup {
             TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy)), address(this), transferAmount
             );
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
         assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
 
@@ -73,7 +73,7 @@ contract TestChainTransfers is Test, SharedSetup {
             abi.encode(abi.encodePacked(address(this)), transferAmount)
         );
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
         assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + transferAmount);
     }
@@ -104,7 +104,7 @@ contract TestChainTransfers is Test, SharedSetup {
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
         assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
 
@@ -119,7 +119,7 @@ contract TestChainTransfers is Test, SharedSetup {
             bytes("")
         );
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS - transferAmount);
         assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - transferAmount);
     }

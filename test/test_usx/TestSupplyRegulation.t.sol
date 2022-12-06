@@ -35,7 +35,7 @@ contract TestMintUSX is Test, SharedSetup {
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit Transfer(address(0), address(this), mintAmount);
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), 0);
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), 0);
 
@@ -43,7 +43,7 @@ contract TestMintUSX is Test, SharedSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).mint(address(this), mintAmount);
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), mintAmount);
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), mintAmount);
     }
@@ -69,7 +69,7 @@ contract TestBurnUSX is Test, SharedSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), TEST_MINT_AMOUNT);
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT);
 
@@ -81,7 +81,7 @@ contract TestBurnUSX is Test, SharedSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).burn(address(this), testBurnAmount);
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSX(address(usx_proxy)).totalSupply(), TEST_MINT_AMOUNT - testBurnAmount);
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT - testBurnAmount);
     }

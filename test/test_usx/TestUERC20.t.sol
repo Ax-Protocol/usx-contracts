@@ -62,14 +62,14 @@ contract TestUERC20 is Test {
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit Transfer(address(this), TEST_ADDRESS, TEST_TRANSFER_AMOUNT);
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
         assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), 0);
 
         // Act
         IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, TEST_TRANSFER_AMOUNT);
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - TEST_TRANSFER_AMOUNT);
         assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), TEST_TRANSFER_AMOUNT);
     }
@@ -89,7 +89,7 @@ contract TestUERC20 is Test {
         IUSX(address(usx_proxy)).approve(TEST_ADDRESS, TEST_APPROVAL_AMOUNT);
         uint256 preActionAllowance = IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS);
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
         assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), 0);
         assertEq(preActionAllowance, TEST_APPROVAL_AMOUNT);
@@ -98,7 +98,7 @@ contract TestUERC20 is Test {
         vm.prank(TEST_ADDRESS);
         IUSX(address(usx_proxy)).transferFrom(address(this), TEST_ADDRESS, TEST_APPROVAL_AMOUNT);
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - TEST_APPROVAL_AMOUNT);
         assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), TEST_APPROVAL_AMOUNT);
         assertEq(
@@ -146,7 +146,7 @@ contract TestUERC20 is Test {
         vm.expectEmit(true, true, true, true, address(usx_proxy));
         emit Approval(testOwner, testSpender, TEST_APPROVAL_AMOUNT);
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(IUSX(address(usx_proxy)).allowance(testOwner, testSpender), 0);
 
         // Act
@@ -155,7 +155,7 @@ contract TestUERC20 is Test {
             testOwner, testSpender, TEST_APPROVAL_AMOUNT, block.timestamp + weekSeconds, v, r, s
         );
 
-        // Post-action Assertions
+        // Post-action assertions
         assertEq(IUSX(address(usx_proxy)).allowance(testOwner, testSpender), TEST_APPROVAL_AMOUNT);
     }
 

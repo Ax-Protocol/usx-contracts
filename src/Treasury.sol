@@ -62,11 +62,11 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
             SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
 
-            uint256 lpTokenAmount = provideLiquidity(_stable, _amount);
+            uint256 lpTokenAmount = __provideLiquidity(_stable, _amount);
 
-            stakeLpTokens(lpTokenAmount);
+            __stakeLpTokens(lpTokenAmount);
 
-            mintAmount = getMintAmount(lpTokenAmount);
+            mintAmount = __getMintAmount(lpTokenAmount);
         } else {
             require(_stable == backingToken, "Invalid _stable.");
 
@@ -93,13 +93,13 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
             require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
 
             // Get amount of LP token based on USX burn amount
-            uint256 lpTokenAmount = getLpTokenAmount(_amount);
+            uint256 lpTokenAmount = __getLpTokenAmount(_amount);
 
             // Unstake LP tokens
-            unstakeLpTokens(lpTokenAmount);
+            __unstakeLpTokens(lpTokenAmount);
 
             // Remove liquidity from Curve
-            redeemAmount = removeLiquidity(_stable, lpTokenAmount);
+            redeemAmount = __removeLiquidity(_stable, lpTokenAmount);
         } else {
             require(_stable == backingToken, "Invalid _stable.");
 
@@ -117,7 +117,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         emit Redemption(msg.sender, _amount);
     }
 
-    function provideLiquidity(address _stable, uint256 _amount) private returns (uint256 lpTokenAmount) {
+    function __provideLiquidity(address _stable, uint256 _amount) private returns (uint256 lpTokenAmount) {
         if (_stable != backingToken) {
             // Obtain contract's LP token balance before adding liquidity
             uint256 preBalance = IERC20(backingToken).balanceOf(address(this));
@@ -135,7 +135,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         }
     }
 
-    function removeLiquidity(address _stable, uint256 _lpTokenAmount) private returns (uint256 redeemAmount) {
+    function __removeLiquidity(address _stable, uint256 _lpTokenAmount) private returns (uint256 redeemAmount) {
         if (_stable != backingToken) {
             // Obtain contract's withdrawal token balance before removing liquidity
             uint256 preBalance = IERC20(_stable).balanceOf(address(this));
@@ -152,7 +152,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         }
     }
 
-    function stakeLpTokens(uint256 _amount) private {
+    function __stakeLpTokens(uint256 _amount) private {
         // Approve LiquidityGauge to spend Treasury's 3CRV
         IERC20(backingToken).approve(liquidityGaugeAddress, _amount);
 
@@ -160,12 +160,12 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         ILiquidityGauge(liquidityGaugeAddress).deposit(_amount);
     }
 
-    function unstakeLpTokens(uint256 _amount) private {
+    function __unstakeLpTokens(uint256 _amount) private {
         // Withdraw 3CRV from LiquidityGauge
         ILiquidityGauge(liquidityGaugeAddress).withdraw(_amount);
     }
 
-    function getMintAmount(uint256 _lpTokenAmount) private returns (uint256 mintAmount) {
+    function __getMintAmount(uint256 _lpTokenAmount) private returns (uint256 mintAmount) {
         uint256 lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
 
         // Don't allow LP token price to decrease
@@ -178,7 +178,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         mintAmount = (_lpTokenAmount * lpTokenPrice) / 1e18;
     }
 
-    function getLpTokenAmount(uint256 _amount) private returns (uint256 lpTokenAmount) {
+    function __getLpTokenAmount(uint256 _amount) private returns (uint256 lpTokenAmount) {
         uint256 lpTokenPrice = IStableSwap3Pool(stableSwap3PoolAddress).get_virtual_price();
 
         // Don't allow LP token price to decrease
@@ -224,7 +224,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
         // 1. Withdraw all staked 3CRV
         uint256 totalStaked = ILiquidityGauge(liquidityGaugeAddress).balanceOf(address(this));
-        unstakeLpTokens(totalStaked);
+        __unstakeLpTokens(totalStaked);
 
         // 2. Remove liquidity from Curve, receiving _newBackingToken
         IStableSwap3Pool(stableSwap3PoolAddress).remove_liquidity_one_coin(
