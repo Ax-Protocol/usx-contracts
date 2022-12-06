@@ -9,7 +9,6 @@ import "../../common/constants.t.sol";
 import "./common/TestHelpers.t.sol";
 
 contract TestLayerZeroReceive is Test, CrossChainSetup {
-    /// @dev Test Layer Zero message receiving
     function test_lzReceive(uint256 transferAmount) public {
         vm.assume(transferAmount <= INITIAL_TOKENS);
         // Expectations

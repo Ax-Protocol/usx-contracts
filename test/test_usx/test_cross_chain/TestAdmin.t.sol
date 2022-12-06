@@ -61,7 +61,7 @@ contract TestAdmin is Test, CrossChainSetup {
         assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)), true);
     }
 
-    /// @dev tests that each bridge can be singularly paused
+    /// @dev Test that each bridge can be singularly paused
     function test_manageCrossChainTransfers_pause_one() public {
         uint256 id = vm.snapshot();
         bool[2] memory privileges = [true, true];
