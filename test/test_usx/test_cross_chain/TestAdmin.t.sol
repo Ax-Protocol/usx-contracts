@@ -8,39 +8,50 @@ import "../../common/constants.t.sol";
 import "./common/TestHelpers.t.sol";
 
 contract TestAdmin is Test, CrossChainSetup {
-    function test_fail_manageCrossChainTransfers_sender() public {
-        // Expectations
-        vm.expectRevert("Ownable: caller is not the owner");
+    function testCannot_manageCrossChainTransfers_sender() public {
+        bool[2][4] memory trials = [[true, true], [true, false], [false, true], [false, false]];
 
-        // Act - attempt pause
-        vm.prank(TEST_ADDRESS);
-        IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
-            [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], [false, false]
-        );
+        for (uint256 i = 0; i < trials.length; i++) {
+            // Expectations
+            vm.expectRevert("Ownable: caller is not the owner");
 
-        // Expectations
-        vm.expectRevert("Ownable: caller is not the owner");
-
-        // Act - attempt unpause
-        vm.prank(TEST_ADDRESS);
-        IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
-            [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], [true, true]
-        );
+            // Act: attempt unauthorized privilege update
+            vm.prank(TEST_ADDRESS);
+            IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
+                [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], trials[i]
+            );
+        }
     }
 
     function test_manageCrossChainTransfers_pause_both() public {
         // Pre-action assertions
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)), true);
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)), true);
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)),
+            true,
+            "Privilege failed: Wormhole."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)),
+            true,
+            "Privilege failed: Layer Zero."
+        );
 
-        // Act - pause
+        // Act: pause
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
             [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], [false, false]
         );
 
         // Post-action assertions
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)), false);
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)), false);
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)),
+            false,
+            "Pause failed: Wormhole."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)),
+            false,
+            "Pause failed: Layer Zero."
+        );
     }
 
     function test_manageCrossChainTransfers_unpause_both() public {
@@ -48,17 +59,33 @@ contract TestAdmin is Test, CrossChainSetup {
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
             [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], [false, false]
         );
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)), false);
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)), false);
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)),
+            false,
+            "Pause failed: Wormhole."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)),
+            false,
+            "Pause failed: Layer Zero."
+        );
 
-        // Act - unpause
+        // Act: unpause
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
             [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], [true, true]
         );
 
         // Post-action assertions
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)), true);
-        assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)), true);
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)),
+            true,
+            "Privilege failed: Wormhole."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)),
+            true,
+            "Privilege failed: Layer Zero."
+        );
     }
 
     /// @dev Test that each bridge can be singularly paused
@@ -69,13 +96,21 @@ contract TestAdmin is Test, CrossChainSetup {
         // Iterate through privileges, each time revoking privileges for only one bridge
         for (uint256 pausedIndex = 0; pausedIndex < privileges.length; pausedIndex++) {
             // Pre-action assertions
-            assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)), true);
-            assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)), true);
+            assertEq(
+                IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)),
+                true,
+                "Privilege failed: Wormhole."
+            );
+            assertEq(
+                IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)),
+                true,
+                "Privilege failed: Layer Zero."
+            );
 
             privileges = [true, true];
             privileges[pausedIndex] = false;
 
-            // Act - pause
+            // Act: pause
             IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
                 [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], privileges
             );
@@ -87,9 +122,9 @@ contract TestAdmin is Test, CrossChainSetup {
                 bridgeID++
             ) {
                 if (bridgeID == pausedIndex) {
-                    assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(bridgeID), false);
+                    assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(bridgeID), false, "Pause failed.");
                 } else {
-                    assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(bridgeID), true);
+                    assertEq(IUSXTest(address(usx_proxy)).transferPrivileges(bridgeID), true, "Privilege failed.");
                 }
             }
             // Revert chain state, such that each iteration is state-independent

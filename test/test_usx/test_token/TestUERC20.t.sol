@@ -31,15 +31,21 @@ contract TestUERC20 is Test {
 
     function test_metadata() public {
         // Assertions
-        assertEq(IUSX(address(usx_proxy)).name(), "USX");
-        assertEq(IUSX(address(usx_proxy)).symbol(), "USX");
-        assertEq(IUSX(address(usx_proxy)).decimals(), 18);
+        assertEq(IUSX(address(usx_proxy)).name(), "USX", "Equivalence violation: incorrect token name.");
+        assertEq(IUSX(address(usx_proxy)).symbol(), "USX", "Equivalence violation: incorrect token symbol.");
+        assertEq(IUSX(address(usx_proxy)).decimals(), 18, "Equivalence violation: incorrect token decimals.");
     }
 
     function test_initial_mint() public {
         // Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(), INITIAL_TOKENS, "Equivalence violation: incorrect total supply."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS,
+            "Equivalence violation: incorrect user balance."
+        );
     }
 
     function test_approve(uint256 approvalAmount) public {
@@ -54,7 +60,11 @@ contract TestUERC20 is Test {
         IUSX(address(usx_proxy)).approve(TEST_ADDRESS, approvalAmount);
 
         // Assertions
-        assertEq(IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS), approvalAmount);
+        assertEq(
+            IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS),
+            approvalAmount,
+            "Equivalence violation: incorrect allowance."
+        );
     }
 
     function test_transfer(uint256 transferAmount) public {
@@ -66,15 +76,31 @@ contract TestUERC20 is Test {
         emit Transfer(address(this), TEST_ADDRESS, transferAmount);
 
         // Pre-action Assertions
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), 0);
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS,
+            "Equivalence violation: incorrect pre-action user balance."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS),
+            0,
+            "Equivalence violation: incorrect pre-action test account balance."
+        );
 
         // Act
         IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, transferAmount);
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - transferAmount);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), transferAmount);
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS - transferAmount,
+            "Equivalence violation: incorrect user balance."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS),
+            transferAmount,
+            "Equivalence violation: incorrect test account balance."
+        );
     }
 
     function testFail_transfer_amount() public {
@@ -97,8 +123,16 @@ contract TestUERC20 is Test {
         uint256 preActionAllowance = IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS);
 
         // Pre-action Assertions
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), 0);
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS,
+            "Equivalence violation: incorrect pre-action user balance."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS),
+            0,
+            "Equivalence violation: incorrect pre-action test account balance."
+        );
         assertEq(preActionAllowance, approvalAmount);
 
         // Act
@@ -106,9 +140,21 @@ contract TestUERC20 is Test {
         IUSX(address(usx_proxy)).transferFrom(address(this), TEST_ADDRESS, approvalAmount);
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - approvalAmount);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS), approvalAmount);
-        assertEq(IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS), preActionAllowance - approvalAmount);
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS - approvalAmount,
+            "Equivalence violation: incorrect user balance."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(TEST_ADDRESS),
+            approvalAmount,
+            "Equivalence violation: incorrect test account balance."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS),
+            preActionAllowance - approvalAmount,
+            "Equivalence violation: incorrect allowance."
+        );
     }
 
     function testFail_transferFrom_amount(uint256 approvalAmount) public {
@@ -156,7 +202,11 @@ contract TestUERC20 is Test {
         emit Approval(testOwner, testSpender, approvalAmount);
 
         // Pre-action Assertions
-        assertEq(IUSX(address(usx_proxy)).allowance(testOwner, testSpender), 0);
+        assertEq(
+            IUSX(address(usx_proxy)).allowance(testOwner, testSpender),
+            0,
+            "Equivalence violation: allowance should equal 0."
+        );
 
         // Act
         vm.prank(testOwner);
@@ -165,7 +215,11 @@ contract TestUERC20 is Test {
         );
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).allowance(testOwner, testSpender), approvalAmount);
+        assertEq(
+            IUSX(address(usx_proxy)).allowance(testOwner, testSpender),
+            approvalAmount,
+            "Equivalence violation: incorrect allowance."
+        );
     }
 
     function testCannot_permit_wrong_message(uint256 approvalAmount) public {

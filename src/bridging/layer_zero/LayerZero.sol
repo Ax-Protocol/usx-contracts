@@ -21,7 +21,7 @@ abstract contract LayerZero is NonBlockingLzApp {
         uint256 _amount,
         bool _useZro,
         bytes memory _adapterParams
-    ) public view virtual returns (uint256 nativeFee, uint256 zroFee) {
+    ) internal view virtual returns (uint256 nativeFee, uint256 zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);

@@ -5,8 +5,6 @@ pragma solidity ^0.8.2;
 import "./IERC165.sol";
 import "./IERC20Metadata.sol";
 
-// TODO: change this to know nothing amount LayerZero :)
-
 /**
  * @dev Interface of the Omnichain ERC20 standard
  */
@@ -58,9 +56,4 @@ interface IOERC20 is IERC165, IERC20Metadata {
     event ReceiveFromChain(
         uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
     );
-
-    /**
-     * @dev Thrown if a cross-chain transfer is initiated while paused.
-     */
-    //error Paused();
 }

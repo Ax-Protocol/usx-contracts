@@ -18,8 +18,16 @@ contract TestBurnUSX is Test, SupplyRegulationSetup {
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
         // Pre-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), TEST_MINT_AMOUNT);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(),
+            TEST_MINT_AMOUNT,
+            "Equivalence violation: total supply and TEST_MINT_AMOUNT."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            TEST_MINT_AMOUNT,
+            "Equivalence violation: user balance and TEST_MINT_AMOUNT."
+        );
 
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
@@ -30,8 +38,16 @@ contract TestBurnUSX is Test, SupplyRegulationSetup {
         IUSX(address(usx_proxy)).burn(address(this), testBurnAmount);
 
         // Post-action Assertions
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), TEST_MINT_AMOUNT - testBurnAmount);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), TEST_MINT_AMOUNT - testBurnAmount);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(),
+            TEST_MINT_AMOUNT - testBurnAmount,
+            "Equivalence violation: total supply must decrease by amount burned."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            TEST_MINT_AMOUNT - testBurnAmount,
+            "Equivalence violation: user balance must decrease by amount burned."
+        );
     }
 
     function testFail_burn_amount(uint256 testInvalidBurnAmount) public {
@@ -47,7 +63,7 @@ contract TestBurnUSX is Test, SupplyRegulationSetup {
         IUSX(address(usx_proxy)).burn(address(this), testInvalidBurnAmount);
     }
 
-    function test_fail_burn_unauthorized(uint256 testBurnAmount) public {
+    function testCannot_burn_unauthorized(uint256 testBurnAmount) public {
         // Assumptions
         vm.assume(testBurnAmount <= TEST_MINT_AMOUNT);
 

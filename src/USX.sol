@@ -10,9 +10,9 @@ import "./bridging/OERC20.sol";
 import "./interfaces/IUSX.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
-    function initialize(address _lzEndpoint, address _wormholeCoreBridgeAddress) public initializer {
+    function initialize(address _lzEndpoint, address _wormholeCoreBridge) public initializer {
         __ERC20_init("USX", "USX");
-        __OERC20_init(_lzEndpoint, _wormholeCoreBridgeAddress);
+        __OERC20_init(_lzEndpoint, _wormholeCoreBridge);
         __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
     }

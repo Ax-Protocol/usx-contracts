@@ -23,8 +23,16 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_MINT);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_MINT);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_FIRST_MINT,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_MINT."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_FIRST_MINT,
+            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_MINT."
+        );
 
         // 2. Revoke mint privileges
         IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, false, true);
@@ -44,8 +52,16 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_MINT);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_MINT);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_MINT,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_MINT."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_MINT,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_MINT."
+        );
     }
 
     function test_manageTreasuries_burn_integration(uint256) public {
@@ -63,8 +79,16 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).burn(address(this), TEST_BURN_AMOUNT);
 
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_BURN);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_BURN);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_FIRST_BURN,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_BURN."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_FIRST_BURN,
+            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_BURN."
+        );
 
         // 2. Revoke burn privileges
         IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, false);
@@ -84,7 +108,15 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         vm.prank(TREASURY);
         IUSX(address(usx_proxy)).burn(address(this), TEST_BURN_AMOUNT);
 
-        assertEq(IUSX(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_BURN);
-        assertEq(IUSX(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_BURN);
+        assertEq(
+            IUSX(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_BURN,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_BURN."
+        );
+        assertEq(
+            IUSX(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_BURN,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_BURN."
+        );
     }
 }

@@ -29,8 +29,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_TRANSFER (WH)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_TRANSFER (WH)."
+        );
 
         // 2. Pause
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
@@ -60,8 +68,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+        );
         vm.revertTo(id);
 
         // 5. Unpause
@@ -82,8 +98,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_TRANSFER (WH)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (WH)."
+        );
     }
 
     function test_pause_layer_zero_integration(uint256 transferAmount) public {
@@ -105,8 +129,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
+        );
 
         // 2. Pause
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
@@ -136,8 +168,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_TRANSFER (WH)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (WH)."
+        );
         vm.revertTo(id);
 
         // 5. Unpause
@@ -158,8 +198,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+        );
     }
 
     function test_pause_all_integration(uint256 transferAmount) public {
@@ -182,8 +230,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
+        );
         vm.revertTo(id_1);
 
         IUSXTest(address(usx_proxy)).sendFrom(
@@ -195,8 +251,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_FIRST_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_FIRST_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_TRANSFER (WH)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_FIRST_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_FIRST_TRANSFER (WH)."
+        );
 
         // 2. Pause
         IUSXTest(address(usx_proxy)).manageCrossChainTransfers(
@@ -245,8 +309,16 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+        );
         vm.revertTo(id_2);
 
         IUSXTest(address(usx_proxy)).sendFrom(
@@ -258,7 +330,15 @@ contract TestPauseIntegration is Test, CrossChainSetup {
             payable(address(this))
         );
 
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), BALANCE_AFTER_SECOND_TRANSFER);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), BALANCE_AFTER_SECOND_TRANSFER);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: total supply and BALANCE_AFTER_SECOND_TRANSFER (WM)."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            BALANCE_AFTER_SECOND_TRANSFER,
+            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (WM)."
+        );
     }
 }

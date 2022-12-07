@@ -47,7 +47,7 @@ abstract contract CrossChainSetup is Test {
         );
 
         // Set Trusted Entities for Wormhole
-        IUSXTest(address(usx_proxy)).manageTrustedContracts(TRUSTED_EMITTER_ADDRESS, true);
+        IUSXTest(address(usx_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
         IUSXTest(address(usx_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
 
         // Grant Transfer privliges

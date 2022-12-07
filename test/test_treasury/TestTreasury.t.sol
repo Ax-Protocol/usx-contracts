@@ -10,7 +10,6 @@ import "../../src/interfaces/IStableSwap3Pool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
-import "../mocks/MockCurve3Pool.t.sol";
 import "../common/constants.t.sol";
 
 abstract contract SharedSetup is Test {
@@ -259,7 +258,7 @@ contract TestMint is Test, SharedSetup {
         assertEq(mintedUSX2, expectedMintAmount2);
     }
 
-    function test_fail_treasury_mint_unsupported_stable() public {
+    function testCannot_treasury_mint_unsupported_stable() public {
         // Test Variables
         address unsupportedStable = address(0);
 
@@ -493,7 +492,7 @@ contract TestRedeem is Test, SharedSetup {
         assertEq(redeemedAmount2, expectedRedeemAmount2);
     }
 
-    function test_fail_treasury_redeem_unsupported_stable() public {
+    function testCannot_treasury_redeem_unsupported_stable() public {
         // Test Variables
         address unsupportedStable = address(0);
 
@@ -548,7 +547,7 @@ contract TestAdmin is Test, SharedSetup {
         assertEq(returnedTestCurveIndex, testCurveIndex);
     }
 
-    function test_fail_addSupportedStable_sender() public {
+    function testCannot_addSupportedStable_sender() public {
         // Test Variables
         int128 testCurveIndex = 0;
 
@@ -578,7 +577,7 @@ contract TestAdmin is Test, SharedSetup {
         assertEq(supported, false);
     }
 
-    function test_fail_removeSupportedStable_sender() public {
+    function testCannot_removeSupportedStable_sender() public {
         // Expectations
         vm.expectRevert("Ownable: caller is not the owner");
 

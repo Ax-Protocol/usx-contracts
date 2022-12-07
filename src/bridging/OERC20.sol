@@ -12,9 +12,9 @@ import "../admin/Privileged.sol";
 abstract contract OERC20 is IOERC20, Wormhole, LayerZero, ERC165, UERC20, Privileged {
     error Paused();
 
-    function __OERC20_init(address _lzEndpoint, address _wormholeCoreBridgeAddress) internal initializer {
+    function __OERC20_init(address _lzEndpoint, address _wormholeCoreBridge) internal initializer {
         __LayerZero_init(_lzEndpoint);
-        __Wormhole_init(_wormholeCoreBridgeAddress);
+        __Wormhole_init(_wormholeCoreBridge);
     }
 
     /// @dev for now, just using LayerZero's estimateSendFee(), regardless of _bridgeId

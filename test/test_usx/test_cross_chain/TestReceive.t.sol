@@ -18,8 +18,16 @@ contract TestLayerZeroReceive is Test, CrossChainSetup {
             );
 
         // Pre-action Assertions
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            INITIAL_TOKENS,
+            "Equivalence violation: total supply and initially minted tokens."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS,
+            "Equivalence violation: user balance and initially minted tokens."
+        );
 
         // Act
         vm.prank(LZ_ENDPOINT);
@@ -31,8 +39,16 @@ contract TestLayerZeroReceive is Test, CrossChainSetup {
         );
 
         // Post-action Assertions
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS + transferAmount);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: total supply must increase by amount transferred."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: user balance must increase by amount transferred."
+        );
     }
 
     function testCannot_lzReceive_invalid_sender(uint256 transferAmount) public {
@@ -177,8 +193,16 @@ contract TestWormholeReceive is Test, CrossChainSetup {
         IUSXTest(address(usx_proxy)).processMessage(bytes(""));
 
         // Post-action Assertions 1
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
-        assertEq(IUSXTest(address(usx_proxy)).balanceOf(TEST_USER), INITIAL_TOKENS + transferAmount);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: total supply must increase by amount transferred."
+        );
+        assertEq(
+            IUSXTest(address(usx_proxy)).balanceOf(TEST_USER),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: user balance must increase by amount transferred."
+        );
 
         /* ****************************************************************************
         **

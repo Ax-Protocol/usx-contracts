@@ -18,8 +18,16 @@ contract TestCrossChainSendFrom is Test, CrossChainSetup {
             emit SendToChain(TEST_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Pre-action Assertions
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-            assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS);
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                INITIAL_TOKENS,
+                "Equivalence violation: total supply and initially minted tokens."
+            );
+            assertEq(
+                IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+                INITIAL_TOKENS,
+                "Equivalence violation: user balance and initially minted tokens."
+            );
 
             // Act
             uint256 id = vm.snapshot();
@@ -28,8 +36,16 @@ contract TestCrossChainSendFrom is Test, CrossChainSetup {
             );
 
             // Post-action Assertions
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), INITIAL_TOKENS - transferAmount);
-            assertEq(IUSXTest(address(usx_proxy)).balanceOf(address(this)), INITIAL_TOKENS - transferAmount);
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                INITIAL_TOKENS - transferAmount,
+                "Equivalence violation: total supply must decrease by amount transferred."
+            );
+            assertEq(
+                IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+                INITIAL_TOKENS - transferAmount,
+                "Equivalence violation: user balance must decrease by amount transferred."
+            );
 
             // Revert to previous state, so subsequent protocols have access to funds to send
             vm.revertTo(id);

@@ -14,8 +14,8 @@ abstract contract Wormhole is Ownable {
     bytes32[] private trustedContractsList;
     address[] private trustedRelayersList;
 
-    function __Wormhole_init(address _wormholeCoreBridgeAddress) internal initializer {
-        wormholeCoreBridge = IWormhole(_wormholeCoreBridgeAddress);
+    function __Wormhole_init(address _wormholeCoreBridge) internal initializer {
+        wormholeCoreBridge = IWormhole(_wormholeCoreBridge);
     }
 
     function _publishMessage(address _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
