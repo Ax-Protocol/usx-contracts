@@ -3,7 +3,8 @@ pragma solidity ^0.8.16;
 
 import "solmate/utils/SafeTransferLib.sol";
 import "./interfaces/IStableSwap3Pool.sol";
-import "./interfaces/ILiquidityGauge.sol";
+import "./interfaces/IBooster.sol";
+import "./interfaces/IBaseRewardPool.sol";
 import "./proxy/UUPSUpgradeable.sol";
 import "./interfaces/IERC20.sol";
 import "./utils/Ownable.sol";
@@ -17,9 +18,11 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     // Storage Variables
+    uint8 public constant PID_3POOL = 9;  // TODO: Need to figure out the best place to put this, taking into account storage slotsß
     address public usxToken;
     address public stableSwap3PoolAddress;
-    address public liquidityGaugeAddress;
+    address public booster;
+    address public baseRewardPool;
     address public backingToken;
     mapping(address => SupportedStable) public supportedStables;
     uint256 public previousLpTokenPrice;
@@ -32,14 +35,16 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     function initialize(
         address _stableSwap3PoolAddress,
-        address _liquidityGaugeAddress,
+        address _booster,
+        address _baseRewardPool,
         address _usxToken,
         address _backingToken
     ) public initializer {
         __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
         stableSwap3PoolAddress = _stableSwap3PoolAddress;
-        liquidityGaugeAddress = _liquidityGaugeAddress;
+        booster = _booster;
+        baseRewardPool = _baseRewardPool;
         backingToken = _backingToken;
         usxToken = _usxToken;
     }
@@ -153,16 +158,16 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     function __stakeLpTokens(uint256 _amount) private {
-        // Approve LiquidityGauge to spend Treasury's 3CRV
-        IERC20(backingToken).approve(liquidityGaugeAddress, _amount);
+        // Approve Booster to spend Treasury's 3CRV
+        IERC20(backingToken).approve(booster, _amount);
 
-        // Deposit 3CRV into LiquidityGauge
-        ILiquidityGauge(liquidityGaugeAddress).deposit(_amount);
+        // Deposit 3CRV into Booster and have it stake cvx3CRV into BaseRewardPool on Treasury's behalf
+        IBooster(booster).deposit(PID_3POOL, _amount, true);
     }
 
     function __unstakeLpTokens(uint256 _amount) private {
-        // Withdraw 3CRV from LiquidityGauge
-        ILiquidityGauge(liquidityGaugeAddress).withdraw(_amount);
+        // Unstake cvx3CRV, unwrap it into 3RCV, and claim all rewards
+        IBaseRewardPool(baseRewardPool).withdrawAndUnwrap(_amount, true);
     }
 
     function __getMintAmount(uint256 _lpTokenAmount) private returns (uint256 mintAmount) {
@@ -223,7 +228,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
 
         // 1. Withdraw all staked 3CRV
-        uint256 totalStaked = ILiquidityGauge(liquidityGaugeAddress).balanceOf(address(this));
+        uint256 totalStaked = IBaseRewardPool(baseRewardPool).balanceOf(address(this)); // TODO: Figure out if withdrawAllAndUnrwrap is cheaper than thisß
+
         __unstakeLpTokens(totalStaked);
 
         // 2. Remove liquidity from Curve, receiving _newBackingToken
