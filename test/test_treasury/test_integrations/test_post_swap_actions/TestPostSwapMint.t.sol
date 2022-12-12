@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "../../../../src/interfaces/ILiquidityGauge.sol";
+import "../../../../src/interfaces/IBaseRewardPool.sol";
 import "../../../../src/interfaces/IERC20.sol";
 import "../../../interfaces/IUSXTest.t.sol";
 import "../../../interfaces/ITreasuryTest.t.sol";
@@ -21,7 +21,7 @@ contract TestPostSwapMint is Test, RedeemHelper {
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
-            uint256 preStakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 preStakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
             uint256 preExpectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
             uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
 
@@ -34,7 +34,7 @@ contract TestPostSwapMint is Test, RedeemHelper {
             assertEq(preUserBalanceUSX, preUsxTotalSupply);
             assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
             assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
-            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0);
             assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
             assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount);
 
@@ -57,8 +57,8 @@ contract TestPostSwapMint is Test, RedeemHelper {
             // Ensure the user received USX
             assertEq(postUserBalanceUSX, preUserBalanceUSX + mintedUSX);
 
-            // Ensure there is no 3CRV in the Treasury or liquidity gauge
-            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            // Ensure there is no 3CRV in the Treasury or staked on Convex
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0);
             assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
 
             // Ensure treasury backing amount was properly updated

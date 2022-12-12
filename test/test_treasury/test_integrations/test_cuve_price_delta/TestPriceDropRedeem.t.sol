@@ -18,9 +18,9 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         uint256 usxMinted = IERC20(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 usxBurnAmount = usxMinted / 3;
 
-        // Give Liquidity Gauge 3CRV
-        uint256 curveAmount = calculateCurveTokenAmount(usxMinted);
-        deal(TEST_LIQUIDITY_GAUGE, address(treasury_proxy), curveAmount);
+        // // Give BaseRewardPool cvx3CRV // TODO: Do we need to do this? If so, this is probably wrong.
+        // uint256 curveAmount = calculateCurveTokenAmount(usxMinted);
+        // deal(CVX_3RCV, BASE_REWARD_POOL, curveAmount);
 
         /// @dev Iteration 1, with a higher 3CRV price
 

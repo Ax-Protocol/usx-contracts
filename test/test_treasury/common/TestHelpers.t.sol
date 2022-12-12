@@ -18,8 +18,11 @@ abstract contract TreasurySetup is Test {
     ERC1967Proxy public usx_proxy;
 
     // Test Constants
+    uint8 public constant PID_3POOL = 9;
     address constant TEST_STABLE_SWAP_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7; // Ethereum
-    address constant TEST_LIQUIDITY_GAUGE = 0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A; // Ethereum
+    address constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31; // Ethereum
+    address constant BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8; // Ethereum
+    address constant CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C; // Ethereum
     address constant TEST_DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F; // Ethereum
     address constant TEST_USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // Ethereum
     address constant TEST_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // Ethereum
@@ -47,9 +50,9 @@ abstract contract TreasurySetup is Test {
         // Deploy Treasury implementation, and link to proxy
         treasury_implementation = new Treasury();
         treasury_proxy =
-        new ERC1967Proxy(address(treasury_implementation), abi.encodeWithSignature("initialize(address,address,address,address)", TEST_STABLE_SWAP_3POOL, TEST_LIQUIDITY_GAUGE, address(usx_proxy), TEST_3CRV));
+        new ERC1967Proxy(address(treasury_implementation), abi.encodeWithSignature("initialize(address,address,address,address,address)", TEST_STABLE_SWAP_3POOL, BOOSTER, BASE_REWARD_POOL, TEST_3CRV, address(usx_proxy)));
 
-        // Set treasury admin on token contract
+        // Set treasury admin on USX contract
         IUSXTest(address(usx_proxy)).manageTreasuries(address(treasury_proxy), true, true);
 
         // Set supported stable coins on treasury contract
@@ -92,8 +95,9 @@ contract RedeemHelper is Test, TreasurySetup {
 
         if (coin != TEST_3CRV) {
             vm.startPrank(address(treasury_proxy));
+
             // Unstake 3CRV
-            ILiquidityGauge(TEST_LIQUIDITY_GAUGE).withdraw(lpTokens);
+            IBaseRewardPool(BASE_REWARD_POOL).withdrawAndUnwrap(lpTokens, true);
 
             // Obtain contract's withdraw token balance before adding removing liquidity
             uint256 preBalance = IERC20(coin).balanceOf(address(treasury_proxy));

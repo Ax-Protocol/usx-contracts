@@ -37,8 +37,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         address _stableSwap3PoolAddress,
         address _booster,
         address _baseRewardPool,
-        address _usxToken,
-        address _backingToken
+        address _backingToken,
+        address _usxToken
     ) public initializer {
         __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../src/interfaces/ILiquidityGauge.sol";
+import "../../src/interfaces/IBaseRewardPool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
@@ -19,7 +19,7 @@ contract TestRedeem is Test, RedeemHelper {
 
         uint256 usxInitialSupply = IUSXTest(address(usx_proxy)).totalSupply();
         uint256 usxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
-        uint256 stakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+        uint256 stakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
         for (uint256 i; i < TEST_COINS.length; i++) {
             // Expectations
             uint256 burnAmountUSX = usxInitialSupply / TEST_COINS.length;
@@ -51,10 +51,8 @@ contract TestRedeem is Test, RedeemHelper {
             // Ensure the user received the desired output token
             assertEq(IERC20(TEST_COINS[i]).balanceOf(TEST_USER), expectedRedeemAmount);
 
-            // Ensure that LP tokens in liquidity gauge properly decreased
-            assertEq(
-                ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed
-            );
+            // Ensure the deposit tokens in BaseRewardPool properly decreased
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed);
 
             usxTotalSupply -= burnAmountUSX;
             stakedAmount -= curveAmountUsed;
@@ -74,7 +72,7 @@ contract TestRedeem is Test, RedeemHelper {
             // Expectations
             uint256 curveAmountUsed = calculateCurveTokenAmount(usxTotalSupply);
             uint256 expectedRedeemAmount = calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
-            uint256 stakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 stakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
 
             vm.expectEmit(true, true, true, true, address(treasury_proxy));
             emit Redemption(TEST_USER, usxTotalSupply);
@@ -103,10 +101,8 @@ contract TestRedeem is Test, RedeemHelper {
             uint256 userERC20Balance = IERC20(TEST_COINS[i]).balanceOf(TEST_USER);
             assertEq(userERC20Balance, expectedRedeemAmount);
 
-            // Ensure that LP tokens in liquidity gauge properly decreased
-            assertEq(
-                ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed
-            );
+            // Ensure the deposit tokens in BaseRewardPool properly decreased
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed);
 
             /// @dev Revert blockchain state to before USX was redeemed for next iteration
             vm.revertTo(id);

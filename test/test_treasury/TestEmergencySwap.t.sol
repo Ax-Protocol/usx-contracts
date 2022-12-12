@@ -2,7 +2,7 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../src/interfaces/ILiquidityGauge.sol";
+import "../../src/interfaces/IBaseRewardPool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
@@ -21,7 +21,7 @@ contract TestEmergencySwap is Test, RedeemHelper {
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
-            uint256 preStakedAmount = ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy));
+            uint256 preStakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
             uint256 expectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
 
             // Pre-action assertions
@@ -47,7 +47,7 @@ contract TestEmergencySwap is Test, RedeemHelper {
             assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
 
             // Ensure balances were properly updated
-            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), 0);
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0);
             assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
             assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), expectedTokenAmount);
 

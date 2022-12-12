@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
 import "../../src/interfaces/IStableSwap3Pool.sol";
-import "../../src/interfaces/ILiquidityGauge.sol";
+import "../../src/interfaces/IBaseRewardPool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
@@ -59,8 +59,8 @@ contract TestMint is Test, MintHelper {
             // Ensure the stable coins were taken from the user
             assertEq(IERC20(TEST_COINS[i]).balanceOf(TEST_USER), 0);
 
-            // Ensure that the liquidity gauge received tokens
-            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), totalStaked + lpTokens);
+            // Ensure that the lp tokens and deposit tokens were staked through Convex
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), totalStaked + lpTokens);
 
             totalMinted += mintedUSX;
             totalStaked += lpTokens;
@@ -115,8 +115,8 @@ contract TestMint is Test, MintHelper {
             // Ensure the stable coins were taken from the user
             assertEq(IERC20(TEST_COINS[i]).balanceOf(TEST_USER), 0);
 
-            // Ensure that the liquidity gauge received tokens
-            assertEq(ILiquidityGauge(TEST_LIQUIDITY_GAUGE).balanceOf(address(treasury_proxy)), lpTokens);
+            // Ensure that the lp tokens and deposit tokens were staked through Convex
+            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), lpTokens);
 
             /// @dev Revert blockchain state to before USX was minted for next iteration
             vm.revertTo(id);
