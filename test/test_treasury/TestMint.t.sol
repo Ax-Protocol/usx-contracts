@@ -37,7 +37,7 @@ contract TestMint is Test, MintHelper {
 
             // Pre-action assertions
             uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), totalMinted);
+            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), totalMinted); // TODO: add reason string to all assertEq statements
             assertEq(preUserBalanceUSX, totalMinted);
 
             // Act

@@ -18,7 +18,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     // Storage Variables
-    uint8 public constant PID_3POOL = 9;  // TODO: Need to figure out the best place to put this, taking into account storage slotsß
+    uint8 public constant PID_3POOL = 9; // TODO: Need to figure out the best place to put this, taking into account storage slotsß
     address public usxToken;
     address public stableSwap3PoolAddress;
     address public booster;

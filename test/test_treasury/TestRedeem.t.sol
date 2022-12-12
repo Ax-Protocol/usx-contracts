@@ -52,7 +52,9 @@ contract TestRedeem is Test, RedeemHelper {
             assertEq(IERC20(TEST_COINS[i]).balanceOf(TEST_USER), expectedRedeemAmount);
 
             // Ensure the deposit tokens in BaseRewardPool properly decreased
-            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed);
+            assertEq(
+                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed
+            );
 
             usxTotalSupply -= burnAmountUSX;
             stakedAmount -= curveAmountUsed;
@@ -102,7 +104,9 @@ contract TestRedeem is Test, RedeemHelper {
             assertEq(userERC20Balance, expectedRedeemAmount);
 
             // Ensure the deposit tokens in BaseRewardPool properly decreased
-            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed);
+            assertEq(
+                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), stakedAmount - curveAmountUsed
+            );
 
             /// @dev Revert blockchain state to before USX was redeemed for next iteration
             vm.revertTo(id);
