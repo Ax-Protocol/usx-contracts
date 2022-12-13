@@ -32,8 +32,10 @@ contract TestPriceDropMint is Test, MintHelper {
         // Expectations 1
         (uint256 expectedMintAmount1,) = calculateMintAmount(0, testDepositAmount, TEST_DAI);
         uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-        assertEq(IUSXTest(address(usx_proxy)).totalSupply(), 0);
-        assertEq(preUserBalanceUSX, 0);
+        assertEq(
+            IUSXTest(address(usx_proxy)).totalSupply(), 0, "Equivalence violation: pre-action total supply is not zero"
+        );
+        assertEq(preUserBalanceUSX, 0, "Equivalence violation: preUserBalanceUSX is not zero");
 
         // Act 1
         SafeTransferLib.safeApprove(ERC20(TEST_DAI), address(treasury_proxy), testDepositAmount);
@@ -43,9 +45,13 @@ contract TestPriceDropMint is Test, MintHelper {
         uint256 postUserBalanceUSX1 = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 mintedUSX1 = postUserBalanceUSX1 - preUserBalanceUSX;
         // Ensure that conversion price was set
-        assertEq(ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(), TEST_3CRV_VIRTUAL_PRICE);
+        assertEq(
+            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            TEST_3CRV_VIRTUAL_PRICE,
+            "Equivalence violation: previous 3CRV price and TEST_3CRV_VIRTUAL_PRICE"
+        );
         // Ensure that the amount of USX minted matches expectation (using higher price)
-        assertEq(mintedUSX1, expectedMintAmount1);
+        assertEq(mintedUSX1, expectedMintAmount1, "Equivalence violation: mintedUSX1 and expectedMintAmount1");
 
         /// @dev Iteration 2, with a lower 3CRV price
         // Expectations 2: calculate expectation before lowering 3CRV price, as it shouldn't decrease
@@ -66,9 +72,13 @@ contract TestPriceDropMint is Test, MintHelper {
         uint256 postUserBalanceUSX2 = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 mintedUSX2 = postUserBalanceUSX2 - postUserBalanceUSX1;
         // Ensure that conversion price remains at the higher 3CRV price
-        assertEq(ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(), TEST_3CRV_VIRTUAL_PRICE);
+        assertEq(
+            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            TEST_3CRV_VIRTUAL_PRICE,
+            "Equivalence violation: previous 3RCV price and TEST_3CRV_VIRTUAL_PRICE"
+        );
         // Ensure that the amount of USX minted matches expectation (using higher price)
-        assertEq(mintedUSX2, expectedMintAmount2);
+        assertEq(mintedUSX2, expectedMintAmount2, "Equivalence violation: mintedUSX2 and expectedMintAmount2");
 
         vm.stopPrank();
     }

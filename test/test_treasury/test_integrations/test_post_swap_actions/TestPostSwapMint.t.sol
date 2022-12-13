@@ -30,13 +30,34 @@ contract TestPostSwapMint is Test, RedeemHelper {
             ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
 
             // Pre-action assertions
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), preUsxTotalSupply);
-            assertEq(preUserBalanceUSX, preUsxTotalSupply);
-            assertEq(ITreasuryTest(address(treasury_proxy)).backingToken(), TEST_COINS[i]);
-            assertEq(ITreasuryTest(address(treasury_proxy)).backingSwapped(), true);
-            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0);
-            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
-            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount);
+            assertEq(
+                preUserBalanceUSX, preUsxTotalSupply, "Equivalence violation: preUserBalanceUSX and preUsxTotalSupply"
+            );
+            assertEq(
+                ITreasuryTest(address(treasury_proxy)).backingToken(),
+                TEST_COINS[i],
+                "Swap failed: backingToken was not updated"
+            );
+            assertEq(
+                ITreasuryTest(address(treasury_proxy)).backingSwapped(),
+                true,
+                "Swap failed: backingSwapped was not updated"
+            );
+            assertEq(
+                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                0,
+                "Equivalence violation: treasury staked cvx3CRV balance is not zero"
+            );
+            assertEq(
+                IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
+                0,
+                "Equivalence violation: treasury 3CRV balance is not zero"
+            );
+            assertEq(
+                IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)),
+                preExpectedTokenAmount,
+                "Equivalence violation: treasury test coin balance and preExpectedTokenAmount"
+            );
 
             // Act
             deal(TEST_COINS[i], TEST_USER, TEST_AMOUNTS[i] * amountMultiplier);
@@ -51,18 +72,42 @@ contract TestPostSwapMint is Test, RedeemHelper {
 
             /// @dev Post-action assertions
             // Ensure the correct amount of USX was minted
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), preUsxTotalSupply + mintedUSX);
-            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), preUsxTotalSupply + mintedUSX);
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                preUsxTotalSupply + mintedUSX,
+                "Equivalence violation: post-action total supply (USX) and preUsxTotalSupply + mintedUSX"
+            );
+            assertEq(
+                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                preUsxTotalSupply + mintedUSX,
+                "Equivalence violation: post-action total supply (Treasury) and preUsxTotalSupply + mintedUSX"
+            );
 
             // Ensure the user received USX
-            assertEq(postUserBalanceUSX, preUserBalanceUSX + mintedUSX);
+            assertEq(
+                postUserBalanceUSX,
+                preUserBalanceUSX + mintedUSX,
+                "Equivalence violation: preUserBalanceUSX and mintedUSX"
+            );
 
             // Ensure there is no 3CRV in the Treasury or staked on Convex
-            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0);
-            assertEq(IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)), 0);
+            assertEq(
+                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                0,
+                "Equivalence violation: treasury staked cvx3CRV balance is not zero"
+            );
+            assertEq(
+                IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
+                0,
+                "Equivalence violation: treasury 3CRV balance is not zero"
+            );
 
             // Ensure treasury backing amount was properly updated
-            assertEq(IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)), preExpectedTokenAmount + mintedUSX);
+            assertEq(
+                IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)),
+                preExpectedTokenAmount + mintedUSX,
+                "Equivalence violation: treasury test coin balance and preExpectedTokenAmount + mintedUSX"
+            );
 
             /// @dev Revert blockchain state to before emergency swap for next iteration
             vm.revertTo(id);

@@ -14,15 +14,17 @@ contract TestAdmin is Test, TreasurySetup {
         // Pre-action assertions
         (bool supported, int128 returnedTestCurveIndex) =
             ITreasuryTest(address(treasury_proxy)).supportedStables(TEST_STABLE);
-        assertEq(supported, false);
+        assertEq(supported, false, "Error: stable already supported");
 
         // Act
         ITreasuryTest(address(treasury_proxy)).addSupportedStable(TEST_STABLE, testCurveIndex);
 
         // Post-action assertions
         (supported, returnedTestCurveIndex) = ITreasuryTest(address(treasury_proxy)).supportedStables(TEST_STABLE);
-        assertEq(supported, true);
-        assertEq(returnedTestCurveIndex, testCurveIndex);
+        assertEq(supported, true, "Error: failed to add supported stable");
+        assertEq(
+            returnedTestCurveIndex, testCurveIndex, "Equivalence violation: returnedTestCurveIndex and testCurveIndex"
+        );
     }
 
     function testCannot_addSupportedStable_sender() public {
@@ -44,15 +46,15 @@ contract TestAdmin is Test, TreasurySetup {
         // Pre-action assertions
         (bool supported, int128 returnedTestCurveIndex) =
             ITreasuryTest(address(treasury_proxy)).supportedStables(TEST_STABLE);
-        assertEq(supported, true);
-        assertEq(returnedTestCurveIndex, 0);
+        assertEq(supported, true, "Error: stable not supported");
+        assertEq(returnedTestCurveIndex, 0, "Equivalence violation: returnedTestCurveIndex and testCurveIndex");
 
         // Act
         ITreasuryTest(address(treasury_proxy)).removeSupportedStable(TEST_STABLE);
 
         // Post-action assertions
         (supported, returnedTestCurveIndex) = ITreasuryTest(address(treasury_proxy)).supportedStables(TEST_STABLE);
-        assertEq(supported, false);
+        assertEq(supported, false, "Error: failed to remove supported stable");
     }
 
     function testCannot_removeSupportedStable_sender() public {

@@ -37,8 +37,12 @@ contract TestMint is Test, MintHelper {
 
             // Pre-action assertions
             uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), totalMinted); // TODO: add reason string to all assertEq statements
-            assertEq(preUserBalanceUSX, totalMinted);
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                totalMinted,
+                "Equivalence violation: pre-action total supply and totalMinted"
+            );
+            assertEq(preUserBalanceUSX, totalMinted, "Equivalence violation: preUserBalanceUSX and totalMinted");
 
             // Act
             SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
@@ -49,18 +53,38 @@ contract TestMint is Test, MintHelper {
             uint256 mintedUSX = postUserBalanceUSX - preUserBalanceUSX;
 
             // Ensure the correct amount of USX was minted
-            assertEq(mintedUSX, expectedMintAmount);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), totalMinted + mintedUSX);
-            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), totalMinted + mintedUSX);
+            assertEq(mintedUSX, expectedMintAmount, "Equivalence violation: mintedUSX and expectedMintAmount");
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                totalMinted + mintedUSX,
+                "Equivalence violation: post-action total supply (USX) and totalMinted + mintedUSX"
+            );
+            assertEq(
+                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                totalMinted + mintedUSX,
+                "Equivalence violation: post-action total supply (Treasury) and totalMinted + mintedUSX"
+            );
 
             // Ensure the user received USX
-            assertEq(postUserBalanceUSX, totalMinted + mintedUSX);
+            assertEq(
+                postUserBalanceUSX,
+                totalMinted + mintedUSX,
+                "Equivalence violation: postUserBalanceUSX and totalMinted + mintedUSX"
+            );
 
             // Ensure the stable coins were taken from the user
-            assertEq(IERC20(TEST_COINS[i]).balanceOf(TEST_USER), 0);
+            assertEq(
+                IERC20(TEST_COINS[i]).balanceOf(TEST_USER),
+                0,
+                "Equivalence violation: user test coin balance is not zero"
+            );
 
             // Ensure that the lp tokens and deposit tokens were staked through Convex
-            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), totalStaked + lpTokens);
+            assertEq(
+                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                totalStaked + lpTokens,
+                "Equivalence violation: treasury staked cvx3CRV balance and totalStaked + lpTokens"
+            );
 
             totalMinted += mintedUSX;
             totalStaked += lpTokens;
@@ -91,8 +115,12 @@ contract TestMint is Test, MintHelper {
 
             // Pre-action assertions
             uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), 0);
-            assertEq(preUserBalanceUSX, 0);
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                0,
+                "Equivalence violation: pre-action total supply is not zero"
+            );
+            assertEq(preUserBalanceUSX, 0, "Equivalence violation: preUserBalanceUSX is not zero");
 
             // Act
             uint256 id = vm.snapshot();
@@ -105,18 +133,34 @@ contract TestMint is Test, MintHelper {
 
             /// @dev Post-action assertions
             // Ensure the correct amount of USX was minted
-            assertEq(mintedUSX, expectedMintAmount);
-            assertEq(IUSXTest(address(usx_proxy)).totalSupply(), mintedUSX);
-            assertEq(ITreasuryTest(address(treasury_proxy)).totalSupply(), mintedUSX);
+            assertEq(mintedUSX, expectedMintAmount, "Equivalence violation: mintedUSX and expectedMintAmount");
+            assertEq(
+                IUSXTest(address(usx_proxy)).totalSupply(),
+                mintedUSX,
+                "Equivalence violation: post-action total supply (USX) and mintedUSX"
+            );
+            assertEq(
+                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                mintedUSX,
+                "Equivalence violation: post-action total supply (Treasury) and mintedUSX"
+            );
 
             // Ensure the user received USX
-            assertEq(postUserBalanceUSX, mintedUSX);
+            assertEq(postUserBalanceUSX, mintedUSX, "Equivalence violation: postUserBalanceUSX and mintedUSX");
 
             // Ensure the stable coins were taken from the user
-            assertEq(IERC20(TEST_COINS[i]).balanceOf(TEST_USER), 0);
+            assertEq(
+                IERC20(TEST_COINS[i]).balanceOf(TEST_USER),
+                0,
+                "Equivalence violation: user test coin balance is not zero"
+            );
 
             // Ensure that the lp tokens and deposit tokens were staked through Convex
-            assertEq(IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), lpTokens);
+            assertEq(
+                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                lpTokens,
+                "Equivalence violation: treasury staked cvx3CRV balance and lpTokens"
+            );
 
             /// @dev Revert blockchain state to before USX was minted for next iteration
             vm.revertTo(id);

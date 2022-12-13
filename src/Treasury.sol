@@ -18,7 +18,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     // Storage Variables
-    uint8 public constant PID_3POOL = 9; // TODO: Need to figure out the best place to put this, taking into account storage slotsß
+    uint8 public constant PID_3POOL = 9; // TODO: Need to figure out the best place to put this, taking into account storage slots
     address public usxToken;
     address public stableSwap3PoolAddress;
     address public booster;
@@ -228,7 +228,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
 
         // 1. Withdraw all staked 3CRV
-        uint256 totalStaked = IBaseRewardPool(baseRewardPool).balanceOf(address(this)); // TODO: Figure out if withdrawAllAndUnrwrap is cheaper than thisß
+        uint256 totalStaked = IBaseRewardPool(baseRewardPool).balanceOf(address(this)); // TODO: Figure out if withdrawAllAndUnrwrap is cheaper than this
 
         __unstakeLpTokens(totalStaked);
 

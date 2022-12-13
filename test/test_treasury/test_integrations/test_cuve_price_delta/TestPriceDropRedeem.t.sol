@@ -18,10 +18,6 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         uint256 usxMinted = IERC20(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 usxBurnAmount = usxMinted / 3;
 
-        // // Give BaseRewardPool cvx3CRV // TODO: Do we need to do this? If so, this is probably wrong.
-        // uint256 curveAmount = calculateCurveTokenAmount(usxMinted);
-        // deal(CVX_3RCV, BASE_REWARD_POOL, curveAmount);
-
         /// @dev Iteration 1, with a higher 3CRV price
 
         // Mock Curve 1
@@ -37,7 +33,7 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Pre-action assertions 1
         uint256 initialUserBalance1 = IERC20(TEST_DAI).balanceOf(TEST_USER);
-        assertEq(initialUserBalance1, 0);
+        assertEq(initialUserBalance1, 0, "Equivalence violation: initialUserBalance1 is not zero");
 
         // Act 1
         vm.prank(TEST_USER);
@@ -47,10 +43,16 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         uint256 postUserBalance1 = IERC20(TEST_DAI).balanceOf(TEST_USER);
         uint256 redeemedAmount1 = postUserBalance1 - initialUserBalance1;
         // Ensure that previousLpTokenPrice is set
-        assertEq(ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(), TEST_3CRV_VIRTUAL_PRICE);
+        assertEq(
+            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            TEST_3CRV_VIRTUAL_PRICE,
+            "Equivalence violation: previous 3RCV price and TEST_3CRV_VIRTUAL_PRICE"
+        );
 
         // Ensure redemption matches expectation (higher price)
-        assertEq(redeemedAmount1, expectedRedeemAmount1);
+        assertEq(
+            redeemedAmount1, expectedRedeemAmount1, "Equivalence violation: redeemedAmount1 and expectedRedeemAmount1"
+        );
 
         /// @dev Iteration 2, with a lower 3CRV price
 
@@ -73,8 +75,14 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         uint256 postUserBalance2 = IERC20(TEST_DAI).balanceOf(TEST_USER);
         uint256 redeemedAmount2 = postUserBalance2 - postUserBalance1;
         // Ensure that conversion price remains at the higher 3CRV price
-        assertEq(ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(), TEST_3CRV_VIRTUAL_PRICE);
+        assertEq(
+            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            TEST_3CRV_VIRTUAL_PRICE,
+            "Equivalence violation: previous 3RCV price and TEST_3CRV_VIRTUAL_PRICE"
+        );
         // Ensure redemption matches expectation (using higher price)
-        assertEq(redeemedAmount2, expectedRedeemAmount2);
+        assertEq(
+            redeemedAmount2, expectedRedeemAmount2, "Equivalence violation: redeemedAmount2 and expectedRedeemAmount2"
+        );
     }
 }
