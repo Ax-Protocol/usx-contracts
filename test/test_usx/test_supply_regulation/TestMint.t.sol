@@ -45,7 +45,7 @@ contract TestMintUSX is Test, SupplyRegulationSetup {
         // Expectations
         vm.expectRevert("Unauthorized.");
 
-        // Act
+        // Act: no prank
         IUSX(address(usx_proxy)).mint(address(this), mintAmount);
     }
 }

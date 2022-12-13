@@ -37,7 +37,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_FIRST_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_TRANSFER (WH)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_FIRST_TRANSFER (WH)."
         );
 
         // 2. Pause
@@ -76,7 +76,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_SECOND_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
         );
         vm.revertTo(id);
 
@@ -106,7 +106,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_SECOND_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (WH)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (WH)."
         );
     }
 
@@ -137,7 +137,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_FIRST_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
         );
 
         // 2. Pause
@@ -176,7 +176,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_SECOND_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (WH)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (WH)."
         );
         vm.revertTo(id);
 
@@ -206,7 +206,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_SECOND_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
         );
     }
 
@@ -238,7 +238,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_FIRST_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_FIRST_TRANSFER (LZ)."
         );
         vm.revertTo(id_1);
 
@@ -317,7 +317,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_SECOND_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (LZ)."
         );
         vm.revertTo(id_2);
 
@@ -338,7 +338,7 @@ contract TestPauseIntegration is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             BALANCE_AFTER_SECOND_TRANSFER,
-            "Equivalence violation: user balance and BALANCE_AFTER_SECOND_TRANSFER (WM)."
+            "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (WM)."
         );
     }
 }
