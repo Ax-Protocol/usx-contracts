@@ -542,13 +542,21 @@ contract TestAdmin is Test, SharedSetup {
         deal(TEST_USDC, address(treasury_proxy), USDC_AMOUNT);
 
         // Pre-action assertions
-        assertEq(IERC20(TEST_USDC).balanceOf(address(treasury_proxy)), USDC_AMOUNT, "Equivalence violation: treausury test coin balance and USDC_AMOUNT");
+        assertEq(
+            IERC20(TEST_USDC).balanceOf(address(treasury_proxy)),
+            USDC_AMOUNT,
+            "Equivalence violation: treausury test coin balance and USDC_AMOUNT"
+        );
 
         // Act
         ITreasuryTest(address(treasury_proxy)).extractERC20(TEST_USDC);
 
         // Post-action assertions
-        assertEq(IERC20(TEST_USDC).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treausury test coin balance is not zero");
+        assertEq(
+            IERC20(TEST_USDC).balanceOf(address(treasury_proxy)),
+            0,
+            "Equivalence violation: treausury test coin balance is not zero"
+        );
     }
 
     function test_addSupportedStable() public {
