@@ -26,7 +26,7 @@ contract TestCrossChainSendFrom is Test, CrossChainSetup {
             assertEq(
                 IUSXTest(address(usx_proxy)).balanceOf(address(this)),
                 INITIAL_TOKENS,
-                "Equivalence violation: user balance and initially minted tokens."
+                "Equivalence violation: sender balance and initially minted tokens."
             );
 
             // Act
@@ -44,7 +44,7 @@ contract TestCrossChainSendFrom is Test, CrossChainSetup {
             assertEq(
                 IUSXTest(address(usx_proxy)).balanceOf(address(this)),
                 INITIAL_TOKENS - transferAmount,
-                "Equivalence violation: user balance must decrease by amount transferred."
+                "Equivalence violation: sender balance must decrease by amount transferred."
             );
 
             // Revert to previous state, so subsequent protocols have access to funds to send

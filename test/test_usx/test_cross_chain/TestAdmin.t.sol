@@ -79,12 +79,12 @@ contract TestAdmin is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.WORMHOLE)),
             true,
-            "Privilege failed: Wormhole."
+            "Unpaused failed: Wormhole."
         );
         assertEq(
             IUSXTest(address(usx_proxy)).transferPrivileges(uint8(BridgingProtocols.LAYER_ZERO)),
             true,
-            "Privilege failed: Layer Zero."
+            "Unpaused failed: Layer Zero."
         );
     }
 

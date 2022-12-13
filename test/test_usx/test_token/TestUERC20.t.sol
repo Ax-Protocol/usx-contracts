@@ -103,12 +103,14 @@ contract TestUERC20 is Test {
         );
     }
 
-    function testFail_transfer_amount() public {
+    function testFail_transfer_amount(uint256 transferAmount) public {
+        // Assumptions
+        vm.assume(transferAmount > IUSX(address(usx_proxy)).balanceOf(address(this)));
+
         // Expectation: FAIL. Reason: Arithmetic over/underflow
 
         // Act
-        uint256 testFailingTransferAmount = IUSX(address(usx_proxy)).balanceOf(address(this)) + 1;
-        IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, testFailingTransferAmount);
+        IUSX(address(usx_proxy)).transfer(TEST_ADDRESS, transferAmount);
     }
 
     function test_transferFrom(uint256 approvalAmount) public {
@@ -157,15 +159,16 @@ contract TestUERC20 is Test {
         );
     }
 
-    function testFail_transferFrom_amount(uint256 approvalAmount) public {
+    function testFail_transferFrom_amount(uint256 approvalAmount, uint256 transferAmount) public {
         vm.assume(approvalAmount > 0 && approvalAmount <= INITIAL_TOKENS);
+        vm.assume(transferAmount > approvalAmount);
 
         // Setup
         IUSX(address(usx_proxy)).approve(TEST_ADDRESS, approvalAmount);
 
-        // Act
+        // Act: transfer more than approved
         vm.prank(TEST_ADDRESS);
-        IUSX(address(usx_proxy)).transferFrom(address(this), TEST_ADDRESS, approvalAmount + 1);
+        IUSX(address(usx_proxy)).transferFrom(address(this), TEST_ADDRESS, transferAmount);
     }
 
     function test_permit(uint256 approvalAmount) public {

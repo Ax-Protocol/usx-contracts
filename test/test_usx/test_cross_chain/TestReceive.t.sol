@@ -26,7 +26,7 @@ contract TestLayerZeroReceive is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             INITIAL_TOKENS,
-            "Equivalence violation: user balance and initially minted tokens."
+            "Equivalence violation: recipient balance and initially minted tokens."
         );
 
         // Act
@@ -47,7 +47,7 @@ contract TestLayerZeroReceive is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(address(this)),
             INITIAL_TOKENS + transferAmount,
-            "Equivalence violation: user balance must increase by amount transferred."
+            "Equivalence violation: recipient balance must increase by amount transferred."
         );
     }
 
@@ -58,7 +58,7 @@ contract TestLayerZeroReceive is Test, CrossChainSetup {
         // Expectation
         vm.expectRevert("LzApp: invalid endpoint caller");
 
-        // Act
+        // Act: no prank
         IUSXTest(address(usx_proxy)).lzReceive(
             TEST_CHAIN_ID, abi.encode(address(this)), 1, abi.encode(abi.encodePacked(address(this)), transferAmount)
         );
@@ -71,7 +71,7 @@ contract TestLayerZeroReceive is Test, CrossChainSetup {
         // Expectation
         vm.expectRevert("LzApp: invalid source sending contract");
 
-        // Act
+        // Act: source address not msg.sender
         vm.prank(LZ_ENDPOINT);
         IUSXTest(address(usx_proxy)).lzReceive(
             TEST_CHAIN_ID, abi.encode(address(0)), 1, abi.encode(abi.encodePacked(address(this)), transferAmount)
@@ -201,7 +201,7 @@ contract TestWormholeReceive is Test, CrossChainSetup {
         assertEq(
             IUSXTest(address(usx_proxy)).balanceOf(TEST_USER),
             INITIAL_TOKENS + transferAmount,
-            "Equivalence violation: user balance must increase by amount transferred."
+            "Equivalence violation: recipient balance must increase by amount transferred."
         );
 
         /* ****************************************************************************
