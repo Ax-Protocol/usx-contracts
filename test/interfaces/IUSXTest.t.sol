@@ -25,6 +25,8 @@ interface IUSXTest is IUSX, IMessagePassing {
 
     function transferPrivileges(uint8 _bridgeID) external returns (bool);
 
+    function extractERC20(address _token) external;
+
     //function Paused() external;
     error Paused();
 }
