@@ -28,16 +28,6 @@ contract TestEmergencySwap is Test, RedeemHelper {
             uint256 userBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
             assertEq(userBalanceUSX, preUsxTotalSupply, "Equivalence violation: userBalanceUSX and preUsxTotalSupply");
             assertEq(
-                ITreasuryTest(address(treasury_proxy)).backingToken(),
-                TEST_3CRV,
-                "Error: backing token is not set to 3CRV"
-            );
-            assertEq(
-                ITreasuryTest(address(treasury_proxy)).backingSwapped(),
-                false,
-                "Error: backing token has already been swapped"
-            );
-            assertEq(
                 IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
                 0,
                 "Equivalence violation: treasury 3CRV balance is not zero"
@@ -60,18 +50,6 @@ contract TestEmergencySwap is Test, RedeemHelper {
                 "Equivalence violation: post-action total supply and preUsxTotalSupply"
             );
             assertEq(userBalanceUSX, preUsxTotalSupply, "Equivalence violation: userBalanceUSX and preUsxTotalSupply");
-
-            // Ensure backingToken and backingSwapped were properly updated
-            assertEq(
-                ITreasuryTest(address(treasury_proxy)).backingToken(),
-                TEST_COINS[i],
-                "Swap failed: backingToken was not updated"
-            );
-            assertEq(
-                ITreasuryTest(address(treasury_proxy)).backingSwapped(),
-                true,
-                "Swap failed: backingSwapped was not updated"
-            );
 
             // Ensure balances were properly updated
             assertEq(

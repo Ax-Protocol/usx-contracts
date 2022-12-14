@@ -18,6 +18,15 @@ abstract contract Privileged is Ownable {
         treasuries[_treasury] = Privileges(_mint, _burn);
     }
 
+    /// @dev Allow a treasury to revoke its own mint and burn privileges
+    function treasuryKillSwitch() public {
+        Privileges memory privileges = treasuries[msg.sender];
+
+        require(privileges.mint || privileges.burn, "Unauthorized.");
+
+        treasuries[msg.sender] = Privileges(false, false);
+    }
+
     function manageCrossChainTransfers(bool _paused) public onlyOwner {
         paused = _paused;
     }

@@ -50,7 +50,7 @@ abstract contract TreasurySetup is Test {
         // Deploy Treasury implementation, and link to proxy
         treasury_implementation = new Treasury();
         treasury_proxy =
-        new ERC1967Proxy(address(treasury_implementation), abi.encodeWithSignature("initialize(address,address,address,address,address)", TEST_STABLE_SWAP_3POOL, BOOSTER, BASE_REWARD_POOL, TEST_3CRV, address(usx_proxy)));
+        new ERC1967Proxy(address(treasury_implementation), abi.encodeWithSignature("initialize(address)", address(usx_proxy)));
 
         // Set treasury admin on USX contract
         IUSXTest(address(usx_proxy)).manageTreasuries(address(treasury_proxy), true, true);
@@ -59,6 +59,13 @@ abstract contract TreasurySetup is Test {
         ITreasuryTest(address(treasury_proxy)).addSupportedStable(TEST_DAI, 0);
         ITreasuryTest(address(treasury_proxy)).addSupportedStable(TEST_USDC, 1);
         ITreasuryTest(address(treasury_proxy)).addSupportedStable(TEST_USDT, 2);
+    }
+
+    function test_setUpState() public {
+        (bool mint, bool burn) = IUSXTest(address(usx_proxy)).treasuries(address(treasury_proxy));
+
+        assertEq(mint, true, "Error: treasury does not have minting priveleges");
+        assertEq(burn, true, "Error: treasury does not have bruning priveleges");
     }
 }
 

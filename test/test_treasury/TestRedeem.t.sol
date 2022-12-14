@@ -166,10 +166,6 @@ contract TestRedeem is Test, RedeemHelper {
         vm.prank(address(treasury_proxy));
         IUSXTest(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
-        // Give Treasury 3CRV
-        uint256 curveAmount = calculateCurveTokenAmount(TEST_MINT_AMOUNT);
-        deal(TEST_3CRV, address(treasury_proxy), curveAmount);
-
         // Expectations
         vm.expectEmit(true, true, true, true, address(treasury_proxy));
         emit Redemption(address(this), burnAmount);
@@ -186,7 +182,7 @@ contract TestRedeem is Test, RedeemHelper {
             "Equivalence violation: pre-action treasury USX balance and TEST_MINT_AMOUNT"
         );
 
-        // Act
+        // Act: burnAmount greater than amount minted
         ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, burnAmount);
     }
 }

@@ -3,120 +3,12 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "../../../../src/interfaces/IBaseRewardPool.sol";
-import "../../../../src/interfaces/IERC20.sol";
-import "../../../interfaces/IUSXTest.t.sol";
 import "../../../interfaces/ITreasuryTest.t.sol";
 import "../../../common/constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
 
 contract TestPostSwapMint is Test, RedeemHelper {
-    function test_mint_after_emergency_swap(uint256 amountMultiplier) public {
-        vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
-
-        // Allocate initial funds for test
-        mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
-        uint256 preUsxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
-
-        // Excluding last index (3CRV)
-        for (uint256 i; i < TEST_COINS.length - 1; i++) {
-            // Expectations
-            uint256 preStakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
-            uint256 preExpectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
-            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-
-            // Setup
-            uint256 id = vm.snapshot();
-            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
-
-            // Pre-action assertions
-            assertEq(
-                preUserBalanceUSX, preUsxTotalSupply, "Equivalence violation: preUserBalanceUSX and preUsxTotalSupply"
-            );
-            assertEq(
-                ITreasuryTest(address(treasury_proxy)).backingToken(),
-                TEST_COINS[i],
-                "Swap failed: backingToken was not updated"
-            );
-            assertEq(
-                ITreasuryTest(address(treasury_proxy)).backingSwapped(),
-                true,
-                "Swap failed: backingSwapped was not updated"
-            );
-            assertEq(
-                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-                0,
-                "Equivalence violation: treasury staked cvx3CRV balance is not zero"
-            );
-            assertEq(
-                IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
-                0,
-                "Equivalence violation: treasury 3CRV balance is not zero"
-            );
-            assertEq(
-                IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)),
-                preExpectedTokenAmount,
-                "Equivalence violation: treasury test coin balance and preExpectedTokenAmount"
-            );
-
-            // Act
-            deal(TEST_COINS[i], TEST_USER, TEST_AMOUNTS[i] * amountMultiplier);
-            uint256 amount = TEST_AMOUNTS[i] * amountMultiplier;
-            vm.startPrank(TEST_USER);
-            SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
-            ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[i], amount);
-
-            // Post-action data extraction
-            uint256 postUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            uint256 mintedUSX = postUserBalanceUSX - preUserBalanceUSX;
-
-            /// @dev Post-action assertions
-            // Ensure the correct amount of USX was minted
-            assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
-                preUsxTotalSupply + mintedUSX,
-                "Equivalence violation: post-action total supply (USX) and preUsxTotalSupply + mintedUSX"
-            );
-            assertEq(
-                ITreasuryTest(address(treasury_proxy)).totalSupply(),
-                preUsxTotalSupply + mintedUSX,
-                "Equivalence violation: post-action total supply (Treasury) and preUsxTotalSupply + mintedUSX"
-            );
-
-            // Ensure the user received USX
-            assertEq(
-                postUserBalanceUSX,
-                preUserBalanceUSX + mintedUSX,
-                "Equivalence violation: preUserBalanceUSX and mintedUSX"
-            );
-
-            // Ensure there is no 3CRV in the Treasury or staked on Convex
-            assertEq(
-                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-                0,
-                "Equivalence violation: treasury staked cvx3CRV balance is not zero"
-            );
-            assertEq(
-                IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
-                0,
-                "Equivalence violation: treasury 3CRV balance is not zero"
-            );
-
-            // Ensure treasury backing amount was properly updated
-            assertEq(
-                IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)),
-                preExpectedTokenAmount + mintedUSX,
-                "Equivalence violation: treasury test coin balance and preExpectedTokenAmount + mintedUSX"
-            );
-
-            /// @dev Revert blockchain state to before emergency swap for next iteration
-            vm.revertTo(id);
-            vm.stopPrank();
-        }
-    }
-
-    /// @dev After an emergency swap, ensure minting fails with invalid stable
-    function testCannot_mint_after_emergency_swap_unsupported() public {
+    function testCannot_mint_after_emergency_swap() public {
         // Allocate initial funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT);
 
@@ -125,19 +17,18 @@ contract TestPostSwapMint is Test, RedeemHelper {
             // Setup
             uint256 id = vm.snapshot();
             ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
-            deal(TEST_3CRV, TEST_USER, CURVE_AMOUNT);
             vm.startPrank(TEST_USER);
 
+            // Ensure TEST_USER cannot mint with any supported stable
             for (uint256 j; j < TEST_COINS.length - 1; j++) {
-                if (TEST_COINS[j] != TEST_COINS[i]) {
-                    SafeTransferLib.safeApprove(ERC20(TEST_COINS[j]), address(treasury_proxy), CURVE_AMOUNT);
+                deal(TEST_COINS[j], TEST_USER, TEST_AMOUNTS[j]);
+                SafeTransferLib.safeApprove(ERC20(TEST_COINS[j]), address(treasury_proxy), TEST_AMOUNTS[j]);
 
-                    // Expectations
-                    vm.expectRevert("Invalid _stable.");
+                // Expectations
+                vm.expectRevert("Unauthorized.");
 
-                    // Act: attempt to mint with unsupported token after emergency swap
-                    ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[j], CURVE_AMOUNT);
-                }
+                // Act: attempt to mint after emergency swap
+                ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[j], TEST_AMOUNTS[j]);
             }
 
             // Revert blockchain state to before emergency swap for next iteration
