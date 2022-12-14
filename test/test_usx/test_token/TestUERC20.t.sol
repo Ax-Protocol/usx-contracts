@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "../../../src/USX.sol";
 import "../../../src/proxy/ERC1967Proxy.sol";
 import "../../interfaces/IUSXTest.t.sol";
-import "../../common/constants.t.sol";
+import "../../common/Constants.t.sol";
 
 contract TestUERC20 is Test {
     // Test Contracts

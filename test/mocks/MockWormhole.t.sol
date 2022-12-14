@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import "../../src/interfaces/IWormhole.sol";
 import "../../src/interfaces/IERC20.sol";
-import "../common/constants.t.sol";
+import "../common/Constants.t.sol";
 
 contract WormholeHelper {
     function getVM() internal view returns (IWormhole.VM memory) {

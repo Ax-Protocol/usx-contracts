@@ -10,7 +10,7 @@ import "../../src/interfaces/IStableSwap3Pool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
-import "../common/constants.t.sol";
+import "../common/Constants.t.sol";
 
 abstract contract SharedSetup is Test {
     // Test Contracts
@@ -529,7 +529,9 @@ contract TestRedeem is Test, SharedSetup {
 }
 
 contract TestAdmin is Test, SharedSetup {
-    function test_extractERC20_treasury() public {
+    function test_extractERC20_treasury(uint256 amount) public {
+        vm.assume(amount > 0 && amount < 1e6);
+
         // TODO: After merging changes to main, use mintForTest (inherit from RedeemHelper)
         // Mint so that the treasury has 3CRV (backingToken)
         vm.startPrank(TEST_USER);
@@ -539,13 +541,13 @@ contract TestAdmin is Test, SharedSetup {
         vm.stopPrank();
 
         // Send the treasury an ERC20 token
-        deal(TEST_USDC, address(treasury_proxy), USDC_AMOUNT);
+        deal(TEST_USDC, address(treasury_proxy), amount);
 
         // Pre-action assertions
         assertEq(
             IERC20(TEST_USDC).balanceOf(address(treasury_proxy)),
-            USDC_AMOUNT,
-            "Equivalence violation: treausury test coin balance and USDC_AMOUNT"
+            amount,
+            "Equivalence violation: treausury test coin balance and amount"
         );
 
         // Act
@@ -556,6 +558,11 @@ contract TestAdmin is Test, SharedSetup {
             IERC20(TEST_USDC).balanceOf(address(treasury_proxy)),
             0,
             "Equivalence violation: treausury test coin balance is not zero"
+        );
+        assertEq(
+            IERC20(TEST_USDC).balanceOf(address(this)),
+            amount,
+            "Equivalence violation: owner TEST_USDC balance and amount"
         );
     }
 

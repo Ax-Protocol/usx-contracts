@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "../../../src/USX.sol";
 import "../../interfaces/IUSXTest.t.sol";
 import "../../mocks/MockWormhole.t.sol";
-import "../../common/constants.t.sol";
+import "../../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
 
 contract TestLayerZeroReceive is Test, CrossChainSetup {

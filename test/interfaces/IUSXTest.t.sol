@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 
 import "../../src/interfaces/IUSX.sol";
 import "./IMessagePassing.t.sol";
-import "../common/constants.t.sol";
+import "../common/Constants.t.sol";
 
 interface IUSXTest is IUSX, IMessagePassing {
     function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)

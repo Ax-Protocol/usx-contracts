@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import "forge-std/Test.sol";
 import "../../../src/USX.sol";
 import "../../interfaces/IUSXTest.t.sol";
-import "../../common/constants.t.sol";
+import "../../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
 
 contract TestCrossChainSendFrom is Test, CrossChainSetup {

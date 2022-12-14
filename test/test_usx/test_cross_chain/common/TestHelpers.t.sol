@@ -6,7 +6,7 @@ import "../../../../src/USX.sol";
 import "../../../../src/proxy/ERC1967Proxy.sol";
 import "../../../interfaces/IUSXTest.t.sol";
 import "../../../mocks/MockLayerZero.t.sol";
-import "../../../common/constants.t.sol";
+import "../../../common/Constants.t.sol";
 
 abstract contract CrossChainSetup is Test {
     // Test Contracts
