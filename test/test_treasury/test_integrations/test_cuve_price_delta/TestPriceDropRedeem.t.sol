@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "../../../../src/interfaces/IStableSwap3Pool.sol";
 import "../../../../src/interfaces/IERC20.sol";
 import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/constants.t.sol";
+import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
 
 contract TestPriceDropRedeem is Test, RedeemHelper {

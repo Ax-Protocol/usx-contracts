@@ -193,8 +193,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev Allows contract admins to swap the backing token, in an emergency.
-     * @param _newBackingToken The address of the new backing token.
+     * @dev Allows contract admins to swap the backing token to a supported stable, in an emergency.
      */
     function emergencySwapBacking(address _newBackingToken) public onlyOwner {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
@@ -213,6 +212,17 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
         // This contract is now backed by _newBackingToken, but backingToken was not updated, because it's a constant.
         // Admins may need to update backingToken depending on the post-emergency swap resolution.
+    }
+
+    /**
+     * @dev This function allows contract admins to extract any non-backing ERC20 token.
+     * @param _token The address of token to remove.
+     */
+    function extractERC20(address _token) public onlyOwner {
+        require(_token != backingToken, "Can't withdraw backing token.");
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+
+        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
     }
 
     /**

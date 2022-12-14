@@ -6,7 +6,7 @@ import "../../../../src/interfaces/IBaseRewardPool.sol";
 import "../../../../src/interfaces/IERC20.sol";
 import "../../../interfaces/IUSXTest.t.sol";
 import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/constants.t.sol";
+import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
 
 contract TestEmergencySwap is Test, RedeemHelper {

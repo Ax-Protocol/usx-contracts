@@ -6,7 +6,7 @@ import "solmate/utils/SafeTransferLib.sol";
 import "../../../../src/interfaces/IStableSwap3Pool.sol";
 import "../../../interfaces/IUSXTest.t.sol";
 import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/constants.t.sol";
+import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
 
 contract TestPriceDropMint is Test, MintHelper {

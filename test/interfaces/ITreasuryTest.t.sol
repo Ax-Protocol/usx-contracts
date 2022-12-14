@@ -17,7 +17,5 @@ interface ITreasuryTest is ITreasury {
 
     function emergencySwapBacking(address _newBackingToken) external;
 
-    function backingToken() external returns (address);
-
-    function backingSwapped() external returns (bool);
+    function extractERC20(address _token) external;
 }
