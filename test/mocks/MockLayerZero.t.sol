@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.16;
 
-contract MockLayerZeroEndpoint {
+contract MockLayerZero {
     function send(
         uint16 _dstChainId,
         bytes calldata _destination,

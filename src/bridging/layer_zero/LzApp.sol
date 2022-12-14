@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import "../utils/Ownable.sol";
-import "../interfaces/ILayerZeroEndpoint.sol";
-import "../interfaces/ILayerZeroReceiver.sol";
+import "../../utils/Ownable.sol";
+import "../../interfaces/ILayerZeroEndpoint.sol";
+import "../../interfaces/ILayerZeroReceiver.sol";
 
 /*
  * a generic LzReceiver implementation

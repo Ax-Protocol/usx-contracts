@@ -5,21 +5,43 @@ pragma solidity ^0.8.16;
 import "../utils/Ownable.sol";
 
 abstract contract Privileged is Ownable {
-    struct Privileges {
+    enum BridgingProtocols {
+        WORMHOLE,
+        LAYER_ZERO
+    }
+
+    struct TreasuryPrivileges {
         bool mint;
         bool burn;
     }
 
-    bool public paused = false;
+    mapping(address => TreasuryPrivileges) public treasuries;
+    mapping(uint8 => bool) public transferPrivileges;
 
-    mapping(address => Privileges) public treasuries;
-
+    /**
+     * @dev Manages cross-chain transfer privileges for each message passing protocol.
+     * @param _treasury - The address of the USX Treasury contract.
+     * @param _mint - Whether or not this treasury can mint USX.
+     * @param _burn - Whether or not this treasury can burn USX.
+     */
     function manageTreasuries(address _treasury, bool _mint, bool _burn) public onlyOwner {
-        treasuries[_treasury] = Privileges(_mint, _burn);
+        treasuries[_treasury] = TreasuryPrivileges(_mint, _burn);
     }
 
-    function manageCrossChainTransfers(bool _paused) public onlyOwner {
-        paused = _paused;
+    /**
+     * @dev Manages cross-chain transfer privileges for each message passing protocol.
+     * @param _bridgeIds - An array of supported bridge IDs; the order must match `_privilges` array.
+     * @param _privileges - An array of protocol privileges; the order must match `_bridgeIds` array.
+     */
+    function manageCrossChainTransfers(BridgingProtocols[2] calldata _bridgeIds, bool[2] calldata _privileges)
+        public
+        onlyOwner
+    {
+        require(_bridgeIds.length == _privileges.length, "Arrays must be equal length.");
+
+        for (uint256 i = 0; i < _bridgeIds.length; i++) {
+            transferPrivileges[uint8(_bridgeIds[i])] = _privileges[i];
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 
 import "../../src/interfaces/IUSX.sol";
 import "./IMessagePassing.t.sol";
+import "../common/Constants.t.sol";
 
 interface IUSXTest is IUSX, IMessagePassing {
     function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
@@ -19,9 +20,13 @@ interface IUSXTest is IUSX, IMessagePassing {
 
     function treasuries(address _treasury) external returns (bool mint, bool burn);
 
-    function manageCrossChainTransfers(bool _paused) external;
+    function manageCrossChainTransfers(BridgingProtocols[2] calldata _bridgeIds, bool[2] calldata _privileges)
+        external;
 
-    function paused() external returns (bool);
+    function transferPrivileges(uint8 _bridgeID) external returns (bool);
 
-    function Paused() external;
+    function extractERC20(address _token) external;
+
+    //function Paused() external;
+    error Paused();
 }

@@ -10,8 +10,7 @@ import "../../src/interfaces/IStableSwap3Pool.sol";
 import "../../src/interfaces/IERC20.sol";
 import "../interfaces/IUSXTest.t.sol";
 import "../interfaces/ITreasuryTest.t.sol";
-import "../mocks/MockStableSwap3Pool.t.sol";
-import "../common/constants.t.sol";
+import "../common/Constants.t.sol";
 
 abstract contract SharedSetup is Test {
     // Test Contracts
@@ -26,7 +25,6 @@ abstract contract SharedSetup is Test {
     address constant TEST_USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // Ethereum
     address constant TEST_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // Ethereum
     address constant TEST_STABLE = 0xaD37Cd49a9dd24BE734212AEFA1b862ead92eEF2;
-    address constant TEST_USER = 0x19Bb08638DD185b7455ffD1bB96765108B0aB556;
     address[4] TEST_COINS = [TEST_DAI, TEST_USDC, TEST_USDT, TEST_3CRV];
 
     uint256 constant DAI_AMOUNT = 1e18;
@@ -44,7 +42,7 @@ abstract contract SharedSetup is Test {
         // Deploy USX implementation, and link to proxy
         usx_implementation = new USX();
         usx_proxy =
-            new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address)", LZ_ENDPOINT));
+        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
 
         // Deploy Treasury implementation, and link to proxy
         treasury_implementation = new Treasury();
@@ -260,7 +258,7 @@ contract TestMint is Test, SharedSetup {
         assertEq(mintedUSX2, expectedMintAmount2);
     }
 
-    function test_fail_treasury_mint_unsupported_stable() public {
+    function testCannot_treasury_mint_unsupported_stable() public {
         // Test Variables
         address unsupportedStable = address(0);
 
@@ -494,7 +492,7 @@ contract TestRedeem is Test, SharedSetup {
         assertEq(redeemedAmount2, expectedRedeemAmount2);
     }
 
-    function test_fail_treasury_redeem_unsupported_stable() public {
+    function testCannot_treasury_redeem_unsupported_stable() public {
         // Test Variables
         address unsupportedStable = address(0);
 
@@ -531,6 +529,43 @@ contract TestRedeem is Test, SharedSetup {
 }
 
 contract TestAdmin is Test, SharedSetup {
+    function test_extractERC20_treasury(uint256 amount) public {
+        vm.assume(amount > 0 && amount < 1e6);
+
+        // TODO: After merging changes to main, use mintForTest (inherit from RedeemHelper)
+        // Mint so that the treasury has 3CRV (backingToken)
+        vm.startPrank(TEST_USER);
+        deal(TEST_DAI, TEST_USER, DAI_AMOUNT);
+        IERC20(TEST_DAI).approve(address(treasury_proxy), DAI_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, DAI_AMOUNT);
+        vm.stopPrank();
+
+        // Send the treasury an ERC20 token
+        deal(TEST_USDC, address(treasury_proxy), amount);
+
+        // Pre-action assertions
+        assertEq(
+            IERC20(TEST_USDC).balanceOf(address(treasury_proxy)),
+            amount,
+            "Equivalence violation: treausury test coin balance and amount"
+        );
+
+        // Act
+        ITreasuryTest(address(treasury_proxy)).extractERC20(TEST_USDC);
+
+        // Post-action assertions
+        assertEq(
+            IERC20(TEST_USDC).balanceOf(address(treasury_proxy)),
+            0,
+            "Equivalence violation: treausury test coin balance is not zero"
+        );
+        assertEq(
+            IERC20(TEST_USDC).balanceOf(address(this)),
+            amount,
+            "Equivalence violation: owner TEST_USDC balance and amount"
+        );
+    }
+
     function test_addSupportedStable() public {
         // Test Variables
         int128 testCurveIndex = 0;
@@ -549,7 +584,7 @@ contract TestAdmin is Test, SharedSetup {
         assertEq(returnedTestCurveIndex, testCurveIndex);
     }
 
-    function test_fail_addSupportedStable_sender() public {
+    function testCannot_addSupportedStable_sender() public {
         // Test Variables
         int128 testCurveIndex = 0;
 
@@ -579,7 +614,7 @@ contract TestAdmin is Test, SharedSetup {
         assertEq(supported, false);
     }
 
-    function test_fail_removeSupportedStable_sender() public {
+    function testCannot_removeSupportedStable_sender() public {
         // Expectations
         vm.expectRevert("Ownable: caller is not the owner");
 
