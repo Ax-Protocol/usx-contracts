@@ -28,6 +28,15 @@ abstract contract Privileged is Ownable {
         treasuries[_treasury] = TreasuryPrivileges(_mint, _burn);
     }
 
+    /// @dev Allow a treasury to revoke its own mint and burn privileges
+    function treasuryKillSwitch() public {
+        TreasuryPrivileges memory privileges = treasuries[msg.sender];
+
+        require(privileges.mint || privileges.burn, "Unauthorized.");
+
+        treasuries[msg.sender] = TreasuryPrivileges(false, false);
+    }
+
     /**
      * @dev Manages cross-chain transfer privileges for each message passing protocol.
      * @param _bridgeIds - An array of supported bridge IDs; the order must match `_privilges` array.

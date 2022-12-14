@@ -13,5 +13,9 @@ interface ITreasuryTest is ITreasury {
 
     function previousLpTokenPrice() external returns (uint256);
 
+    function totalSupply() external returns (uint256);
+
+    function emergencySwapBacking(address _newBackingToken) external;
+
     function extractERC20(address _token) external;
 }

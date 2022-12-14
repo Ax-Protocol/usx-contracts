@@ -24,7 +24,7 @@ contract TestERC1967Proxy is Test {
         address implementationAddressV1 =
             address(uint160(uint256(vm.load(address(usx_proxy), implentationStorageSlot))));
 
-        // Pre-action Assertions
+        // Pre-action assertions
         assertEq(implementationAddressV1, address(usx_implementation));
 
         // Act
