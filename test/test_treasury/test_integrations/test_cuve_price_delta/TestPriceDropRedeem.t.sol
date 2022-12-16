@@ -2,11 +2,13 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../../../src/interfaces/IStableSwap3Pool.sol";
-import "../../../../src/interfaces/IERC20.sol";
-import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
+
+import "../../../../src/treasury/interfaces/ICurve3Pool.sol";
+import "../../../../src/common/interfaces/IERC20.sol";
+import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
+import "../../../common/Constants.t.sol";
 
 contract TestPriceDropRedeem is Test, RedeemHelper {
     function test_redeem_negative_price_delta(uint256 priceDelta) public {
@@ -23,7 +25,7 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         // Mock Curve 1
         vm.mockCall(
             TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            abi.encodeWithSelector(ICurve3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE)
         );
 
@@ -37,14 +39,14 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Act 1
         vm.prank(TEST_USER);
-        ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, usxBurnAmount);
+        ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_DAI, usxBurnAmount);
 
         // Post-action 1 assertions
         uint256 postUserBalance1 = IERC20(TEST_DAI).balanceOf(TEST_USER);
         uint256 redeemedAmount1 = postUserBalance1 - initialUserBalance1;
         // Ensure that previousLpTokenPrice is set
         assertEq(
-            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            ITreasuryAdmin(address(treasury_proxy)).previousLpTokenPrice(),
             TEST_3CRV_VIRTUAL_PRICE,
             "Equivalence violation: previous 3RCV price and TEST_3CRV_VIRTUAL_PRICE"
         );
@@ -63,20 +65,20 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         // Mock Curve 2
         vm.mockCall(
             TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            abi.encodeWithSelector(ICurve3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE - priceDelta)
         );
 
         // Act 2
         vm.prank(TEST_USER);
-        ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, usxBurnAmount);
+        ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_DAI, usxBurnAmount);
 
         // Post-action 2 assertions
         uint256 postUserBalance2 = IERC20(TEST_DAI).balanceOf(TEST_USER);
         uint256 redeemedAmount2 = postUserBalance2 - postUserBalance1;
         // Ensure that conversion price remains at the higher 3CRV price
         assertEq(
-            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            ITreasuryAdmin(address(treasury_proxy)).previousLpTokenPrice(),
             TEST_3CRV_VIRTUAL_PRICE,
             "Equivalence violation: previous 3RCV price and TEST_3CRV_VIRTUAL_PRICE"
         );

@@ -2,12 +2,14 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../src/interfaces/IBaseRewardPool.sol";
-import "../../src/interfaces/IERC20.sol";
-import "../interfaces/IUSXTest.t.sol";
-import "../interfaces/ITreasuryTest.t.sol";
-import "../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
+
+import "../../src/treasury/interfaces/IBaseRewardPool.sol";
+import "../../src/common/interfaces/IERC20.sol";
+import "../../src/common/interfaces/IUSXAdmin.sol";
+import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
+import "../common/Constants.t.sol";
 
 contract TestRedeem is Test, RedeemHelper {
     /// @dev Test that each supported token can be redeemed in a sequential manner, without resetting chain state after each mint
@@ -17,8 +19,8 @@ contract TestRedeem is Test, RedeemHelper {
         // Allocate funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT * 4 * amountMultiplier);
 
-        uint256 usxInitialSupply = IUSXTest(address(usx_proxy)).totalSupply();
-        uint256 usxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        uint256 usxInitialSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
+        uint256 usxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         uint256 stakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
         for (uint256 i; i < TEST_COINS.length; i++) {
             // Expectations
@@ -33,28 +35,28 @@ contract TestRedeem is Test, RedeemHelper {
             vm.startPrank(TEST_USER);
 
             // Pre-action data extraction
-            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
 
             // Pre-action assertions
             assertEq(preUserBalanceUSX, usxTotalSupply, "Equivalence violation: preUserBalanceUSX and usxTotalSupply");
 
             // Act
-            ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[i], burnAmountUSX);
+            ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_COINS[i], burnAmountUSX);
 
             /// @dev Post-action assertions
             // Ensure USX was burned
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 usxTotalSupply - burnAmountUSX,
                 "Equivalence violation: post-action total supply (USX) and usxTotalSupply - burnAmountUSX"
             );
             assertEq(
-                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                ITreasuryAdmin(address(treasury_proxy)).totalSupply(),
                 usxTotalSupply - burnAmountUSX,
                 "Equivalence violation: post-action total supply (Treasury) and usxTotalSupply - burnAmountUSX"
             );
             assertEq(
-                IUSXTest(address(usx_proxy)).balanceOf(TEST_USER),
+                IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER),
                 usxTotalSupply - burnAmountUSX,
                 "Equivalence violation: post-action user USX balance and usxTotalSupply - burnAmountUSX"
             );
@@ -86,7 +88,7 @@ contract TestRedeem is Test, RedeemHelper {
         // Allocate funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
 
-        uint256 usxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        uint256 usxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         for (uint256 i; i < TEST_COINS.length; i++) {
             // Expectations
             uint256 curveAmountUsed = calculateCurveTokenAmount(usxTotalSupply);
@@ -100,29 +102,29 @@ contract TestRedeem is Test, RedeemHelper {
             vm.startPrank(TEST_USER);
 
             // Pre-action data extraction
-            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
 
             // Pre-action assertions
             assertEq(preUserBalanceUSX, usxTotalSupply, "Equivalence violation: preUserBalanceUSX and usxTotalSupply");
 
             // Act
             uint256 id = vm.snapshot();
-            ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[i], usxTotalSupply);
+            ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_COINS[i], usxTotalSupply);
 
             /// @dev Post-action assertions
             // Ensure USX was burned
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 0,
                 "Equivalence violation: post-action total supply (USX) is not zero"
             );
             assertEq(
-                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                ITreasuryAdmin(address(treasury_proxy)).totalSupply(),
                 0,
                 "Equivalence violation: post-action total supply (Treasury) is not zero"
             );
             assertEq(
-                IUSXTest(address(usx_proxy)).balanceOf(TEST_USER),
+                IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER),
                 0,
                 "Equivalence violation: post-action user USX balance is not zero"
             );
@@ -156,7 +158,7 @@ contract TestRedeem is Test, RedeemHelper {
         vm.expectRevert("Unsupported stable.");
 
         // Act
-        ITreasuryTest(address(treasury_proxy)).redeem(unsupportedStable, TEST_MINT_AMOUNT);
+        ITreasuryAdmin(address(treasury_proxy)).redeem(unsupportedStable, TEST_MINT_AMOUNT);
     }
 
     function testFail_redeem_amount(uint256 burnAmount) public {
@@ -164,7 +166,7 @@ contract TestRedeem is Test, RedeemHelper {
 
         // Allocate funds for test
         vm.prank(address(treasury_proxy));
-        IUSXTest(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
+        IUSXAdmin(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
         // Expectations
         vm.expectEmit(true, true, true, true, address(treasury_proxy));
@@ -172,17 +174,17 @@ contract TestRedeem is Test, RedeemHelper {
 
         // Pre-action assertions
         assertEq(
-            IUSXTest(address(usx_proxy)).totalSupply(),
+            IUSXAdmin(address(usx_proxy)).totalSupply(),
             TEST_MINT_AMOUNT,
             "Equivalence violation: pre-action total supply and TEST_MINT_AMOUNT"
         );
         assertEq(
-            IUSXTest(address(usx_proxy)).balanceOf(address(this)),
+            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
             TEST_MINT_AMOUNT,
             "Equivalence violation: pre-action treasury USX balance and TEST_MINT_AMOUNT"
         );
 
         // Act: burnAmount greater than amount minted
-        ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, burnAmount);
+        ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_DAI, burnAmount);
     }
 }

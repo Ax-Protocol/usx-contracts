@@ -2,11 +2,13 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../../src/USX.sol";
-import "../../../src/proxy/ERC1967Proxy.sol";
-import "../../interfaces/IUSXTest.t.sol";
-import "../../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
+import "../../../src/usx/USX.sol";
+import "../../../src/proxy/ERC1967Proxy.sol";
+
+import "../../../src/common/interfaces/IUSXAdmin.sol";
+
+import "../../common/Constants.t.sol";
 
 contract TestMintUSX is Test, SupplyRegulationSetup {
     function test_mint(uint256 mintAmount) public {

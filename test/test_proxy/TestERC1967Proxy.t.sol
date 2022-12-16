@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "../../src/USX.sol";
-import "../../src/proxy/ERC1967Proxy.sol";
-import "../interfaces/IUSXTest.t.sol";
 import "forge-std/Test.sol";
+import "../../src/usx/USX.sol";
+import "../../src/proxy/ERC1967Proxy.sol";
+import "../../src/common/interfaces/IUSXAdmin.sol";
 import "../common/Constants.t.sol";
 
 contract TestERC1967Proxy is Test {
@@ -14,8 +14,7 @@ contract TestERC1967Proxy is Test {
 
     function setUp() public {
         usx_implementation = new USX();
-        usx_proxy =
-        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
+        usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
     }
 
     function test_upgradeTo() public {
@@ -29,7 +28,7 @@ contract TestERC1967Proxy is Test {
 
         // Act
         USX usx_implementation_v2 = new USX();
-        IUSXTest(address(usx_proxy)).upgradeTo(address(usx_implementation_v2));
+        IUSXAdmin(address(usx_proxy)).upgradeTo(address(usx_implementation_v2));
 
         // Post-action assertions
         address implementationAddressV2 =

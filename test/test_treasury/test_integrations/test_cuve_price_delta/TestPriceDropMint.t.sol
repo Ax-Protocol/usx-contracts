@@ -3,11 +3,13 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "../../../../src/interfaces/IStableSwap3Pool.sol";
-import "../../../interfaces/IUSXTest.t.sol";
-import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
+
+import "../../../../src/treasury/interfaces/ICurve3Pool.sol";
+import "../../../../src/common/interfaces/IUSXAdmin.sol";
+import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
+import "../../../common/Constants.t.sol";
 
 contract TestPriceDropMint is Test, MintHelper {
     /// @dev Test that mint works using a previously higher 3CRV conversion factor
@@ -25,28 +27,28 @@ contract TestPriceDropMint is Test, MintHelper {
         // Mock Curve 1, setting the 3CRV price
         vm.mockCall(
             TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            abi.encodeWithSelector(ICurve3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE)
         );
 
         // Expectations 1
         (uint256 expectedMintAmount1,) = calculateMintAmount(0, testDepositAmount, TEST_DAI);
-        uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+        uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
         assertEq(
-            IUSXTest(address(usx_proxy)).totalSupply(), 0, "Equivalence violation: pre-action total supply is not zero"
+            IUSXAdmin(address(usx_proxy)).totalSupply(), 0, "Equivalence violation: pre-action total supply is not zero"
         );
         assertEq(preUserBalanceUSX, 0, "Equivalence violation: preUserBalanceUSX is not zero");
 
         // Act 1
         SafeTransferLib.safeApprove(ERC20(TEST_DAI), address(treasury_proxy), testDepositAmount);
-        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, testDepositAmount);
+        ITreasuryAdmin(address(treasury_proxy)).mint(TEST_DAI, testDepositAmount);
 
         // Post-action data extraction 1
-        uint256 postUserBalanceUSX1 = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+        uint256 postUserBalanceUSX1 = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 mintedUSX1 = postUserBalanceUSX1 - preUserBalanceUSX;
         // Ensure that conversion price was set
         assertEq(
-            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            ITreasuryAdmin(address(treasury_proxy)).previousLpTokenPrice(),
             TEST_3CRV_VIRTUAL_PRICE,
             "Equivalence violation: previous 3CRV price and TEST_3CRV_VIRTUAL_PRICE"
         );
@@ -60,20 +62,20 @@ contract TestPriceDropMint is Test, MintHelper {
         // Mock Curve 2, lowering the 3CRV price
         vm.mockCall(
             TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            abi.encodeWithSelector(ICurve3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE - priceDelta)
         );
 
         // Act 2
         SafeTransferLib.safeApprove(ERC20(TEST_DAI), address(treasury_proxy), testDepositAmount);
-        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, testDepositAmount);
+        ITreasuryAdmin(address(treasury_proxy)).mint(TEST_DAI, testDepositAmount);
 
         // Post-action assertions 2
-        uint256 postUserBalanceUSX2 = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+        uint256 postUserBalanceUSX2 = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 mintedUSX2 = postUserBalanceUSX2 - postUserBalanceUSX1;
         // Ensure that conversion price remains at the higher 3CRV price
         assertEq(
-            ITreasuryTest(address(treasury_proxy)).previousLpTokenPrice(),
+            ITreasuryAdmin(address(treasury_proxy)).previousLpTokenPrice(),
             TEST_3CRV_VIRTUAL_PRICE,
             "Equivalence violation: previous 3RCV price and TEST_3CRV_VIRTUAL_PRICE"
         );

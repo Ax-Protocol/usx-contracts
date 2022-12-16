@@ -2,12 +2,14 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../../../src/interfaces/IBaseRewardPool.sol";
-import "../../../../src/interfaces/IERC20.sol";
-import "../../../interfaces/IUSXTest.t.sol";
-import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
+
+import "../../../../src/treasury/interfaces/IBaseRewardPool.sol";
+import "../../../../src/common/interfaces/IERC20.sol";
+import "../../../../src/common/interfaces/IUSXAdmin.sol";
+import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
+import "../../../common/Constants.t.sol";
 
 contract TestEmergencySwap is Test, RedeemHelper {
     function testCannot_redeem_after_emergency_swap() public {
@@ -18,8 +20,8 @@ contract TestEmergencySwap is Test, RedeemHelper {
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Setup
             uint256 id = vm.snapshot();
-            uint256 userBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
-            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+            uint256 userBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
+            ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
             vm.startPrank(TEST_USER);
 
             // Ensure TEST_USER cannot redeem for any supported stable
@@ -28,7 +30,7 @@ contract TestEmergencySwap is Test, RedeemHelper {
                 vm.expectRevert("SafeMath: subtraction overflow");
 
                 // Act: attempt to redeem after emergency swap
-                ITreasuryTest(address(treasury_proxy)).redeem(TEST_COINS[j], userBalanceUSX);
+                ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_COINS[j], userBalanceUSX);
             }
 
             /// Revert blockchain state to before emerfency swap for next iteration

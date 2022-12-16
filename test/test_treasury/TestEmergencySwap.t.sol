@@ -2,12 +2,14 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../src/interfaces/IBaseRewardPool.sol";
-import "../../src/interfaces/IERC20.sol";
-import "../interfaces/IUSXTest.t.sol";
-import "../interfaces/ITreasuryTest.t.sol";
-import "../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
+
+import "../../src/treasury/interfaces/IBaseRewardPool.sol";
+import "../../src/common/interfaces/IERC20.sol";
+import "../../src/common/interfaces/IUSXAdmin.sol";
+import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
+import "../common/Constants.t.sol";
 
 contract TestEmergencySwap is Test, RedeemHelper {
     /// @dev Test that 3CRV can be swapped to each supported stable
@@ -17,7 +19,7 @@ contract TestEmergencySwap is Test, RedeemHelper {
         // Allocate funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
 
-        uint256 preUsxTotalSupply = IUSXTest(address(usx_proxy)).totalSupply();
+        uint256 preUsxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
@@ -25,7 +27,7 @@ contract TestEmergencySwap is Test, RedeemHelper {
             uint256 expectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
 
             // Pre-action assertions
-            uint256 userBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 userBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
             assertEq(userBalanceUSX, preUsxTotalSupply, "Equivalence violation: userBalanceUSX and preUsxTotalSupply");
             assertEq(
                 IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
@@ -40,12 +42,12 @@ contract TestEmergencySwap is Test, RedeemHelper {
 
             // Act
             uint256 id = vm.snapshot();
-            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+            ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
 
             /// @dev Post-action assertions
             // Ensure that no USX was burned
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 preUsxTotalSupply,
                 "Equivalence violation: post-action total supply and preUsxTotalSupply"
             );
@@ -82,6 +84,6 @@ contract TestEmergencySwap is Test, RedeemHelper {
         vm.expectRevert("Token not supported.");
 
         // Act: attempt to perform emergency swap to an unsupported token
-        ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_3CRV);
+        ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(TEST_3CRV);
     }
 }

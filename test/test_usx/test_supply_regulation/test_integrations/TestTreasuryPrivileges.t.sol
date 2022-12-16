@@ -2,11 +2,13 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../../../src/USX.sol";
-import "../../../../src/proxy/ERC1967Proxy.sol";
-import "../../../interfaces/IUSXTest.t.sol";
-import "../../../common/Constants.t.sol";
+import "../../../../src/usx/USX.sol";
 import "./../common/TestHelpers.t.sol";
+import "../../../../src/proxy/ERC1967Proxy.sol";
+
+import "../../../../src/common/interfaces/IUSXAdmin.sol";
+
+import "../../../common/Constants.t.sol";
 
 contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
     /// @dev Integration tests.
@@ -35,7 +37,7 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         );
 
         // 2. Revoke mint privileges
-        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, false, true);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, false, true);
 
         // 3. Ensure cannot mint
         vm.expectRevert("Unauthorized.");
@@ -43,7 +45,7 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         IUSX(address(usx_proxy)).mint(address(this), TEST_MINT_AMOUNT);
 
         // 4. Reinstate mint privileges
-        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
 
         // 5. Ensure can mint again
         vm.expectEmit(true, true, true, true, address(usx_proxy));
@@ -91,7 +93,7 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         );
 
         // 2. Revoke burn privileges
-        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, false);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, true, false);
 
         // 3. Ensure cannot burn
         vm.expectRevert("Unauthorized.");
@@ -99,7 +101,7 @@ contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
         IUSX(address(usx_proxy)).burn(address(this), TEST_BURN_AMOUNT);
 
         // 4. Reinstate burn privileges
-        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
 
         // 5. Ensure can burn again
         vm.expectEmit(true, true, true, true, address(usx_proxy));

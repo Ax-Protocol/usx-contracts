@@ -2,9 +2,11 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "../../../src/USX.sol";
+import "../../../src/usx/USX.sol";
 import "../../../src/proxy/ERC1967Proxy.sol";
-import "../../interfaces/IUSXTest.t.sol";
+
+import "../../../src/common/interfaces/IUSXAdmin.sol";
+
 import "../../common/Constants.t.sol";
 
 contract TestUERC20 is Test {
@@ -18,11 +20,10 @@ contract TestUERC20 is Test {
 
     function setUp() public {
         usx_implementation = new USX();
-        usx_proxy =
-        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
+        usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
 
         // Set Treasury Admin
-        IUSXTest(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
 
         // Mint Initial Tokens
         vm.prank(TREASURY);
@@ -177,13 +178,13 @@ contract TestUERC20 is Test {
         // Test Variables
         address testSpender = 0x2F1E029b0d642b9846Ed45551deCd7e7f07ae98d;
         address testOwner = vm.addr(1);
-        uint256 testNonce = IUSXTest(address(usx_proxy)).nonces(testOwner);
+        uint256 testNonce = IUSXAdmin(address(usx_proxy)).nonces(testOwner);
         uint256 weekSeconds = 604800;
         uint256 deadline = block.timestamp + weekSeconds;
         bytes32 messageHash = keccak256(
             abi.encodePacked(
                 "\x19\x01",
-                IUSXTest(address(usx_proxy)).DOMAIN_SEPARATOR(),
+                IUSXAdmin(address(usx_proxy)).DOMAIN_SEPARATOR(),
                 keccak256(
                     abi.encode(
                         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
@@ -213,7 +214,7 @@ contract TestUERC20 is Test {
 
         // Act
         vm.prank(testOwner);
-        IUSXTest(address(usx_proxy)).permit(
+        IUSXAdmin(address(usx_proxy)).permit(
             testOwner, testSpender, approvalAmount, block.timestamp + weekSeconds, v, r, s
         );
 
@@ -242,7 +243,7 @@ contract TestUERC20 is Test {
 
         // Act
         vm.prank(testOwner);
-        IUSXTest(address(usx_proxy)).permit(
+        IUSXAdmin(address(usx_proxy)).permit(
             testOwner, testSpender, approvalAmount, block.timestamp + weekSeconds, v, r, s
         );
     }

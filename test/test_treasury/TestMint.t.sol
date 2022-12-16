@@ -2,14 +2,16 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "solmate/utils/SafeTransferLib.sol";
-import "../../src/interfaces/IStableSwap3Pool.sol";
-import "../../src/interfaces/IBaseRewardPool.sol";
-import "../../src/interfaces/IERC20.sol";
-import "../interfaces/IUSXTest.t.sol";
-import "../interfaces/ITreasuryTest.t.sol";
-import "../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
+import "solmate/utils/SafeTransferLib.sol";
+
+import "../../src/treasury/interfaces/ICurve3Pool.sol";
+import "../../src/treasury/interfaces/IBaseRewardPool.sol";
+import "../../src/common/interfaces/IERC20.sol";
+import "../../src/common/interfaces/IUSXAdmin.sol";
+import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
+import "../common/Constants.t.sol";
 
 contract TestMint is Test, MintHelper {
     // Test that each supported token can be minted in a sequential manner, without resetting chain state after each mint
@@ -36,9 +38,9 @@ contract TestMint is Test, MintHelper {
             emit Mint(TEST_USER, expectedMintAmount);
 
             // Pre-action assertions
-            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 totalMinted,
                 "Equivalence violation: pre-action total supply and totalMinted"
             );
@@ -46,21 +48,21 @@ contract TestMint is Test, MintHelper {
 
             // Act
             SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
-            ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[i], amount);
+            ITreasuryAdmin(address(treasury_proxy)).mint(TEST_COINS[i], amount);
 
             // Post-action assertions
-            uint256 postUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 postUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
             uint256 mintedUSX = postUserBalanceUSX - preUserBalanceUSX;
 
             // Ensure the correct amount of USX was minted
             assertEq(mintedUSX, expectedMintAmount, "Equivalence violation: mintedUSX and expectedMintAmount");
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 totalMinted + mintedUSX,
                 "Equivalence violation: post-action total supply (USX) and totalMinted + mintedUSX"
             );
             assertEq(
-                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                ITreasuryAdmin(address(treasury_proxy)).totalSupply(),
                 totalMinted + mintedUSX,
                 "Equivalence violation: post-action total supply (Treasury) and totalMinted + mintedUSX"
             );
@@ -114,9 +116,9 @@ contract TestMint is Test, MintHelper {
             emit Mint(TEST_USER, expectedMintAmount);
 
             // Pre-action assertions
-            uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 0,
                 "Equivalence violation: pre-action total supply is not zero"
             );
@@ -125,22 +127,22 @@ contract TestMint is Test, MintHelper {
             // Act
             uint256 id = vm.snapshot();
             SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
-            ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[i], amount);
+            ITreasuryAdmin(address(treasury_proxy)).mint(TEST_COINS[i], amount);
 
             /// Post-action data extraction
-            uint256 postUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
+            uint256 postUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
             uint256 mintedUSX = postUserBalanceUSX - preUserBalanceUSX;
 
             /// @dev Post-action assertions
             // Ensure the correct amount of USX was minted
             assertEq(mintedUSX, expectedMintAmount, "Equivalence violation: mintedUSX and expectedMintAmount");
             assertEq(
-                IUSXTest(address(usx_proxy)).totalSupply(),
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
                 mintedUSX,
                 "Equivalence violation: post-action total supply (USX) and mintedUSX"
             );
             assertEq(
-                ITreasuryTest(address(treasury_proxy)).totalSupply(),
+                ITreasuryAdmin(address(treasury_proxy)).totalSupply(),
                 mintedUSX,
                 "Equivalence violation: post-action total supply (Treasury) and mintedUSX"
             );
@@ -176,6 +178,6 @@ contract TestMint is Test, MintHelper {
         vm.expectRevert("Unsupported stable.");
 
         // Act
-        ITreasuryTest(address(treasury_proxy)).mint(unsupportedStable, TEST_MINT_AMOUNT);
+        ITreasuryAdmin(address(treasury_proxy)).mint(unsupportedStable, TEST_MINT_AMOUNT);
     }
 }

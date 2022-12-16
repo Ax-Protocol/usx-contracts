@@ -3,9 +3,10 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "../../../interfaces/ITreasuryTest.t.sol";
-import "../../../common/Constants.t.sol";
 import "./../../common/TestHelpers.t.sol";
+
+import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
+import "../../../common/Constants.t.sol";
 
 contract TestPostSwapMint is Test, RedeemHelper {
     function testCannot_mint_after_emergency_swap() public {
@@ -16,7 +17,7 @@ contract TestPostSwapMint is Test, RedeemHelper {
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Setup
             uint256 id = vm.snapshot();
-            ITreasuryTest(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+            ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
             vm.startPrank(TEST_USER);
 
             // Ensure TEST_USER cannot mint with any supported stable
@@ -28,7 +29,7 @@ contract TestPostSwapMint is Test, RedeemHelper {
                 vm.expectRevert("Unauthorized.");
 
                 // Act: attempt to mint after emergency swap
-                ITreasuryTest(address(treasury_proxy)).mint(TEST_COINS[j], TEST_AMOUNTS[j]);
+                ITreasuryAdmin(address(treasury_proxy)).mint(TEST_COINS[j], TEST_AMOUNTS[j]);
             }
 
             // Revert blockchain state to before emergency swap for next iteration

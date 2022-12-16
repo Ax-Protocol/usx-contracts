@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "../../src/interfaces/IWormhole.sol";
-import "../../src/interfaces/IERC20.sol";
+import "../../src/bridging/interfaces/IWormhole.sol";
+import "../../src/common/interfaces/IERC20.sol";
 import "../common/Constants.t.sol";
 
 contract WormholeHelper {
