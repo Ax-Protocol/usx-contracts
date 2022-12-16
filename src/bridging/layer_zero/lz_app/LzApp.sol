@@ -53,7 +53,14 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) internal virtual {
+        console.log("[_lzSend]: _refundAddress:", _refundAddress);
+        console.log("[_lzSend]: msg.value:", msg.value);
+        
+
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
+
+        console.log("[_lzSend]: trustedRemote:", string(trustedRemote));
+
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
         lzEndpoint.send{value: msg.value}(
             _dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams

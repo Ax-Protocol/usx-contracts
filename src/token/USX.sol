@@ -3,12 +3,12 @@
 pragma solidity ^0.8.16;
 
 import "../common/utils/Initializable.sol";
-import "../common/utils/Ownable.sol";
+import "../common/utils/InitOwnable.sol";
 import "../proxy/UUPSUpgradeable.sol";
 import "./bridging/OERC20.sol";
 import "../common/interfaces/IUSX.sol";
 
-contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
+contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
     function initialize() public initializer {
         __ERC20_init("USX", "USX");
         __Ownable_init();

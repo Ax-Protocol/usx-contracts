@@ -14,7 +14,7 @@ import "./Initializable.sol";
  *
  * This contract is only required for intermediate, library-like contracts.
  */
-abstract contract Context is Initializable {
+abstract contract InitContext is Initializable {
     function __Context_init() internal onlyInitializing {}
 
     function __Context_init_unchained() internal onlyInitializing {}

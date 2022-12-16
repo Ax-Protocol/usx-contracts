@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 // Contracts
 import "solmate/utils/SafeTransferLib.sol";
 import "../proxy/UUPSUpgradeable.sol";
-import "../common/utils/Ownable.sol";
+import "../common/utils/InitOwnable.sol";
 
 // Interfaces
 import "./interfaces/ICurve3Pool.sol";
@@ -14,7 +14,7 @@ import "./interfaces/ITreasury.sol";
 import "../common/interfaces/IERC20.sol";
 import "../common/interfaces/IUSXAdmin.sol";
 
-contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
+contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     struct SupportedStable {
         bool supported;
         int128 curveIndex;

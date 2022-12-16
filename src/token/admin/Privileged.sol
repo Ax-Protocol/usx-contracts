@@ -3,10 +3,10 @@
 pragma solidity ^0.8.16;
 
 import "solmate/utils/SafeTransferLib.sol";
-import "../../common/utils/Ownable.sol";
+import "../../common/utils/InitOwnable.sol";
 import "../../common/interfaces/IERC20.sol";
 
-abstract contract Privileged is Ownable {
+abstract contract Privileged is InitOwnable {
     struct TreasuryPrivileges {
         bool mint;
         bool burn;

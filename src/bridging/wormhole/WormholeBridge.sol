@@ -124,4 +124,6 @@ contract WormBridge is Ownable {
     function getTrustedRelayers() public view onlyOwner returns (address[] memory) {
         return trustedRelayersList;
     }
+
+    //TODO: add admin function to retrieve native token
 }

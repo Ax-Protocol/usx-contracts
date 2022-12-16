@@ -21,8 +21,3 @@ address constant TEST_3CRV = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
 // bytes
 bytes32 constant TEST_TRUSTED_EMITTER_ADDRESS = bytes32(abi.encode(0xc144b96b42924EBb9e5f7eF7B27957E576A6D102));
-
-enum BridgingProtocols {
-    WORMHOLE,
-    LAYER_ZERO
-}

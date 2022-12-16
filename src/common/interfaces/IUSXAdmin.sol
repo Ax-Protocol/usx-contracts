@@ -17,7 +17,7 @@ interface IUSXAdmin is IUSX, IERC20Extended {
 
     function manageCrossChainTransfers(address[2] calldata _bridgeAddresses, bool[2] calldata _privileges) external;
 
-    function transferPrivileges(uint8 _bridgeID) external returns (bool);
+    function transferPrivileges(address _bridge) external returns (bool);
 
     function extractERC20(address _token) external;
 }
