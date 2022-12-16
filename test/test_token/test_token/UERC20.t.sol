@@ -9,7 +9,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-contract TestUERC20 is Test {
+contract UERC20Test is Test {
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;

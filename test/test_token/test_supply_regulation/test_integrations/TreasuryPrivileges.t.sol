@@ -10,7 +10,7 @@ import "../../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../../common/Constants.t.sol";
 
-contract TestTreasuryPrivileges is Test, SupplyRegulationSetup {
+contract TreasuryPrivilegesTest is Test, SupplyRegulationSetup {
     /// @dev Integration tests.
 
     function test_manageTreasuries_mint_integration() public {

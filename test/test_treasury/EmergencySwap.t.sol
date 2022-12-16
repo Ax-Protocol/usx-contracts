@@ -11,7 +11,7 @@ import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../common/Constants.t.sol";
 
-contract TestEmergencySwap is Test, RedeemHelper {
+contract EmergencySwapTest is Test, RedeemHelper {
     /// @dev Test that 3CRV can be swapped to each supported stable
     function test_emergency_swap(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);

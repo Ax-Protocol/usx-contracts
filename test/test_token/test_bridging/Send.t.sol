@@ -9,7 +9,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-// contract TestCrossChainSendFrom is Test, CrossChainSetup {
+// contract CrossChainSendFromTest is Test, CrossChainSetup {
 //     function test_sendFrom(uint256 transferAmount) public {
 //         // Setup
 //         vm.assume(transferAmount <= INITIAL_TOKENS);

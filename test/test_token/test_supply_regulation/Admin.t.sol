@@ -11,7 +11,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 import "../../common/Constants.t.sol";
 import "./common/Constants.t.sol";
 
-contract TestAdminUSX is Test, SupplyRegulationSetup {
+contract AdminUSXTest is Test, SupplyRegulationSetup {
     function test_manageTreasuries() public {
         // Pre-action assertions
         (bool mint, bool burn) = IUSXAdmin(address(usx_proxy)).treasuries(TREASURY);

@@ -7,7 +7,7 @@ import "../../src/proxy/ERC1967Proxy.sol";
 import "../../src/common/interfaces/IUSXAdmin.sol";
 import "../common/Constants.t.sol";
 
-contract TestERC1967Proxy is Test {
+contract ERC1967ProxyTest is Test {
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;

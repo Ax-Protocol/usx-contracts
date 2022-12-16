@@ -10,7 +10,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-// contract TestLayerZeroReceive is Test, CrossChainSetup {
+// contract LayerZeroReceiveTest is Test, CrossChainSetup {
 //     function test_lzReceive(uint256 transferAmount) public {
 //         vm.assume(transferAmount <= INITIAL_TOKENS);
 //         // Expectations
@@ -81,7 +81,7 @@ import "../../common/Constants.t.sol";
 //     }
 // }
 
-// contract TestWormholeReceive is Test, CrossChainSetup {
+// contract WormholeReceiveTest is Test, CrossChainSetup {
 //     function test_processMessage(uint256 transferAmount) public {
 //         vm.assume(transferAmount <= INITIAL_TOKENS);
 

@@ -13,7 +13,7 @@ import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../common/Constants.t.sol";
 
-contract TestMint is Test, MintHelper {
+contract MintTest is Test, MintHelper {
     // Test that each supported token can be minted in a sequential manner, without resetting chain state after each mint
     function test_mint_sequential(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e11);

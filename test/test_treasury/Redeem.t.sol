@@ -11,7 +11,7 @@ import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../common/Constants.t.sol";
 
-contract TestRedeem is Test, RedeemHelper {
+contract RedeemTest is Test, RedeemHelper {
     /// @dev Test that each supported token can be redeemed in a sequential manner, without resetting chain state after each mint
     function test_redeem_sequential(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);

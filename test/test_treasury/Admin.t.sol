@@ -8,7 +8,7 @@ import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../common/Constants.t.sol";
 
-contract TestAdmin is Test, TreasurySetup {
+contract AdminTest is Test, TreasurySetup {
     function test_addSupportedStable() public {
         // Test Variables
         int128 testCurveIndex = 0;

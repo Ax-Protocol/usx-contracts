@@ -10,7 +10,7 @@ import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../../../common/Constants.t.sol";
 
-contract TestPriceDropRedeem is Test, RedeemHelper {
+contract PriceDropRedeemTest is Test, RedeemHelper {
     function test_redeem_negative_price_delta(uint256 priceDelta) public {
         // Assumptions
         vm.assume(priceDelta <= TEST_3CRV_VIRTUAL_PRICE);

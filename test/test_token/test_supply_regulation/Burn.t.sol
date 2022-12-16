@@ -10,7 +10,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-contract TestBurnUSX is Test, SupplyRegulationSetup {
+contract BurnUSXTest is Test, SupplyRegulationSetup {
     function test_burn(uint256 testBurnAmount) public {
         // Assumptions
         vm.assume(testBurnAmount <= TEST_MINT_AMOUNT);

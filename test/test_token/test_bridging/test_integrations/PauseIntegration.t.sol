@@ -9,7 +9,7 @@ import "../../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../../common/Constants.t.sol";
 
-// contract TestPauseIntegration is Test, CrossChainSetup {
+// contract PauseIntegrationTest is Test, CrossChainSetup {
 //     /// @dev Integration tests.
 
 //     function test_pause_wormhole_integration(uint256 transferAmount) public {

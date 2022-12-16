@@ -9,7 +9,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-// contract TestAdmin is Test, CrossChainSetup {
+// contract AdminTest is Test, CrossChainSetup {
 //     function testCannot_manageCrossChainTransfers_sender() public {
 //         bool[2][4] memory trials = [[true, true], [true, false], [false, true], [false, false]];
 

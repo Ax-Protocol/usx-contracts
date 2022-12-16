@@ -11,7 +11,7 @@ import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../../../common/Constants.t.sol";
 
-contract TestPriceDropMint is Test, MintHelper {
+contract PriceDropMintTest is Test, MintHelper {
     /// @dev Test that mint works using a previously higher 3CRV conversion factor
     function test_mint_negative_price_delta(uint256 priceDelta) public {
         // Assumptions

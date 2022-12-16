@@ -10,7 +10,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-contract TestMintUSX is Test, SupplyRegulationSetup {
+contract MintUSXTest is Test, SupplyRegulationSetup {
     function test_mint(uint256 mintAmount) public {
         // Assumptions
         vm.assume(mintAmount < 1e11);

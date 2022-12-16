@@ -11,7 +11,7 @@ import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
 import "../../../common/Constants.t.sol";
 
-contract TestEmergencySwap is Test, RedeemHelper {
+contract EmergencySwapTest is Test, RedeemHelper {
     function testCannot_redeem_after_emergency_swap() public {
         // Allocate initial funds for test
         mintForTest(TEST_DAI, DAI_AMOUNT);
