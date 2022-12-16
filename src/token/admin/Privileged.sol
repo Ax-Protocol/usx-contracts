@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.16;
 
+import "solmate/utils/SafeTransferLib.sol";
 import "../../common/utils/Ownable.sol";
+import "../../common/interfaces/IERC20.sol";
 
 abstract contract Privileged is Ownable {
     struct TreasuryPrivileges {
@@ -23,15 +25,6 @@ abstract contract Privileged is Ownable {
         treasuries[_treasury] = TreasuryPrivileges(_mint, _burn);
     }
 
-    /// @dev Allow a treasury to revoke its own mint and burn privileges
-    function treasuryKillSwitch() public {
-        TreasuryPrivileges memory privileges = treasuries[msg.sender];
-
-        require(privileges.mint || privileges.burn, "Unauthorized.");
-
-        treasuries[msg.sender] = TreasuryPrivileges(false, false);
-    }
-
     /**
      * @dev Manages cross-chain transfer privileges for each message passing protocol.
      * @param _bridgeAddresses - An array of supported bridge IDs; the order must match `_privilges` array.
@@ -46,6 +39,27 @@ abstract contract Privileged is Ownable {
         for (uint256 i = 0; i < _bridgeAddresses.length; i++) {
             transferPrivileges[_bridgeAddresses[i]] = _privileges[i];
         }
+    }
+
+    /**
+     * @dev This function allows contract admins to extract any ERC20 token.
+     * @param _token The address of token to remove.
+     */
+    function extractERC20(address _token) public onlyOwner {
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+
+        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
+    }
+
+    /**
+     * @dev Allow a treasury to revoke its own mint and burn privileges.
+     */
+    function treasuryKillSwitch() public {
+        TreasuryPrivileges memory privileges = treasuries[msg.sender];
+
+        require(privileges.mint || privileges.burn, "Unauthorized.");
+
+        treasuries[msg.sender] = TreasuryPrivileges(false, false);
     }
 
     /**

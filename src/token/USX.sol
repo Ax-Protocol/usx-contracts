@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.16;
 
-import "solmate/utils/SafeTransferLib.sol";
 import "../common/utils/Initializable.sol";
 import "../common/utils/Ownable.sol";
 import "../proxy/UUPSUpgradeable.sol";
@@ -37,22 +36,6 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     function burn(address _account, uint256 _amount) public {
         require(treasuries[msg.sender].burn, "Unauthorized.");
         _burn(_account, _amount);
-    }
-
-    /* ****************************************************************************
-    **
-    **  Admin Functions
-    **
-    ******************************************************************************/
-
-    /**
-     * @dev This function allows contract admins to extract any ERC20 token.
-     * @param _token The address of token to remove.
-     */
-    function extractERC20(address _token) public onlyOwner {
-        uint256 balance = IERC20(_token).balanceOf(address(this));
-
-        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
     }
 
     /**
