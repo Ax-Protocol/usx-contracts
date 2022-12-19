@@ -6,7 +6,7 @@ import "../utils/Ownable.sol";
 import "../interfaces/IWormhole.sol";
 import "../../common/interfaces/IUSX.sol";
 
-contract WormBridge is Ownable {
+contract WormholeBridge is Ownable {
     IWormhole public immutable wormholeCoreBridge; // no SLOAD
     address public immutable usx; // no SLOAD
 
@@ -32,7 +32,7 @@ contract WormBridge is Ownable {
         payable
         returns (uint64 sequence)
     {
-        require(msg.sender == usx, "Not allowed.");
+        require(msg.sender == usx, "Unauthorized.");
         sequence = _publishMessage(_from, _dstChainId, _toAddress, _amount);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);

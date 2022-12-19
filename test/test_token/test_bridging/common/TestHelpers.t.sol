@@ -6,6 +6,7 @@ import "../../../../src/token/USX.sol";
 import "../../../../src/bridging/wormhole/WormholeBridge.sol";
 import "../../../../src/bridging/layer_zero/LayerZeroBridge.sol";
 import "../../../../src/proxy/ERC1967Proxy.sol";
+import "../../../mocks/MockLayerZero.t.sol";
 
 import "../../../../src/common/interfaces/IUSXAdmin.sol";
 
@@ -15,8 +16,8 @@ abstract contract BridgingSetup is Test {
     // Test Contracts
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;
-    LZBridge public layer_zero_bridge;
-    WormBridge public wormhole_bridge;
+    LayerZeroBridge public layer_zero_bridge;
+    WormholeBridge public wormhole_bridge;
 
     // Test Constants
     uint16 constant TEST_LZ_CHAIN_ID = 109;
@@ -31,15 +32,11 @@ abstract contract BridgingSetup is Test {
     function setUp() public {
         // Deploy USX implementation, and link to proxy
         usx_implementation = new USX();
-        usx_proxy =
-        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
+        usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
 
         // Deploy Bridge contracts
-        wormhole_bridge = new WormBridge(0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B, address(usx_proxy));
-        layer_zero_bridge = new LZBridge(0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675, address(usx_proxy));
-
-        console.log("worm owner:", wormhole_bridge.owner());
-        console.log("lz owner:", layer_zero_bridge.owner());
+        wormhole_bridge = new WormholeBridge(WORMHOLE_CORE_BRIDGE, address(usx_proxy));
+        layer_zero_bridge = new LayerZeroBridge(LZ_ENDPOINT, address(usx_proxy));
 
         // Set Treasury admins
         IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
@@ -56,8 +53,8 @@ abstract contract BridgingSetup is Test {
         );
 
         // Mocks
-        // bytes memory MockLayerZeroCode = address(new MockLayerZero()).code;
-        // vm.etch(LZ_ENDPOINT, MockLayerZeroCode);
+        bytes memory MockLayerZeroCode = address(new MockLayerZero()).code;
+        vm.etch(LZ_ENDPOINT, MockLayerZeroCode);
 
         // Set Trusted Entities for Wormhole
         wormhole_bridge.manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
@@ -67,8 +64,5 @@ abstract contract BridgingSetup is Test {
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
             [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
         );
-
-        // Deal this contract ether to pay native fees
-        vm.deal(address(this), 1 ether);
-    } 
+    }
 }

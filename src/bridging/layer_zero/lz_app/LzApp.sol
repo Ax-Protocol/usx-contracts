@@ -28,6 +28,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         virtual
         override
     {
+        console.log("\n\n\nWE GOT HERE -1!!!!!");
         // lzReceive must be called by the endpoint for security
         require(_msgSender() == address(lzEndpoint), "LzApp: invalid endpoint caller");
 
@@ -55,7 +56,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     ) internal virtual {
         console.log("[_lzSend]: _refundAddress:", _refundAddress);
         console.log("[_lzSend]: msg.value:", msg.value);
-        
 
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
 
@@ -116,8 +116,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
 
     // allow owner to set it multiple times.
     function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external {
-        console.log("\n\nmsg.sender:", msg.sender);
-        console.log("actual owner:", owner());
         trustedRemoteLookup[_srcChainId] = _srcAddress;
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }

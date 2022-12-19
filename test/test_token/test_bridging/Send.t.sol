@@ -9,10 +9,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-
 import "forge-std/console.sol";
-
-
 
 contract SendTest is Test, BridgingSetup {
     function test_sendFrom_wormhole(uint256 transferAmount) public {
@@ -36,7 +33,13 @@ contract SendTest is Test, BridgingSetup {
         );
 
         // Act: send money using wormhole
-        IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.005 ether}(address(wormhole_bridge), payable(address(this)), TEST_WORM_CHAIN_ID, abi.encode(address(this)), transferAmount);
+        IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.005 ether}(
+            address(wormhole_bridge),
+            payable(address(this)),
+            TEST_WORM_CHAIN_ID,
+            abi.encode(address(this)),
+            transferAmount
+        );
 
         console.log("totalSupply after:", IUSXAdmin(address(usx_proxy)).totalSupply());
         console.log("user balance:", IUSXAdmin(address(usx_proxy)).balanceOf(address(this)));
@@ -52,7 +55,6 @@ contract SendTest is Test, BridgingSetup {
             "Equivalence violation: user balance must decrease by amount transferred."
         );
     }
-
 
     function test_sendFrom_layerzero(uint256 transferAmount) public {
         // Setup
@@ -74,12 +76,14 @@ contract SendTest is Test, BridgingSetup {
             "Equivalence violation: user balance and initially minted tokens."
         );
 
-        console.log("right before");
-
         // Act
-        IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.0001 ether}(address(layer_zero_bridge), payable(address(this)), TEST_LZ_CHAIN_ID, abi.encode(address(this)), transferAmount);
-
-        console.log("right after");
+        IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.0001 ether}(
+            address(layer_zero_bridge),
+            payable(address(this)),
+            TEST_LZ_CHAIN_ID,
+            abi.encode(address(this)),
+            transferAmount
+        );
 
         // Post-action Assertions
         assertEq(
@@ -94,97 +98,116 @@ contract SendTest is Test, BridgingSetup {
         );
     }
 
+    function testCannot_sendFrom_amount(uint256 transferAmount) public {
+        // Assumptions
+        vm.assume(transferAmount > INITIAL_TOKENS);
 
+        address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
+        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
+        for (uint256 i = 0; i < bridges.length; i++) {
+            // Expectation
+            vm.expectRevert(stdError.arithmeticError);
 
+            // Act: send more than balance
+            IUSXAdmin(address(usx_proxy)).sendFrom(
+                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+            );
+        }
+    }
 
+    function testCannot_sendFrom_from_address(address sender, uint256 transferAmount) public {
+        // Assumptions
+        vm.assume(sender != address(this));
+        vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS);
 
+        address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
+        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
+        for (uint256 i = 0; i < bridges.length; i++) {
+            // Expectation
+            vm.expectRevert("ERC20: insufficient allowance");
 
-    // function testCannot_sendFrom_amount() public {
-    //     vm.expectRevert(stdError.arithmeticError);
+            // Act: send more than balance
+            IUSXAdmin(address(usx_proxy)).sendFrom(
+                bridges[i], payable(sender), chainIds[i], abi.encode(address(this)), transferAmount
+            );
+        }
+    }
 
-    //     // Act
-    //     IUSXAdmin(address(usx_proxy)).sendFrom(
-    //         0, address(this), TEST_CHAIN_ID, abi.encode(address(this)), INITIAL_TOKENS + 1, payable(address(this))
-    //     );
-    // }
+    function testCannot_sendFrom_paused(uint256 transferAmount) public {
+        // Assumptions
+        vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS);
 
-    // function testCannot_sendFrom_from_address() public {
-    //     vm.expectRevert("ERC20: insufficient allowance");
+        // Setup
+        IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
+            [address(wormhole_bridge), address(layer_zero_bridge)], [false, false]
+        );
 
-    //     // Act
-    //     IUSXAdmin(address(usx_proxy)).sendFrom(
-    //         0, address(0), TEST_CHAIN_ID, abi.encode(address(this)), TEST_TRANSFER_AMOUNT, payable(address(this))
-    //     );
-    // }
+        address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
+        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-    // function testCannot_sendFrom_paused() public {
-    //     // Setup
-    //     IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-    //         [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], [false, false]
-    //     );
+        for (uint256 i = 0; i < bridges.length; i++) {
+            // Expectations
+            vm.expectRevert(IUSXAdmin.Paused.selector);
 
-    //     for (uint8 index = uint8(BridgingProtocols.WORMHOLE); index <= uint8(BridgingProtocols.LAYER_ZERO); index++) {
-    //         // Expectations
-    //         vm.expectRevert(IUSXAdmin.Paused.selector);
+            // Act: send more than balance
+            IUSXAdmin(address(usx_proxy)).sendFrom(
+                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+            );
+        }
+    }
 
-    //         // Act
-    //         IUSXAdmin(address(usx_proxy)).sendFrom(
-    //             index,
-    //             address(this),
-    //             TEST_CHAIN_ID,
-    //             abi.encode(address(this)),
-    //             TEST_TRANSFER_AMOUNT,
-    //             payable(address(this))
-    //         );
-    //     }
-    // }
+    /// @dev tests that each bridge can be singularly paused, with correct transfer implications
+    function test_sendFrom_only_one_paused(uint256 transferAmount) public {
+        // Assumptions
+        vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS);
 
-    // /// @dev tests that each bridge can be singularly paused, with correct transfer implications
-    // function test_sendFrom_only_one_paused() public {
-    //     uint256 id = vm.snapshot();
-    //     bool[2] memory privileges = [true, true];
-    //     // Iterate through privileges, each time revoking privileges for only one bridge
-    //     for (uint256 pausedIndex = 0; pausedIndex < privileges.length; pausedIndex++) {
-    //         privileges = [true, true];
-    //         privileges[pausedIndex] = false;
+        uint256 id = vm.snapshot();
+        address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
+        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
+        bool[2] memory privileges = [true, true];
 
-    //         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-    //             [BridgingProtocols.WORMHOLE, BridgingProtocols.LAYER_ZERO], privileges
-    //         );
+        // Iterate through privileges, each time revoking privileges for only one bridge
+        for (uint256 pausedIndex = 0; pausedIndex < privileges.length; pausedIndex++) {
+            privileges = [true, true];
+            privileges[pausedIndex] = false;
 
-    //         // Given this iteration's privilege settings, iterate through both bridges to ensure privileges are active
-    //         for (
-    //             uint8 bridgeID = uint8(BridgingProtocols.WORMHOLE);
-    //             bridgeID <= uint8(BridgingProtocols.LAYER_ZERO);
-    //             bridgeID++
-    //         ) {
-    //             if (bridgeID == pausedIndex) {
-    //                 // Expectation: transfer should fail
-    //                 vm.expectRevert(IUSXAdmin.Paused.selector);
-    //                 IUSXAdmin(address(usx_proxy)).sendFrom(
-    //                     bridgeID,
-    //                     address(this),
-    //                     TEST_CHAIN_ID,
-    //                     abi.encode(address(this)),
-    //                     TEST_TRANSFER_AMOUNT,
-    //                     payable(address(this))
-    //                 );
-    //             } else {
-    //                 // Expectation: transfer should succeed
-    //                 IUSXAdmin(address(usx_proxy)).sendFrom(
-    //                     bridgeID,
-    //                     address(this),
-    //                     TEST_CHAIN_ID,
-    //                     abi.encode(address(this)),
-    //                     TEST_TRANSFER_AMOUNT,
-    //                     payable(address(this))
-    //                 );
-    //             }
-    //         }
-    //         // Revert chain state, such that each iteration is state-independent
-    //         vm.revertTo(id);
-    //     }
-    // }
+            IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
+                [address(wormhole_bridge), address(layer_zero_bridge)], privileges
+            );
+
+            for (uint256 i = 0; i < bridges.length; i++) {
+                if (i == pausedIndex) {
+                    // Expectation: transfer should fail because bridge is paused
+                    vm.expectRevert(IUSXAdmin.Paused.selector);
+
+                    // Act: paused
+                    IUSXAdmin(address(usx_proxy)).sendFrom(
+                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+                    );
+                } else {
+                    // Act: not paused
+                    IUSXAdmin(address(usx_proxy)).sendFrom(
+                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+                    );
+
+                    // Assertions
+                    assertEq(
+                        IUSXAdmin(address(usx_proxy)).totalSupply(),
+                        INITIAL_TOKENS - transferAmount,
+                        "Equivalence violation: total supply must decrease by amount transferred."
+                    );
+                    assertEq(
+                        IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                        INITIAL_TOKENS - transferAmount,
+                        "Equivalence violation: user balance must decrease by amount transferred."
+                    );
+                }
+            }
+
+            // Revert chain state, such that each iteration is state-independent
+            vm.revertTo(id);
+        }
+    }
 }

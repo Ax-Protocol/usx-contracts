@@ -7,216 +7,236 @@ import "../../mocks/MockWormhole.t.sol";
 import "./common/TestHelpers.t.sol";
 
 import "../../../src/common/interfaces/IUSXAdmin.sol";
+import "../../../src/bridging/interfaces/ILayerZeroBridge.sol";
+import "../../../src/bridging/interfaces/IWormholeBridge.sol";
 
 import "../../common/Constants.t.sol";
 
-// contract LayerZeroReceiveTest is Test, CrossChainSetup {
-//     function test_lzReceive(uint256 transferAmount) public {
-//         vm.assume(transferAmount <= INITIAL_TOKENS);
-//         // Expectations
-//         vm.expectEmit(true, true, true, true, address(usx_proxy));
-//         emit ReceiveFromChain(
-//             TEST_CHAIN_ID, abi.encodePacked(address(usx_proxy), address(usx_proxy)), address(this), transferAmount
-//             );
+contract LayerZeroReceiveTest is Test, BridgingSetup {
+    function test_lzReceive(uint256 transferAmount) public {
+        vm.assume(transferAmount <= INITIAL_TOKENS);
 
-//         // Pre-action Assertions
-//         assertEq(
-//             IUSXAdmin(address(usx_proxy)).totalSupply(),
-//             INITIAL_TOKENS,
-//             "Equivalence violation: total supply and initially minted tokens."
-//         );
-//         assertEq(
-//             IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
-//             INITIAL_TOKENS,
-//             "Equivalence violation: recipient balance and initially minted tokens."
-//         );
+        // Expectations
+        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+        emit ReceiveFromChain(
+            TEST_LZ_CHAIN_ID,
+            abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge)),
+            address(this),
+            transferAmount
+            );
 
-//         // Act
-//         vm.prank(LZ_ENDPOINT);
-//         IUSXAdmin(address(usx_proxy)).lzReceive(
-//             TEST_CHAIN_ID,
-//             abi.encodePacked(address(usx_proxy), address(usx_proxy)),
-//             1,
-//             abi.encode(abi.encodePacked(address(this)), transferAmount)
-//         );
+        // Pre-action Assertions
+        assertEq(
+            IUSXAdmin(address(usx_proxy)).totalSupply(),
+            INITIAL_TOKENS,
+            "Equivalence violation: total supply and initially minted tokens."
+        );
+        assertEq(
+            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS,
+            "Equivalence violation: recipient balance and initially minted tokens."
+        );
 
-//         // Post-action Assertions
-//         assertEq(
-//             IUSXAdmin(address(usx_proxy)).totalSupply(),
-//             INITIAL_TOKENS + transferAmount,
-//             "Equivalence violation: total supply must increase by amount transferred."
-//         );
-//         assertEq(
-//             IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
-//             INITIAL_TOKENS + transferAmount,
-//             "Equivalence violation: recipient balance must increase by amount transferred."
-//         );
-//     }
+        // Act: send message, pranking as Layer Zero's contract
+        vm.prank(LZ_ENDPOINT);
+        ILayerZeroBridge(address(layer_zero_bridge)).lzReceive(
+            TEST_LZ_CHAIN_ID,
+            abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge)),
+            1,
+            abi.encode(abi.encodePacked(address(this)), transferAmount)
+        );
 
-//     function testCannot_lzReceive_invalid_sender(uint256 transferAmount) public {
-//         // Assumptions
-//         vm.assume(transferAmount <= INITIAL_TOKENS);
+        // Assertions
+        assertEq(
+            IUSXAdmin(address(usx_proxy)).totalSupply(),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: total supply must increase by amount transferred."
+        );
+        assertEq(
+            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: recipient balance must increase by amount transferred."
+        );
+    }
 
-//         // Expectation
-//         vm.expectRevert("LzApp: invalid endpoint caller");
+    function testCannot_lzReceive_invalid_sender(uint256 transferAmount, address sender) public {
+        // Assumptions
+        vm.assume(transferAmount <= INITIAL_TOKENS);
+        vm.assume(sender != LZ_ENDPOINT);
 
-//         // Act: no prank
-//         IUSXAdmin(address(usx_proxy)).lzReceive(
-//             TEST_CHAIN_ID, abi.encode(address(this)), 1, abi.encode(abi.encodePacked(address(this)), transferAmount)
-//         );
-//     }
+        // Expectation
+        vm.expectRevert("LzApp: invalid endpoint caller");
 
-//     function testCannot_lzReceive_invalid_source_address(uint256 transferAmount) public {
-//         // Assumptions
-//         vm.assume(transferAmount <= INITIAL_TOKENS);
+        // Act: wrong prank
+        vm.prank(sender);
+        ILayerZeroBridge(address(layer_zero_bridge)).lzReceive(
+            TEST_LZ_CHAIN_ID,
+            abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge)),
+            1,
+            abi.encode(abi.encodePacked(address(this)), transferAmount)
+        );
+    }
 
-//         // Expectation
-//         vm.expectRevert("LzApp: invalid source sending contract");
+    function testCannot_lzReceive_invalid_source_address(uint256 transferAmount, address sourceAddress) public {
+        // Assumptions
+        vm.assume(transferAmount <= INITIAL_TOKENS);
+        vm.assume(sourceAddress != address(layer_zero_bridge));
 
-//         // Act: source address not msg.sender
-//         vm.prank(LZ_ENDPOINT);
-//         IUSXAdmin(address(usx_proxy)).lzReceive(
-//             TEST_CHAIN_ID, abi.encode(address(0)), 1, abi.encode(abi.encodePacked(address(this)), transferAmount)
-//         );
-//     }
-// }
+        // Expectation
+        vm.expectRevert("LzApp: invalid source sending contract");
 
-// contract WormholeReceiveTest is Test, CrossChainSetup {
-//     function test_processMessage(uint256 transferAmount) public {
-//         vm.assume(transferAmount <= INITIAL_TOKENS);
+        // Act: source address not layer zero bridge
+        vm.prank(LZ_ENDPOINT);
+        ILayerZeroBridge(address(layer_zero_bridge)).lzReceive(
+            TEST_LZ_CHAIN_ID,
+            abi.encodePacked(sourceAddress, sourceAddress),
+            1,
+            abi.encode(abi.encodePacked(address(this)), transferAmount)
+        );
+    }
+}
 
-//         // Setup
-//         vm.startPrank(TREASURY);
-//         IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
-//         IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
-//         vm.stopPrank();
+contract WormholeReceiveTest is Test, BridgingSetup {
+    // NOTE: may have to remove fuzz -- how to get usx address over to mock? It's no longer msg.sender :(
+    function test_processMessage(uint256 transferAmount) public {
+        vm.assume(transferAmount <= INITIAL_TOKENS);
 
-//         // Mocks
-//         deal(address(usx_proxy), WORMHOLE_CORE_BRIDGE, transferAmount); // Mechanism to pass `transferAmount` data to Mock
-//         bytes memory MockWormholeCode = address(new MockWormhole()).code;
-//         vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
+        // Setup
+        vm.startPrank(TREASURY);
+        IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
+        IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
+        vm.stopPrank();
 
-//         // Expectations
-//         vm.expectEmit(true, true, true, true, address(usx_proxy));
-//         emit ReceiveFromChain(TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(TEST_USER), TEST_USER, transferAmount);
+        // Mocks
+        deal(address(usx_proxy), WORMHOLE_CORE_BRIDGE, transferAmount); // Mechanism to pass `transferAmount` data to Mock
+        bytes memory MockWormholeCode = address(new MockWormhole()).code;
+        vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
 
-//         // Pre-action Assertions
-//         assertEq(IUSXAdmin(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
-//         assertEq(IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER), INITIAL_TOKENS);
+        // Expectations
+        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+        emit ReceiveFromChain(TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(TEST_USER), TEST_USER, transferAmount);
 
-//         // Act: mocking Wormhole, so no need to send a fake VAA
-//         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-//         IUSXAdmin(address(usx_proxy)).processMessage(bytes(""));
+        // Pre-action Assertions
+        assertEq(IUSXAdmin(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
+        assertEq(IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER), INITIAL_TOKENS);
 
-//         // Post-action Assertions
-//         assertEq(IUSXAdmin(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
-//         assertEq(IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER), INITIAL_TOKENS + transferAmount);
-//     }
+        // Act: mocking Wormhole, so no need to send a fake VAA
+        vm.prank(TRUSTED_WORMHOLE_RELAYER);
+        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
 
-//     function testCannot_processMessage_invalid() public {
-//         // Setup
-//         vm.startPrank(TREASURY);
-//         IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
-//         IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
-//         vm.stopPrank();
+        // Post-action Assertions
+        assertEq(IUSXAdmin(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
+        assertEq(IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER), INITIAL_TOKENS + transferAmount);
+    }
 
-//         // Mocks
-//         bytes memory MockWormholeCode = address(new MockWormholeInvalid()).code;
-//         vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
+    function testCannot_processMessage_invalid() public {
+        // Setup
+        vm.startPrank(TREASURY);
+        IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
+        IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
+        vm.stopPrank();
 
-//         // Expectations
-//         vm.expectRevert("Untrustworthy message!");
+        // Mocks: non-valid message
+        bytes memory MockWormholeCode = address(new MockWormholeInvalid()).code;
+        vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
 
-//         // Act: mocking Wormhole, so no need to send a fake VAA
-//         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-//         IUSXAdmin(address(usx_proxy)).processMessage(bytes(""));
-//     }
+        // Expectations
+        vm.expectRevert("Untrustworthy message!");
 
-//     function testCannot_processMessage_emiiter() public {
-//         // Setup
-//         vm.startPrank(TREASURY);
-//         IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
-//         IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
-//         vm.stopPrank();
+        // Act: mocking Wormhole, so no need to send a fake VAA
+        vm.prank(TRUSTED_WORMHOLE_RELAYER);
+        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+    }
 
-//         // Mocks
-//         bytes memory MockWormholeCode = address(new MockWormholeUnauthorizedEmitter()).code;
-//         vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
+    function testCannot_processMessage_emiiter() public {
+        // Setup
+        vm.startPrank(TREASURY);
+        IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
+        IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
+        vm.stopPrank();
 
-//         // Expectations
-//         vm.expectRevert("Unauthorized emitter address.");
+        // Mocks: untrusted emitter address
+        bytes memory MockWormholeCode = address(new MockWormholeUnauthorizedEmitter()).code;
+        vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
 
-//         // Act: mocking Wormhole, so no need to send a fake VAA
-//         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-//         IUSXAdmin(address(usx_proxy)).processMessage(bytes(""));
-//     }
+        // Expectations
+        vm.expectRevert("Unauthorized emitter address.");
 
-//     function testCannot_processMessage_unauthorized_relayer() public {
-//         // Setup
-//         vm.startPrank(TREASURY);
-//         IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
-//         IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
-//         vm.stopPrank();
+        // Act: mocking Wormhole, so no need to send a fake VAA
+        vm.prank(TRUSTED_WORMHOLE_RELAYER);
+        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+    }
 
-//         // Mocks
-//         bytes memory MockWormholeCode = address(new MockWormhole()).code;
-//         vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
+    function testCannot_processMessage_unauthorized_relayer(address untrustedRelayer) public {
+        // Assumptions
+        vm.assume(untrustedRelayer != TRUSTED_WORMHOLE_RELAYER);
 
-//         // Expectations
-//         vm.expectRevert("Unauthorized relayer.");
+        // Setup
+        vm.startPrank(TREASURY);
+        IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
+        IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
+        vm.stopPrank();
 
-//         // Act: prank removed, mocking Wormhole, so no need to send a fake VAA
-//         IUSXAdmin(address(usx_proxy)).processMessage(bytes(""));
-//     }
+        // Mocks
+        bytes memory MockWormholeCode = address(new MockWormhole()).code;
+        vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
 
-//     function testCannot_processMessage_replay(uint256 transferAmount) public {
-//         // Assumption
-//         vm.assume(transferAmount <= INITIAL_TOKENS);
+        // Expectations
+        vm.expectRevert("Unauthorized relayer.");
 
-//         // Mocks
-//         deal(address(usx_proxy), WORMHOLE_CORE_BRIDGE, transferAmount); // Mechanism to pass `transferAmount` data to Mock
-//         bytes memory MockWormholeCode = address(new MockWormhole()).code;
-//         vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
+        // Act: prank untrusted relayer
+        vm.prank(untrustedRelayer);
+        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+    }
 
-//         // Setup
-//         vm.startPrank(TREASURY);
-//         IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
-//         IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
-//         vm.stopPrank();
+    function testCannot_processMessage_replay(uint256 transferAmount) public {
+        // Assumption
+        vm.assume(transferAmount <= INITIAL_TOKENS);
 
-//         /* ****************************************************************************
-//         **
-//         **  Successful first message
-//         **
-//         ******************************************************************************/
+        // Mocks
+        deal(address(usx_proxy), WORMHOLE_CORE_BRIDGE, transferAmount); // Mechanism to pass `transferAmount` data to Mock
+        bytes memory MockWormholeCode = address(new MockWormhole()).code;
+        vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
 
-//         // Act 1
-//         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-//         IUSXAdmin(address(usx_proxy)).processMessage(bytes(""));
+        // Setup
+        vm.startPrank(TREASURY);
+        IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);
+        IUSXAdmin(address(usx_proxy)).mint(TEST_USER, INITIAL_TOKENS);
+        vm.stopPrank();
 
-//         // Post-action Assertions 1
-//         assertEq(
-//             IUSXAdmin(address(usx_proxy)).totalSupply(),
-//             INITIAL_TOKENS + transferAmount,
-//             "Equivalence violation: total supply must increase by amount transferred."
-//         );
-//         assertEq(
-//             IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER),
-//             INITIAL_TOKENS + transferAmount,
-//             "Equivalence violation: recipient balance must increase by amount transferred."
-//         );
+        /* ****************************************************************************
+        **
+        **  Successful first message
+        **
+        ******************************************************************************/
 
-//         /* ****************************************************************************
-//         **
-//         **  Unsuccessful second message
-//         **
-//         ******************************************************************************/
+        // Act 1
+        vm.prank(TRUSTED_WORMHOLE_RELAYER);
+        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
 
-//         // Expectation
-//         vm.expectRevert("Message already processed.");
+        // Post-action Assertions 1
+        assertEq(
+            IUSXAdmin(address(usx_proxy)).totalSupply(),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: total supply must increase by amount transferred."
+        );
+        assertEq(
+            IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER),
+            INITIAL_TOKENS + transferAmount,
+            "Equivalence violation: recipient balance must increase by amount transferred."
+        );
 
-//         // Act 2: attempt to replay previous message
-//         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-//         IUSXAdmin(address(usx_proxy)).processMessage(bytes(""));
-//     }
-// }
+        /* ****************************************************************************
+        **
+        **  Unsuccessful second message
+        **
+        ******************************************************************************/
+
+        // Expectation
+        vm.expectRevert("Message already processed.");
+
+        // Act 2: attempt to replay previous message
+        vm.prank(TRUSTED_WORMHOLE_RELAYER);
+        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+    }
+}

@@ -10,5 +10,5 @@ contract MockLayerZero {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParams
-    ) public pure {}
+    ) public payable {}
 }

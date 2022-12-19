@@ -8,6 +8,8 @@ import "../proxy/UUPSUpgradeable.sol";
 import "./bridging/OERC20.sol";
 import "../common/interfaces/IUSX.sol";
 
+import "forge-std/console.sol";
+
 contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
     function initialize() public initializer {
         __ERC20_init("USX", "USX");

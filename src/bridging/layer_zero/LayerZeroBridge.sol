@@ -5,7 +5,9 @@ pragma solidity >=0.8.0;
 import "./lz_app/NonBlockingLzApp.sol";
 import "../../common/interfaces/IUSX.sol";
 
-contract LZBridge is NonBlockingLzApp {
+import "forge-std/console.sol";
+
+contract LayerZeroBridge is NonBlockingLzApp {
     uint256 public constant NO_EXTRA_GAS = 0; // no SLOAD
     uint256 public constant FUNCTION_TYPE_SEND = 1; // no SLOAD
     bool public useCustomAdapterParams;
@@ -28,7 +30,7 @@ contract LZBridge is NonBlockingLzApp {
         payable
         returns (uint64 sequence)
     {
-        require(msg.sender == usx, "Not allowed.");
+        require(msg.sender == usx, "Unauthorized.");
         _send(_from, _dstChainId, _toAddress, _amount, address(0), bytes(""));
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
@@ -59,6 +61,7 @@ contract LZBridge is NonBlockingLzApp {
         uint64, /*_nonce*/
         bytes memory _payload
     ) internal virtual override {
+        console.log("\n\n\nWE GOT HERE 2!!!!!");
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
 
@@ -74,10 +77,17 @@ contract LZBridge is NonBlockingLzApp {
         internal
         virtual
     {
+        console.log("\n\n\nWE GOT HERE 3!!!!!");
+        console.log("bridgeAddress:", address(this));
+        console.log("toAddress:", _toAddress);
+        console.log("_amount:", _amount);
         // Privileges needed
+
         IUSX(usx).mint(_toAddress, _amount);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, _toAddress, _amount);
+
+        console.log("\n\nAFTER RECEEIVE FROM CHAIN\n\n");
     }
 
     function estimateSendFee(

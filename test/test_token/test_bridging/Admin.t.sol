@@ -45,9 +45,7 @@ contract AdminTest is Test, BridgingSetup {
 
         // Post-action assertions
         assertEq(
-            IUSXAdmin(address(usx_proxy)).transferPrivileges(address(wormhole_bridge)),
-            false,
-            "Pause failed: Wormhole."
+            IUSXAdmin(address(usx_proxy)).transferPrivileges(address(wormhole_bridge)), false, "Pause failed: Wormhole."
         );
         assertEq(
             IUSXAdmin(address(usx_proxy)).transferPrivileges(address(layer_zero_bridge)),
@@ -62,9 +60,7 @@ contract AdminTest is Test, BridgingSetup {
             [address(wormhole_bridge), address(layer_zero_bridge)], [false, false]
         );
         assertEq(
-            IUSXAdmin(address(usx_proxy)).transferPrivileges(address(wormhole_bridge)),
-            false,
-            "Pause failed: Wormhole."
+            IUSXAdmin(address(usx_proxy)).transferPrivileges(address(wormhole_bridge)), false, "Pause failed: Wormhole."
         );
         assertEq(
             IUSXAdmin(address(usx_proxy)).transferPrivileges(address(layer_zero_bridge)),
@@ -119,11 +115,15 @@ contract AdminTest is Test, BridgingSetup {
             );
 
             // Given this iteration's privilege settings, iterate through both bridges to ensure privileges are active
-            for (uint i = 0; i < bridgeContracts.length; i++) {
+            for (uint256 i = 0; i < bridgeContracts.length; i++) {
                 if (i == pausedIndex) {
-                    assertEq(IUSXAdmin(address(usx_proxy)).transferPrivileges(bridgeContracts[i]), false, "Pause failed.");
+                    assertEq(
+                        IUSXAdmin(address(usx_proxy)).transferPrivileges(bridgeContracts[i]), false, "Pause failed."
+                    );
                 } else {
-                    assertEq(IUSXAdmin(address(usx_proxy)).transferPrivileges(bridgeContracts[i]), true, "Privilege failed.");
+                    assertEq(
+                        IUSXAdmin(address(usx_proxy)).transferPrivileges(bridgeContracts[i]), true, "Privilege failed."
+                    );
                 }
             }
             // Revert chain state, such that each iteration is state-independent

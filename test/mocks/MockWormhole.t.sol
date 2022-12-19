@@ -2,12 +2,16 @@
 pragma solidity ^0.8.16;
 
 import "../../src/bridging/interfaces/IWormhole.sol";
+import "../../src/bridging/interfaces/IWormholeBridge.sol";
 import "../../src/common/interfaces/IERC20.sol";
 import "../common/Constants.t.sol";
 
+import "forge-std/console.sol";
+
 contract WormholeHelper {
-    function getVM() internal view returns (IWormhole.VM memory) {
-        uint256 transferAmount = IERC20(msg.sender).balanceOf(address(this));
+    function getVM() internal returns (IWormhole.VM memory) {
+        address usx = IWormholeBridge(msg.sender).usx();
+        uint256 transferAmount = IERC20(usx).balanceOf(address(this));
 
         IWormhole.Signature[] memory signatures;
 
@@ -30,9 +34,9 @@ contract WormholeHelper {
 contract MockWormhole is WormholeHelper {
     function parseAndVerifyVM(bytes memory)
         external
-        view
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
+        console.log("\n\nWE GOT HERE WORM!!!");
         vm = getVM();
         valid = true;
         reason = "";
@@ -42,7 +46,6 @@ contract MockWormhole is WormholeHelper {
 contract MockWormholeInvalid is WormholeHelper {
     function parseAndVerifyVM(bytes memory)
         external
-        view
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
         vm = getVM();
@@ -54,7 +57,6 @@ contract MockWormholeInvalid is WormholeHelper {
 contract MockWormholeUnauthorizedEmitter is WormholeHelper {
     function parseAndVerifyVM(bytes memory)
         external
-        view
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
         // Test variables
