@@ -25,7 +25,7 @@ abstract contract TreasurySetup is Test {
     address constant CVX_CRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e; // Ethereum
     address constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332; // Ethereum
     address constant CRV_DEPOSITOR = 0x8014595F2AB54cD7c604B00E9fb932176fDc86Ae; // Ethereum
-    address constant CVX_MINTING = 0x3c75BFe6FbfDa3A94E7E7E8c2216AFc684dE5343; // Ethereum
+    address constant CVX_MINING = 0x3c75BFe6FbfDa3A94E7E7E8c2216AFc684dE5343; // Ethereum
     address constant VIRTUAL_BALANCE_REWARD_POOL = 0x7091dbb7fcbA54569eF1387Ac89Eb2a5C9F6d2EA; // Ethereum
     address constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52; // Ethereum
     address constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B; // Ethereum

@@ -2,6 +2,6 @@
 
 pragma solidity ^0.8.16;
 
-interface ICvxMinting {
+interface ICvxMining {
     function ConvertCrvToCvx(uint256 _amount) external returns (uint256);
 }

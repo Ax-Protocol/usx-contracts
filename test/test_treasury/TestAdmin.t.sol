@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "../interfaces/ITreasuryTest.t.sol";
-import "../interfaces/ICvxMinting.t.sol";
+import "../interfaces/ICvxMining.t.sol";
 import "../interfaces/IVirtualBalanceRewardPool.t.sol";
 import "../common/Constants.t.sol";
 import "./common/TestHelpers.t.sol";
@@ -339,7 +339,7 @@ contract TestAdmin is Test, TreasurySetup {
 
         // Expectations
         uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
-        uint256 expectedCvxRewardAmount = ICvxMinting(CVX_MINTING).ConvertCrvToCvx(expectedCrvRewardAmount);
+        uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
         uint256 expected3CrvRewardAmount =
             IVirtualBalanceRewardPool(VIRTUAL_BALANCE_REWARD_POOL).earned(address(treasury_proxy));
 
@@ -412,7 +412,7 @@ contract TestAdmin is Test, TreasurySetup {
 
         // Expectations
         uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
-        uint256 expectedCvxRewardAmount = ICvxMinting(CVX_MINTING).ConvertCrvToCvx(expectedCrvRewardAmount);
+        uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
         uint256 expected3CrvRewardAmount =
             IVirtualBalanceRewardPool(VIRTUAL_BALANCE_REWARD_POOL).earned(address(treasury_proxy));
 
