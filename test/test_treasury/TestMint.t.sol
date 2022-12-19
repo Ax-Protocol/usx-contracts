@@ -17,10 +17,10 @@ contract TestMint is Test, MintHelper {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e11);
 
         // Allocate funds for test
-        deal(TEST_DAI, TEST_USER, DAI_AMOUNT * amountMultiplier);
-        deal(TEST_USDC, TEST_USER, USDC_AMOUNT * amountMultiplier);
-        deal(TEST_USDT, TEST_USER, USDT_AMOUNT * amountMultiplier);
-        deal(TEST_3CRV, TEST_USER, CURVE_AMOUNT * amountMultiplier);
+        deal(DAI, TEST_USER, DAI_AMOUNT * amountMultiplier);
+        deal(USDC, TEST_USER, USDC_AMOUNT * amountMultiplier);
+        deal(USDT, TEST_USER, USDT_AMOUNT * amountMultiplier);
+        deal(_3CRV, TEST_USER, _3CRV_AMOUNT * amountMultiplier);
 
         vm.startPrank(TEST_USER);
 
@@ -79,9 +79,9 @@ contract TestMint is Test, MintHelper {
                 "Equivalence violation: user test coin balance is not zero"
             );
 
-            // Ensure that the lp tokens and deposit tokens were staked through Convex
+            // Ensure that cvx3CRV was staked through Convex
             assertEq(
-                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 totalStaked + lpTokens,
                 "Equivalence violation: treasury staked cvx3CRV balance and totalStaked + lpTokens"
             );
@@ -97,10 +97,10 @@ contract TestMint is Test, MintHelper {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e11);
 
         // Allocate funds for test
-        deal(TEST_DAI, TEST_USER, DAI_AMOUNT * amountMultiplier);
-        deal(TEST_USDC, TEST_USER, USDC_AMOUNT * amountMultiplier);
-        deal(TEST_USDT, TEST_USER, USDT_AMOUNT * amountMultiplier);
-        deal(TEST_3CRV, TEST_USER, CURVE_AMOUNT * amountMultiplier);
+        deal(DAI, TEST_USER, DAI_AMOUNT * amountMultiplier);
+        deal(USDC, TEST_USER, USDC_AMOUNT * amountMultiplier);
+        deal(USDT, TEST_USER, USDT_AMOUNT * amountMultiplier);
+        deal(_3CRV, TEST_USER, _3CRV_AMOUNT * amountMultiplier);
 
         vm.startPrank(TEST_USER);
 
@@ -155,9 +155,9 @@ contract TestMint is Test, MintHelper {
                 "Equivalence violation: user test coin balance is not zero"
             );
 
-            // Ensure that the lp tokens and deposit tokens were staked through Convex
+            // Ensure that cvx3CRV was staked through Convex
             assertEq(
-                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 lpTokens,
                 "Equivalence violation: treasury staked cvx3CRV balance and lpTokens"
             );

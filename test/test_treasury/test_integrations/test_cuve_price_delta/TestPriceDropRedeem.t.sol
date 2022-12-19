@@ -14,7 +14,7 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
         vm.assume(priceDelta <= TEST_3CRV_VIRTUAL_PRICE);
 
         /// @dev Allocate funds for test
-        mintForTestCurveMocked(TEST_DAI, DAI_AMOUNT);
+        mintForTestCurveMocked(DAI, DAI_AMOUNT);
         uint256 usxMinted = IERC20(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 usxBurnAmount = usxMinted / 3;
 
@@ -29,18 +29,18 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Expectations 1
         uint256 curveAmountUsed1 = calculateCurveTokenAmount(usxBurnAmount);
-        uint256 expectedRedeemAmount1 = calculateRedeemAmount(0, curveAmountUsed1, TEST_DAI);
+        uint256 expectedRedeemAmount1 = calculateRedeemAmount(0, curveAmountUsed1, DAI);
 
         // Pre-action assertions 1
-        uint256 initialUserBalance1 = IERC20(TEST_DAI).balanceOf(TEST_USER);
+        uint256 initialUserBalance1 = IERC20(DAI).balanceOf(TEST_USER);
         assertEq(initialUserBalance1, 0, "Equivalence violation: initialUserBalance1 is not zero");
 
         // Act 1
         vm.prank(TEST_USER);
-        ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, usxBurnAmount);
+        ITreasuryTest(address(treasury_proxy)).redeem(DAI, usxBurnAmount);
 
         // Post-action 1 assertions
-        uint256 postUserBalance1 = IERC20(TEST_DAI).balanceOf(TEST_USER);
+        uint256 postUserBalance1 = IERC20(DAI).balanceOf(TEST_USER);
         uint256 redeemedAmount1 = postUserBalance1 - initialUserBalance1;
         // Ensure that previousLpTokenPrice is set
         assertEq(
@@ -58,7 +58,7 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Expectations 1: calculate expectation before lowering 3CRV price, as it shouldn't decrease
         uint256 curveAmountUsed2 = calculateCurveTokenAmount(usxBurnAmount);
-        uint256 expectedRedeemAmount2 = calculateRedeemAmount(0, curveAmountUsed2, TEST_DAI);
+        uint256 expectedRedeemAmount2 = calculateRedeemAmount(0, curveAmountUsed2, DAI);
 
         // Mock Curve 2
         vm.mockCall(
@@ -69,10 +69,10 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Act 2
         vm.prank(TEST_USER);
-        ITreasuryTest(address(treasury_proxy)).redeem(TEST_DAI, usxBurnAmount);
+        ITreasuryTest(address(treasury_proxy)).redeem(DAI, usxBurnAmount);
 
         // Post-action 2 assertions
-        uint256 postUserBalance2 = IERC20(TEST_DAI).balanceOf(TEST_USER);
+        uint256 postUserBalance2 = IERC20(DAI).balanceOf(TEST_USER);
         uint256 redeemedAmount2 = postUserBalance2 - postUserBalance1;
         // Ensure that conversion price remains at the higher 3CRV price
         assertEq(

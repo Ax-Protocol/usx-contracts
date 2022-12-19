@@ -19,7 +19,7 @@ contract TestPriceDropMint is Test, MintHelper {
         uint256 testDepositAmount = TEST_DEPOSIT_AMOUNT / 2;
 
         // Allocate funds for test
-        deal(TEST_DAI, TEST_USER, TEST_DEPOSIT_AMOUNT);
+        deal(DAI, TEST_USER, TEST_DEPOSIT_AMOUNT);
 
         /// @dev Iteration 1, with a higher 3CRV price
         // Mock Curve 1, setting the 3CRV price
@@ -30,7 +30,7 @@ contract TestPriceDropMint is Test, MintHelper {
         );
 
         // Expectations 1
-        (uint256 expectedMintAmount1,) = calculateMintAmount(0, testDepositAmount, TEST_DAI);
+        (uint256 expectedMintAmount1,) = calculateMintAmount(0, testDepositAmount, DAI);
         uint256 preUserBalanceUSX = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
         assertEq(
             IUSXTest(address(usx_proxy)).totalSupply(), 0, "Equivalence violation: pre-action total supply is not zero"
@@ -38,8 +38,8 @@ contract TestPriceDropMint is Test, MintHelper {
         assertEq(preUserBalanceUSX, 0, "Equivalence violation: preUserBalanceUSX is not zero");
 
         // Act 1
-        SafeTransferLib.safeApprove(ERC20(TEST_DAI), address(treasury_proxy), testDepositAmount);
-        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, testDepositAmount);
+        SafeTransferLib.safeApprove(ERC20(DAI), address(treasury_proxy), testDepositAmount);
+        ITreasuryTest(address(treasury_proxy)).mint(DAI, testDepositAmount);
 
         // Post-action data extraction 1
         uint256 postUserBalanceUSX1 = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
@@ -55,7 +55,7 @@ contract TestPriceDropMint is Test, MintHelper {
 
         /// @dev Iteration 2, with a lower 3CRV price
         // Expectations 2: calculate expectation before lowering 3CRV price, as it shouldn't decrease
-        (uint256 expectedMintAmount2,) = calculateMintAmount(0, testDepositAmount, TEST_DAI);
+        (uint256 expectedMintAmount2,) = calculateMintAmount(0, testDepositAmount, DAI);
 
         // Mock Curve 2, lowering the 3CRV price
         vm.mockCall(
@@ -65,8 +65,8 @@ contract TestPriceDropMint is Test, MintHelper {
         );
 
         // Act 2
-        SafeTransferLib.safeApprove(ERC20(TEST_DAI), address(treasury_proxy), testDepositAmount);
-        ITreasuryTest(address(treasury_proxy)).mint(TEST_DAI, testDepositAmount);
+        SafeTransferLib.safeApprove(ERC20(DAI), address(treasury_proxy), testDepositAmount);
+        ITreasuryTest(address(treasury_proxy)).mint(DAI, testDepositAmount);
 
         // Post-action assertions 2
         uint256 postUserBalanceUSX2 = IUSXTest(address(usx_proxy)).balanceOf(TEST_USER);
