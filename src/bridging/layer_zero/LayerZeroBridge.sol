@@ -2,6 +2,7 @@
 
 pragma solidity >=0.8.0;
 
+import "solmate/utils/SafeTransferLib.sol";
 import "./lz_app/NonBlockingLzApp.sol";
 import "../../common/interfaces/IUSX.sol";
 
@@ -104,4 +105,19 @@ contract LayerZeroBridge is NonBlockingLzApp {
         useCustomAdapterParams = _useCustomAdapterParams;
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
+
+    /**
+     * @dev This function allows contract admins to extract any ERC20 token.
+     * @param _token The address of token to remove.
+     */
+    function extractERC20(address _token) public onlyOwner {
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+
+        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
+    }
+
+    /**
+     * @dev This function allows contract admins to extract this contract's native tokens.
+     */
+    function extractNative() public onlyOwner {}
 }

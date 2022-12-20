@@ -2,6 +2,7 @@
 
 pragma solidity >=0.8.0;
 
+import "solmate/utils/SafeTransferLib.sol";
 import "../utils/Ownable.sol";
 import "../interfaces/IWormhole.sol";
 import "../../common/interfaces/IUSX.sol";
@@ -127,5 +128,18 @@ contract WormholeBridge is Ownable {
         return trustedRelayersList;
     }
 
-    //TODO: add admin function to retrieve native token
+    /**
+     * @dev This function allows contract admins to extract any ERC20 token.
+     * @param _token The address of token to remove.
+     */
+    function extractERC20(address _token) public onlyOwner {
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+
+        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
+    }
+
+    /**
+     * @dev This function allows contract admins to extract this contract's native tokens.
+     */
+    function extractNative() public onlyOwner {}
 }
