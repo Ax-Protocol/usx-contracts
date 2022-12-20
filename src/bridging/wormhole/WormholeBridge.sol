@@ -6,6 +6,8 @@ import "../utils/Ownable.sol";
 import "../interfaces/IWormhole.sol";
 import "../../common/interfaces/IUSX.sol";
 
+import "forge-std/console.sol";
+
 contract WormholeBridge is Ownable {
     IWormhole public immutable wormholeCoreBridge; // no SLOAD
     address public immutable usx; // no SLOAD

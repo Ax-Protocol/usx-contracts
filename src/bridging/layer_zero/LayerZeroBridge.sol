@@ -61,7 +61,6 @@ contract LayerZeroBridge is NonBlockingLzApp {
         uint64, /*_nonce*/
         bytes memory _payload
     ) internal virtual override {
-        console.log("\n\n\nWE GOT HERE 2!!!!!");
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
 
@@ -77,17 +76,10 @@ contract LayerZeroBridge is NonBlockingLzApp {
         internal
         virtual
     {
-        console.log("\n\n\nWE GOT HERE 3!!!!!");
-        console.log("bridgeAddress:", address(this));
-        console.log("toAddress:", _toAddress);
-        console.log("_amount:", _amount);
         // Privileges needed
-
         IUSX(usx).mint(_toAddress, _amount);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, _toAddress, _amount);
-
-        console.log("\n\nAFTER RECEEIVE FROM CHAIN\n\n");
     }
 
     function estimateSendFee(

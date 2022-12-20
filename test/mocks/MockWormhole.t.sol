@@ -36,7 +36,6 @@ contract MockWormhole is WormholeHelper {
         external
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
-        console.log("\n\nWE GOT HERE WORM!!!");
         vm = getVM();
         valid = true;
         reason = "";

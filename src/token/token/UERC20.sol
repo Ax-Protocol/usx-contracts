@@ -164,8 +164,6 @@ abstract contract UERC20 is Initializable, InitContext, IERC20Metadata {
     //INTERNAL MINT/BURN LOGIC
 
     function _mint(address to, uint256 amount) internal virtual {
-        console.log("_____balanceOf[to]:", balanceOf[to]);
-
         totalSupply += amount;
 
         // Cannot overflow because the sum of all user
@@ -174,11 +172,7 @@ abstract contract UERC20 is Initializable, InitContext, IERC20Metadata {
             balanceOf[to] += amount;
         }
 
-        console.log("_____balanceOf[to]:", balanceOf[to]);
-
         emit Transfer(address(0), to, amount);
-
-        console.log("\n\nAFTER TRANSFER");
     }
 
     function _burn(address from, uint256 amount) internal virtual {

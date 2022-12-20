@@ -41,8 +41,6 @@ contract SendTest is Test, BridgingSetup {
             transferAmount
         );
 
-        console.log("totalSupply after:", IUSXAdmin(address(usx_proxy)).totalSupply());
-        console.log("user balance:", IUSXAdmin(address(usx_proxy)).balanceOf(address(this)));
         // Post-action Assertions
         assertEq(
             IUSXAdmin(address(usx_proxy)).totalSupply(),

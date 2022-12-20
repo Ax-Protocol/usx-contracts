@@ -22,7 +22,6 @@ abstract contract NonBlockingLzApp is LzApp {
         virtual
         override
     {
-        console.log("\n\n\nWE GOT HERE 0!!!!!");
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
             // do nothing
@@ -37,7 +36,6 @@ abstract contract NonBlockingLzApp is LzApp {
         public
         virtual
     {
-        console.log("\n\n\nWE GOT HERE 1!!!!!");
         // only internal transaction
         require(_msgSender() == address(this), "NonblockingLzApp: caller must be LzApp");
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);

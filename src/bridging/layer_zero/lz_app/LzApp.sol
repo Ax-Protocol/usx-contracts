@@ -28,7 +28,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         virtual
         override
     {
-        console.log("\n\n\nWE GOT HERE -1!!!!!");
         // lzReceive must be called by the endpoint for security
         require(_msgSender() == address(lzEndpoint), "LzApp: invalid endpoint caller");
 
@@ -54,12 +53,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) internal virtual {
-        console.log("[_lzSend]: _refundAddress:", _refundAddress);
-        console.log("[_lzSend]: msg.value:", msg.value);
-
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
-
-        console.log("[_lzSend]: trustedRemote:", string(trustedRemote));
 
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
         lzEndpoint.send{value: msg.value}(
