@@ -9,91 +9,101 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-import "forge-std/console.sol";
-
 contract SendTest is Test, BridgingSetup {
     function test_sendFrom_wormhole(uint256 transferAmount) public {
         // Setup
-        vm.assume(transferAmount <= INITIAL_TOKENS);
+        uint256 iterations = 4;
+        vm.assume(transferAmount <= INITIAL_TOKENS / iterations);
 
-        // Expectations
-        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
-        emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+        uint256 tokenBalance = INITIAL_TOKENS;
+        for (uint256 i = 0; i < iterations; i++) {
+            // Expectations
+            vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+            emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
-        // Pre-action Assertions
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).totalSupply(),
-            INITIAL_TOKENS,
-            "Equivalence violation: total supply and initially minted tokens."
-        );
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
-            INITIAL_TOKENS,
-            "Equivalence violation: user balance and initially minted tokens."
-        );
+            // Pre-action Assertions
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance,
+                "Equivalence violation: total supply and initially minted tokens."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance,
+                "Equivalence violation: user balance and initially minted tokens."
+            );
 
-        // Act: send money using wormhole
-        IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.005 ether}(
-            address(wormhole_bridge),
-            payable(address(this)),
-            TEST_WORM_CHAIN_ID,
-            abi.encode(address(this)),
-            transferAmount
-        );
+            // Act: send money using wormhole
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
+                address(wormhole_bridge),
+                payable(address(this)),
+                TEST_WORM_CHAIN_ID,
+                abi.encode(address(this)),
+                transferAmount
+            );
 
-        // Post-action Assertions
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).totalSupply(),
-            INITIAL_TOKENS - transferAmount,
-            "Equivalence violation: total supply must decrease by amount transferred."
-        );
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
-            INITIAL_TOKENS - transferAmount,
-            "Equivalence violation: user balance must decrease by amount transferred."
-        );
+            // Post-action Assertions
+            assertEq(sequence, i);
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance - transferAmount,
+                "Equivalence violation: total supply must decrease by amount transferred."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance - transferAmount,
+                "Equivalence violation: user balance must decrease by amount transferred."
+            );
+            tokenBalance -= transferAmount;
+        }
     }
 
     function test_sendFrom_layerzero(uint256 transferAmount) public {
         // Setup
-        vm.assume(transferAmount <= INITIAL_TOKENS);
+        uint256 iterations = 4;
+        vm.assume(transferAmount <= INITIAL_TOKENS / iterations);
 
-        // Expectations
-        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
-        emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+        uint256 tokenBalance = INITIAL_TOKENS;
+        for (uint256 i = 0; i < 3; i++) {
+            // Expectations
+            vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
-        // Pre-action Assertions
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).totalSupply(),
-            INITIAL_TOKENS,
-            "Equivalence violation: total supply and initially minted tokens."
-        );
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
-            INITIAL_TOKENS,
-            "Equivalence violation: user balance and initially minted tokens."
-        );
+            // Pre-action Assertions
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance,
+                "Equivalence violation: total supply and initially minted tokens."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance,
+                "Equivalence violation: user balance and initially minted tokens."
+            );
 
-        // Act
-        IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.0001 ether}(
-            address(layer_zero_bridge),
-            payable(address(this)),
-            TEST_LZ_CHAIN_ID,
-            abi.encode(address(this)),
-            transferAmount
-        );
+            // Act
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.0001 ether}(
+                address(layer_zero_bridge),
+                payable(address(this)),
+                TEST_LZ_CHAIN_ID,
+                abi.encode(address(this)),
+                transferAmount
+            );
 
-        // Post-action Assertions
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).totalSupply(),
-            INITIAL_TOKENS - transferAmount,
-            "Equivalence violation: total supply must decrease by amount transferred."
-        );
-        assertEq(
-            IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
-            INITIAL_TOKENS - transferAmount,
-            "Equivalence violation: user balance must decrease by amount transferred."
-        );
+            // Post-action Assertions
+            assertEq(sequence, 0); // should stay zero for layer zero
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance - transferAmount,
+                "Equivalence violation: total supply must decrease by amount transferred."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance - transferAmount,
+                "Equivalence violation: user balance must decrease by amount transferred."
+            );
+            tokenBalance -= transferAmount;
+        }
     }
 
     function testCannot_sendFrom_amount(uint256 transferAmount) public {
@@ -181,12 +191,12 @@ contract SendTest is Test, BridgingSetup {
                     vm.expectRevert(IUSXAdmin.Paused.selector);
 
                     // Act: paused
-                    IUSXAdmin(address(usx_proxy)).sendFrom(
+                    IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
                         bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
                     );
                 } else {
                     // Act: not paused
-                    IUSXAdmin(address(usx_proxy)).sendFrom(
+                    IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
                         bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
                     );
 

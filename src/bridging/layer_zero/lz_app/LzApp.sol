@@ -6,8 +6,6 @@ import "../../utils/Ownable.sol";
 import "../../interfaces/ILayerZeroEndpoint.sol";
 import "../../interfaces/ILayerZeroReceiver.sol";
 
-import "forge-std/console.sol";
-
 /*
  * a generic LzReceiver implementation
  */

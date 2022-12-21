@@ -20,4 +20,8 @@ interface IWormholeBridge {
     function getTrustedContracts() external returns (bytes32[] memory);
 
     function getTrustedRelayers() external returns (address[] memory);
+
+    function extractERC20(address _token) external;
+
+    function extractNative() external;
 }

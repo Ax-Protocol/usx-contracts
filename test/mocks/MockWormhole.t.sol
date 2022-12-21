@@ -6,8 +6,6 @@ import "../../src/bridging/interfaces/IWormholeBridge.sol";
 import "../../src/common/interfaces/IERC20.sol";
 import "../common/Constants.t.sol";
 
-import "forge-std/console.sol";
-
 contract WormholeHelper {
     function getVM() internal returns (IWormhole.VM memory) {
         address usx = IWormholeBridge(msg.sender).usx();

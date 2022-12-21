@@ -6,7 +6,6 @@ import "../../../src/token/USX.sol";
 import "../../../src/bridging/wormhole/WormholeBridge.sol";
 import "../../../src/bridging/layer_zero/LayerZeroBridge.sol";
 import "../../../src/proxy/ERC1967Proxy.sol";
-import "../../mocks/MockLayerZero.t.sol";
 
 import "../../../src/common/interfaces/IUSXAdmin.sol";
 
@@ -52,10 +51,6 @@ abstract contract BridgingSetup is Test {
             TEST_LZ_CHAIN_ID, abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge))
         );
 
-        // Mocks
-        bytes memory MockLayerZeroCode = address(new MockLayerZero()).code;
-        vm.etch(LZ_ENDPOINT, MockLayerZeroCode);
-
         // Set Trusted Entities for Wormhole
         wormhole_bridge.manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
         wormhole_bridge.manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
@@ -65,4 +60,7 @@ abstract contract BridgingSetup is Test {
             [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
         );
     }
+
+    // Need this to receive fund from layer zero
+    receive() external payable {}
 }

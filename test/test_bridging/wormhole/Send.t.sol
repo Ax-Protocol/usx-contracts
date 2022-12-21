@@ -14,14 +14,17 @@ contract WormholeSendTest is Test, BridgingSetup {
     }
 
     function test_sendMessage(uint256 transferAmount) public {
+        uint256 iterations = 3;
         vm.startPrank(address(usx_proxy));
+        vm.deal(address(usx_proxy), TEST_GAS_FEE * iterations);
+
         for (uint256 i = 0; i < 3; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge));
             emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Act
-            uint64 sequence = IBridge(address(wormhole_bridge)).sendMessage(
+            uint64 sequence = IBridge(address(wormhole_bridge)).sendMessage{value: TEST_GAS_FEE}(
                 payable(address(this)), TEST_WORM_CHAIN_ID, abi.encode(address(this)), transferAmount
             );
 

@@ -7,8 +7,6 @@ import "../utils/Ownable.sol";
 import "../interfaces/IWormhole.sol";
 import "../../common/interfaces/IUSX.sol";
 
-import "forge-std/console.sol";
-
 contract WormholeBridge is Ownable {
     IWormhole public immutable wormholeCoreBridge; // no SLOAD
     address public immutable usx; // no SLOAD
@@ -88,6 +86,11 @@ contract WormholeBridge is Ownable {
     **
     ******************************************************************************/
 
+    /**
+     * @dev This function allows contract admins to manage trustworthiness remote emitter contracts.
+     * @param _contract A remote emitter contract.
+     * @param _isTrusted True, if trusted. False, if untrusted.
+     */
     function manageTrustedContracts(bytes32 _contract, bool _isTrusted) public onlyOwner {
         trustedContracts[_contract] = _isTrusted;
 
@@ -104,6 +107,11 @@ contract WormholeBridge is Ownable {
         }
     }
 
+    /**
+     * @dev This function allows contract admins to manage trustworthiness of relayers.
+     * @param _relayer The address of the relayer.
+     * @param _isTrusted True, if trusted. False, if untrusted.
+     */
     function manageTrustedRelayers(address _relayer, bool _isTrusted) public onlyOwner {
         trustedRelayers[_relayer] = _isTrusted;
 
@@ -120,10 +128,16 @@ contract WormholeBridge is Ownable {
         }
     }
 
+    /**
+     * @dev This function allows contract admins to retreive trusted, remote emitter contracts.
+     */
     function getTrustedContracts() public view onlyOwner returns (bytes32[] memory) {
         return trustedContractsList;
     }
 
+    /**
+     * @dev This function allows contract admins retreive trusted relayers.
+     */
     function getTrustedRelayers() public view onlyOwner returns (address[] memory) {
         return trustedRelayersList;
     }
@@ -141,5 +155,7 @@ contract WormholeBridge is Ownable {
     /**
      * @dev This function allows contract admins to extract this contract's native tokens.
      */
-    function extractNative() public onlyOwner {}
+    function extractNative() public onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
+    }
 }

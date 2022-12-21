@@ -6,8 +6,6 @@ import "solmate/utils/SafeTransferLib.sol";
 import "./lz_app/NonBlockingLzApp.sol";
 import "../../common/interfaces/IUSX.sol";
 
-import "forge-std/console.sol";
-
 contract LayerZeroBridge is NonBlockingLzApp {
     uint256 public constant NO_EXTRA_GAS = 0; // no SLOAD
     uint256 public constant FUNCTION_TYPE_SEND = 1; // no SLOAD
@@ -83,16 +81,21 @@ contract LayerZeroBridge is NonBlockingLzApp {
         emit ReceiveFromChain(_srcChainId, _srcAddress, _toAddress, _amount);
     }
 
-    function estimateSendFee(
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _amount,
-        bool _useZro,
-        bytes memory _adapterParams
-    ) public view virtual returns (uint256 nativeFee, uint256 zroFee) {
+    /**
+     * @dev Obtain gas estimate for cross-chain transfer.
+     * @param _dstChainId The Layer Zero destination chain ID.
+     * @param _toAddress The recipient address on the destination chain.
+     * @param _amount The amount to be transferred across chains.
+     */
+    function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
+        public
+        view
+        virtual
+        returns (uint256 nativeFee, uint256 zroFee)
+    {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, false, bytes(""));
     }
 
     /* ****************************************************************************
@@ -101,6 +104,10 @@ contract LayerZeroBridge is NonBlockingLzApp {
     **
     ******************************************************************************/
 
+    /**
+     * @dev This function allows contract admins to use custom adapter params.
+     * @param _useCustomAdapterParams Whether or not to use custom adapter params.
+     */
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
@@ -119,5 +126,7 @@ contract LayerZeroBridge is NonBlockingLzApp {
     /**
      * @dev This function allows contract admins to extract this contract's native tokens.
      */
-    function extractNative() public onlyOwner {}
+    function extractNative() public onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
+    }
 }

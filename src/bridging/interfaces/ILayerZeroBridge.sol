@@ -8,4 +8,8 @@ interface ILayerZeroBridge is ILayerZeroReceiver {
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external;
 
     function useCustomAdapterParams() external returns (bool);
+
+    function extractERC20(address _token) external;
+
+    function extractNative() external;
 }
