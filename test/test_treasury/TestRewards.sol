@@ -12,7 +12,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     /// @dev Test that contract admins can stake CVX into CVX_REWARD_POOL contract.
     function test_stakeCvx(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CVX, address(treasury_proxy), amount);
@@ -47,7 +47,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stakeCvx_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -63,7 +63,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stakeCvx_balance(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Exptectations
         vm.expectRevert("Insufficient CVX balance.");
@@ -75,7 +75,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     /// @dev Test that contract admins can withdraw CVX principal from CVX_REWARD_POOL contract, and claim all unclaimed cvxCRV rewards.
     function test_unstakeCvx(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CVX, address(treasury_proxy), amount);
@@ -127,7 +127,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_unstakeCvx_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -147,7 +147,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_unstakeCvx_balance(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CVX, address(treasury_proxy), amount);
@@ -160,12 +160,15 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     }
 
     /// @dev Test that contract admins can claim all unclaimed cvxCRV rewards from CVX_REWARD_POOL contract, and stake the cvxCRV rewards.
-    function test_claimRewardCvx_and_stake() public {
+    function test_claimRewardCvx_and_stake(uint256 amount) public {
+        // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
+
         // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
+        deal(CVX, address(treasury_proxy), amount);
 
         // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stakeCvx(amount);
         skip(ONE_WEEK);
 
         // Expectations
@@ -184,8 +187,8 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked CVX balance and amount."
         );
 
         // Act
@@ -204,8 +207,8 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked CVX balance and amount."
         );
         assertEq(
             IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
@@ -215,12 +218,15 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     }
 
     /// @dev Test that contract admins can claim all unclaimed cvxCRV rewards from CVX_REWARD_POOL contract, without staking the cvxCRV rewards.
-    function test_claimRewardCvx_without_stake() public {
+    function test_claimRewardCvx_without_stake(uint256 amount) public {
+        // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
+
         // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
+        deal(CVX, address(treasury_proxy), amount);
 
         // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stakeCvx(amount);
         skip(ONE_WEEK);
 
         // Expectations
@@ -239,8 +245,8 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked CVX balance and amount."
         );
 
         // Act
@@ -259,8 +265,8 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked CVX balance and amount."
         );
         assertEq(
             IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
@@ -269,16 +275,17 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
     }
 
-    function testCannot_test_claimRewardCvx_unauthorized(address sender) public {
+    function testCannot_test_claimRewardCvx_unauthorized(address sender, uint256 amount) public {
         // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
+        deal(CVX, address(treasury_proxy), amount);
 
         // Setup
         bool[2] memory stake = [true, false];
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stakeCvx(amount);
         skip(ONE_WEEK);
 
         for (uint256 i = 0; i < stake.length; i++) {
@@ -293,7 +300,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_test_claimRewardCvx_no_rewards(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CVX, address(treasury_proxy), amount);
@@ -313,7 +320,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     /// @dev Test that contract admins can deposit CRV into CRV_DEPOSITOR, convert the CRV to cvxCRV, and stake the corresponding cvxCRV into CVX_CRV_BASE_REWARD_POOL.
     function test_stakeCrv(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CRV, address(treasury_proxy), amount);
@@ -348,7 +355,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stakeCrv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -364,7 +371,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stakeCrv_balance(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Exptectations
         vm.expectRevert("Insufficient CRV balance.");
@@ -376,7 +383,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     /// @dev Test that contract admins can stake cvxCRV into CVX_CRV_BASE_REWARD_POOL.
     function test_stakeCvxCrv(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CVX_CRV, address(treasury_proxy), amount);
@@ -410,7 +417,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stakeCvxCrv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -426,7 +433,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stakeCvxCrv_balance(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Exptectations
         vm.expectRevert("Insufficient cvxCRV balance.");
@@ -438,7 +445,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     /// @dev Test that contract admins can withdraw all staked cvxCRV from CVX_CRV_BASE_REWARD_POOL, and claim all unclaimed CVX, CRV, and 3CRV rewards.
     function test_unstakeCvxCrv(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CRV, address(treasury_proxy), amount);
@@ -513,7 +520,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_unstakeCvxCrv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -533,7 +540,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_unstakeCvxCrv_balance(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CRV, address(treasury_proxy), amount);
@@ -546,12 +553,15 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     }
 
     /// @dev Test that contract admins can claim all unclaimed CVX, CRV, and 3CRV rewards from CVX_CRV_BASE_REWARD_POOL, without withrawing cvxCRV principal.
-    function test_claimRewardCvxCrv() public {
+    function test_claimRewardCvxCrv(uint256 amount) public {
+        // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
+
         // Allocate funds for test
-        deal(CRV, address(treasury_proxy), CRV_AMOUNT);
+        deal(CRV, address(treasury_proxy), amount);
 
         // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCrv(CRV_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stakeCrv(amount);
         skip(ONE_WEEK);
 
         // Expectations
@@ -583,8 +593,8 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CRV_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked cvxCRV balance and amount."
         );
 
         // Act
@@ -613,20 +623,21 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CRV_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked cvxCRV balance and amount."
         );
     }
 
-    function testCannot_claimRewardCvxCrv_unauthorized(address sender) public {
+    function testCannot_claimRewardCvxCrv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
-        deal(CRV, address(treasury_proxy), CRV_AMOUNT);
+        deal(CRV, address(treasury_proxy), amount);
 
         // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCrv(CRV_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stakeCrv(amount);
         skip(ONE_WEEK);
 
         // Exptectations
@@ -639,7 +650,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_claimRewardCvxCrv_no_reward(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(CRV, address(treasury_proxy), amount);
@@ -654,7 +665,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
     /// @dev Test that contract admins can stake 3CRV into CVX_3CRV_BASE_REWARD_POOL.
     function test_stake3Crv(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(_3CRV, address(treasury_proxy), amount);
@@ -688,7 +699,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stake3Crv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -704,7 +715,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_stake3Crv_balance(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Exptectations
         vm.expectRevert("Insufficient 3CRV balance.");
@@ -719,7 +730,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
      */
     function test_unstake3Crv(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(_3CRV, address(treasury_proxy), amount);
@@ -782,7 +793,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_unstake3Crv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
@@ -802,7 +813,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_unstake3Crv_backing(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 1 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         mintForTest(DAI, amount);
@@ -814,12 +825,15 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         ITreasuryTest(address(treasury_proxy)).unstake3Crv(amount);
     }
 
-    function test_claimRewardCvx3Crv() public {
+    function test_claimRewardCvx3Crv(uint256 amount) public {
+        // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
+
         // Allocate funds for test
-        deal(_3CRV, address(treasury_proxy), _3CRV_AMOUNT);
+        deal(_3CRV, address(treasury_proxy), amount);
 
         // Setup
-        ITreasuryTest(address(treasury_proxy)).stake3Crv(_3CRV_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stake3Crv(amount);
         skip(ONE_WEEK);
 
         // Expectations
@@ -844,8 +858,8 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            _3CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvx3CRV balance and _3CRV_AMOUNT."
+            amount,
+            "Equivalence violation: treasury staked cvx3CRV balance and amount."
         );
 
         // Act
@@ -869,20 +883,21 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
         );
         assertEq(
             IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            _3CRV_AMOUNT,
+            amount,
             "Equivalence violation: treasury staked cvx3CRV balance is not zero."
         );
     }
 
-    function testCannot_claimRewardCvx3Crv_unauthorized(address sender) public {
+    function testCannot_claimRewardCvx3Crv_unauthorized(address sender, uint256 amount) public {
         // Assumptions
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
         vm.assume(sender != address(this));
 
         // Allocate funds for test
-        deal(_3CRV, address(treasury_proxy), _3CRV_AMOUNT);
+        deal(_3CRV, address(treasury_proxy), amount);
 
         // Setup
-        ITreasuryTest(address(treasury_proxy)).stake3Crv(_3CRV_AMOUNT);
+        ITreasuryTest(address(treasury_proxy)).stake3Crv(amount);
         skip(ONE_WEEK);
 
         // Exptectations
@@ -895,7 +910,7 @@ contract TestRewards is Test, TreasurySetup, RedeemHelper {
 
     function testCannot_claimRewardCvx3Crv_no_rewards(uint256 amount) public {
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
         deal(_3CRV, address(treasury_proxy), amount);
