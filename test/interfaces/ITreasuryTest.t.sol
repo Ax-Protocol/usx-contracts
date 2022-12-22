@@ -36,6 +36,6 @@ interface ITreasuryTest is ITreasury {
     function stake3Crv(uint256 _amount) external;
 
     function unstake3Crv(uint256 _amount) external;
-    
+
     function claimRewardCvx3Crv() external;
 }

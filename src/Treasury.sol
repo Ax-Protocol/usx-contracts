@@ -21,7 +21,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     // Constants: no SLOAD to save gas
-    address public constant backingToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;  // 3CRV
+    address public constant backingToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
     address public constant curve3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
@@ -349,10 +349,10 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of cvx3CRV to withdraw.
      */
     function unstake3Crv(uint256 _amount) public onlyOwner {
-        uint256 balance3Crv = IBaseRewardPool(cvx3CrvBaseRewardPool).balanceOf(address(this));
+        uint256 balanceCvx3Crv = IBaseRewardPool(cvx3CrvBaseRewardPool).balanceOf(address(this));
         uint256 backingAmount = __getLpTokenAmount(totalSupply);
 
-        require(_amount <= balance3Crv - backingAmount, "Cannot withdraw backing 3CRV.");
+        require(_amount <= balanceCvx3Crv - backingAmount, "Cannot withdraw backing cvx3CRV.");
 
         __unstakeLpTokens(_amount);
     }
@@ -365,6 +365,22 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(IBaseRewardPool(cvx3CrvBaseRewardPool).earned(address(this)) > 0, "No rewards to claim.");
 
         IBaseRewardPool(cvx3CrvBaseRewardPool).getReward();
+    }
+
+    // TODO: Add conditional statements such that each function only gets called if earned() or
+    //       treasury's token balance is larger than some number, since these fucntions are
+    //       pretty gas-intensive. For example, if each unit of gas costs 21 Gwei and 1 Ether is $1250,
+    //       running all 5 of these functions would cost around ~$42).
+    function routineRewardManagement() public onlyOwner {
+        claimRewardCvxCrv();
+
+        claimRewardCvx(true);
+
+        stakeCvx(IERC20(cvx).balanceOf(address(this)));
+
+        stakeCrv(IERC20(crv).balanceOf(address(this)));
+
+        stake3Crv(IERC20(backingToken).balanceOf(address(this)));
     }
 
     /**

@@ -69,553 +69,92 @@ contract TestAdmin is Test, TreasurySetup, RedeemHelper {
     }
 
     function test_extractERC20_treasury(uint256 amount) public {
+        // Test Variables
+        address CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        address USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        address[4] memory COINS = [DAI, USDC, USDT, CVX];
+
+        // Assumptions
         vm.assume(amount > 0 && amount < 1e6);
 
+        // Setup: deal test tokens to treasury
+        deal(CVX, address(treasury_proxy), amount);
+        deal(DAI, address(treasury_proxy), amount);
+        deal(USDC, address(treasury_proxy), amount);
+        deal(USDT, address(treasury_proxy), amount);
+
+        // Setup: mint some USX so treasury has backing
         mintForTest(DAI, DAI_AMOUNT);
 
-        // Send the treasury an ERC20 token
+        for (uint256 i = 0; i < COINS.length; i++) {
+            // Pre-action assertions
+            assertEq(
+                IERC20(COINS[i]).balanceOf(address(treasury_proxy)),
+                amount,
+                "Equivalence violation: treausury test coin balance and amount."
+            );
+
+            // Act
+            ITreasuryTest(address(treasury_proxy)).extractERC20(COINS[i]);
+
+            // Post-action assertions
+            assertEq(
+                IERC20(COINS[i]).balanceOf(address(treasury_proxy)),
+                0,
+                "Equivalence violation: treausury test coin balance is not zero."
+            );
+            assertEq(
+                IERC20(COINS[i]).balanceOf(address(this)),
+                amount,
+                "Equivalence violation: owner test coin balance and amount."
+            );
+        }
+    }
+
+    function testCannot_extractERC20_treasury_unauthorized(address sender, uint256 amount) public {
+        // Test Variables
+        address CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        address USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        address[4] memory COINS = [DAI, USDC, USDT, CVX];
+
+        // Assumptions
+        vm.assume(amount > 0 && amount < 1e6);
+        vm.assume(sender != address(this));
+
+        // Setup: deal bridge the tokens
+        deal(CVX, address(treasury_proxy), amount);
+        deal(DAI, address(treasury_proxy), amount);
         deal(USDC, address(treasury_proxy), amount);
+        deal(USDT, address(treasury_proxy), amount);
 
-        // Pre-action assertions
-        assertEq(
-            IERC20(USDC).balanceOf(address(treasury_proxy)),
-            amount,
-            "Equivalence violation: treausury test coin balance and amount"
-        );
+        for (uint256 i = 0; i < COINS.length; i++) {
+            // Exptectations
+            vm.expectRevert("Ownable: caller is not the owner");
 
-        // Act
-        ITreasuryTest(address(treasury_proxy)).extractERC20(USDC);
-
-        // Post-action assertions
-        assertEq(
-            IERC20(USDC).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treausury test coin balance is not zero"
-        );
-        assertEq(
-            IERC20(USDC).balanceOf(address(this)),
-            amount,
-            "Equivalence violation: owner USDC balance and amount"
-        );
+            // Act: pranking as other addresses
+            vm.prank(sender);
+            ITreasuryTest(address(treasury_proxy)).extractERC20(COINS[i]);
+        }
     }
 
-    // TODO: add testCannot_extractERC20_treasury(), where an admin attempts to withdraw backingToken
+    function testCannot_extractERC20_treasury_backingToken(uint256 amount) public {
+        // Assumptions
+        vm.assume(amount > 0 && amount < 1e6);
 
-    /// @dev Test that contract admins can stake CVX into CVX_REWARD_POOL contract.
-    function test_stakeCvx() public {
-        // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
+        // Setup: deal bridge the tokens
+        deal(_3CRV, address(treasury_proxy), amount);
 
-        // Pre-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury CVX balance and CVX_AMOUNT."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury staked CVX balance is not zero."
-        );
+        // Setup: mint some USX so treasury has backing
+        mintForTest(DAI, DAI_AMOUNT);
 
-        // Action
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
+        // Exptectations
+        vm.expectRevert("Cannot withdraw backing token.");
 
-        // Post-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
-        );
+        // Act: attempt to extract backingToken
+        ITreasuryTest(address(treasury_proxy)).extractERC20(_3CRV);
     }
-
-    /// @dev Test that contract admins can withdraw CVX principal from CVX_REWARD_POOL contract, and claim all unclaimed cvxCRV rewards.
-    function test_unstakeCvx() public {
-        // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
-
-        // Setup
-        uint256 oneWeek = 604800;
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
-        skip(oneWeek);
-
-        // Expectations
-        uint256 expectedRewardAmount = ICvxRewardPool(CVX_REWARD_POOL).earned(address(treasury_proxy));
-
-        // Pre-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).unstakeCvx(CVX_AMOUNT);
-
-        // Post-action
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury CVX balance and CVX_AMOUNT."
-        );
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            expectedRewardAmount,
-            "Equivalence violation: treasury cvxCRV balance and expectedRewardAmount."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury staked CVX balance is not zero."
-        );
-    }
-
-    /// @dev Test that contract admins can claim all unclaimed cvxCRV rewards from CVX_REWARD_POOL contract, and stake the cvxCRV rewards.
-    function test_claimRewardCvx_and_stake() public {
-        // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
-
-        // Setup
-        uint256 oneWeek = 604800;
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
-        skip(oneWeek);
-
-        // Expectations
-        uint256 expectedRewardAmount = ICvxRewardPool(CVX_REWARD_POOL).earned(address(treasury_proxy));
-
-        // Pre-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).claimRewardCvx(true);
-
-        // Post-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            expectedRewardAmount,
-            "Equivalence violation: treasury staked cvxCRV balance and expectedRewardAmount."
-        );
-    }
-
-    /// @dev Test that contract admins can claim all unclaimed cvxCRV rewards from CVX_REWARD_POOL contract, without staking the cvxCRV rewards.
-    function test_claimRewardCvx_without_stake() public {
-        // Allocate funds for test
-        deal(CVX, address(treasury_proxy), CVX_AMOUNT);
-
-        // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCvx(CVX_AMOUNT);
-        skip(ONE_WEEK);
-
-        // Expectations
-        uint256 expectedRewardAmount = ICvxRewardPool(CVX_REWARD_POOL).earned(address(treasury_proxy));
-
-        // Pre-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).claimRewardCvx(false);
-
-        // Post-action assertions
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            expectedRewardAmount,
-            "Equivalence violation: treasury cvxCRV balance and expectedRewardAmount."
-        );
-        assertEq(
-            ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_AMOUNT,
-            "Equivalence violation: treasury staked CVX balance and CVX_AMOUNT."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury staked cvxCRV balance is not zero."
-        );
-    }
-
-    /// @dev Test that contract admins can deposit CRV into CRV_DEPOSITOR, convert the CRV to cvxCRV, and stake the corresponding cvxCRV into CVX_CRV_BASE_REWARD_POOL.
-    function test_stakeCrv() public {
-        // Allocate funds for test
-        deal(CRV, address(treasury_proxy), CRV_AMOUNT);
-
-        // Pre-action assertions
-        assertEq(
-            IERC20(CRV).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury CRV balance and CRV_AMOUNT."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury staked cvxCRV balance is not zero."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).stakeCrv(CRV_AMOUNT);
-
-        // Post-action assertions
-        assertEq(
-            IERC20(CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CRV balance is not zero."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CRV_AMOUNT."
-        );
-    }
-
-    /// @dev Test that contract admins can stake cvxCRV into CVX_CRV_BASE_REWARD_POOL.
-    function test_stakeCvxCrv() public {
-        // Allocate funds for test
-        deal(CVX_CRV, address(treasury_proxy), CVX_CRV_AMOUNT);
-
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            CVX_CRV_AMOUNT,
-            "Equivalence violation: treasury cvxCRV balance and CVX_CRV_AMOUNT."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury staked cvxCRV balance is not zero."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).stakeCvxCrv(CVX_CRV_AMOUNT);
-
-        // Post-action assertions
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CVX_CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CVX_CRV_AMOUNT."
-        );
-    }
-
-    /// @dev Test that contract admins can withdraw all staked cvxCRV from CVX_CRV_BASE_REWARD_POOL, and claim all unclaimed CVX, CRV, and 3CRV rewards.
-    function test_unstakeCvxCrv() public {
-        // Allocate funds for test
-        deal(CRV, address(treasury_proxy), CRV_AMOUNT);
-
-        // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCrv(CRV_AMOUNT);
-        skip(ONE_WEEK);
-
-        // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
-        uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
-        uint256 expected3CrvRewardAmount =
-            IVirtualBalanceRewardPool(VIRTUAL_BALANCE_REWARD_POOL).earned(address(treasury_proxy));
-
-        // Pre-action assertions
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            IERC20(CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CRV balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(_3CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury 3CRV balance is not zero."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CRV_AMOUNT."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).unstakeCvxCrv(CRV_AMOUNT);
-
-        // Post-action assertions
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury cvxCRV balance and CRV_AMOUNT."
-        );
-        assertEq(
-            IERC20(CRV).balanceOf(address(treasury_proxy)),
-            expectedCrvRewardAmount,
-            "Equivalence violation: treasury CRV balance and expectedCrvRewardAmount."
-        );
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            expectedCvxRewardAmount,
-            "Equivalence violation: treasury CVX balance and expectedCvxRewardAmount."
-        );
-        assertEq(
-            IERC20(_3CRV).balanceOf(address(treasury_proxy)),
-            expected3CrvRewardAmount,
-            "Equivalence violation: treasury 3CRV balance and expected3CrvRewardAmount."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury staked cvxCRV balance is not zero."
-        );
-    }
-
-    /// @dev Test that contract admins can claim all unclaimed CVX, CRV, and 3CRV rewards from CVX_CRV_BASE_REWARD_POOL, without withrawing cvxCRV principal.
-    function test_claimRewardCvxCrv() public {
-        // Allocate funds for test
-        deal(CRV, address(treasury_proxy), CRV_AMOUNT);
-
-        // Setup
-        ITreasuryTest(address(treasury_proxy)).stakeCrv(CRV_AMOUNT);
-        skip(ONE_WEEK);
-
-        // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
-        uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
-        uint256 expected3CrvRewardAmount =
-            IVirtualBalanceRewardPool(VIRTUAL_BALANCE_REWARD_POOL).earned(address(treasury_proxy));
-
-        // Pre-action assertions
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            IERC20(CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CRV balance is not zero."
-        );
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury CVX balance is not zero."
-        );
-        assertEq(
-            IERC20(_3CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury 3CRV balance is not zero."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CRV_AMOUNT."
-        );
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).claimRewardCvxCrv();
-
-        // Post-action assertions
-        assertEq(
-            IERC20(CVX_CRV).balanceOf(address(treasury_proxy)),
-            0,
-            "Equivalence violation: treasury cvxCRV balance is not zero."
-        );
-        assertEq(
-            IERC20(CRV).balanceOf(address(treasury_proxy)),
-            expectedCrvRewardAmount,
-            "Equivalence violation: treasury CRV balance and expectedCrvRewardAmount."
-        );
-        assertEq(
-            IERC20(CVX).balanceOf(address(treasury_proxy)),
-            expectedCvxRewardAmount,
-            "Equivalence violation: treasury CVX balance and expectedCvxRewardAmount."
-        );
-        assertEq(
-            IERC20(_3CRV).balanceOf(address(treasury_proxy)),
-            expected3CrvRewardAmount,
-            "Equivalence violation: treasury 3CRV balance and expected3CrvRewardAmount."
-        );
-        assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
-            CRV_AMOUNT,
-            "Equivalence violation: treasury staked cvxCRV balance and CRV_AMOUNT."
-        );
-    }
-
-    // function stake3Crv(uint256 _amount) external;
-    function test_stake3Crv() public {
-        // Allocate funds for test
-        deal(_3CRV, address(treasury_proxy), _3CRV_AMOUNT);
-
-        assertEq(IERC20(_3CRV).balanceOf(address(treasury_proxy)), _3CRV_AMOUNT, "Equivalence violation: treasury 3CRV balance and _3CRV_AMOUNT.");
-        assertEq(IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury staked cvx3CRV balance is not zero.");
-    
-        // Act
-        ITreasuryTest(address(treasury_proxy)).stake3Crv(_3CRV_AMOUNT);
-
-        // Post-action assertions
-        assertEq(IERC20(_3CRV).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury 3CRV balance is not zero.");
-        assertEq(IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), _3CRV_AMOUNT, "Equivalence violation: treasury staked cvx3CRV balance and _3CRV_AMOUNT.");
-    }
-
-    // function unstake3Crv(uint256 _amount) external;
-    function test_unstake3Crv() public {
-        // Allocate funds for test
-        deal(_3CRV, address(treasury_proxy), _3CRV_AMOUNT);
-
-        // Setup
-        ITreasuryTest(address(treasury_proxy)).stake3Crv(_3CRV_AMOUNT);
-        skip(ONE_WEEK);
-
-        // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
-        uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
-
-        // Pre-action assertions
-        assertEq(IERC20(_3CRV).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury 3CRV balance is not zero.");
-        assertEq(IERC20(CRV).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury CRV balance is not zero.");
-        assertEq(IERC20(CVX).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury CVX balance is not zero.");
-        assertEq(IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), _3CRV_AMOUNT, "Equivalence violation: treasury staked cvx3CRV balance and _3CRV_AMOUNT.");
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).unstake3Crv(_3CRV_AMOUNT);
-
-        // Post-action assertions
-        assertEq(IERC20(_3CRV).balanceOf(address(treasury_proxy)), _3CRV_AMOUNT, "Equivalence violation: treasury 3CRV balance and _3CRV_AMOUNT.");
-        assertEq(IERC20(CRV).balanceOf(address(treasury_proxy)), expectedCrvRewardAmount, "Equivalence violation: treasury CRV balance and expectedCrvRewardAmount.");
-        assertEq(IERC20(CVX).balanceOf(address(treasury_proxy)), expectedCvxRewardAmount, "Equivalence violation: treasury CVX balance and expectedCvxRewardAmount.");
-        assertEq(IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury staked cvx3CRV balance is not zero.");
-    }
-    
-    // // function claimRewardCvx3Crv() external;
-    function test_claimRewardCvx3Crv() public {
-        // Allocate funds for test
-        deal(_3CRV, address(treasury_proxy), _3CRV_AMOUNT);
-
-        // Setup
-        ITreasuryTest(address(treasury_proxy)).stake3Crv(_3CRV_AMOUNT);
-        skip(ONE_WEEK);
-
-        // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
-        uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
-
-        // Pre-action assertions
-        assertEq(IERC20(_3CRV).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury 3CRV balance is not zero.");
-        assertEq(IERC20(CRV).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury CRV balance is not zero.");
-        assertEq(IERC20(CVX).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury CVX balance is not zero.");
-        assertEq(IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), _3CRV_AMOUNT, "Equivalence violation: treasury staked cvx3CRV balance and _3CRV_AMOUNT.");
-
-        // Act
-        ITreasuryTest(address(treasury_proxy)).claimRewardCvx3Crv();
-
-        // Post-action assertions
-        assertEq(IERC20(_3CRV).balanceOf(address(treasury_proxy)), 0, "Equivalence violation: treasury 3CRV balance is not zero.");
-        assertEq(IERC20(CRV).balanceOf(address(treasury_proxy)), expectedCrvRewardAmount, "Equivalence violation: treasury CRV balance and expectedCrvRewardAmount.");
-        assertEq(IERC20(CVX).balanceOf(address(treasury_proxy)), expectedCvxRewardAmount, "Equivalence violation: treasury CVX balance and expectedCvxRewardAmount.");
-        assertEq(IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)), _3CRV_AMOUNT, "Equivalence violation: treasury staked cvx3CRV balance is not zero.");
-    }
-
-    // TODO: add testCannot_ counterparts to all reward management unit tests
-    // ************************************************************************************************
-    // ************************************************************************************************
-    // ************************************************************************************************
-    // ************************************************************************************************
-    // ************************************************************************************************
-    //
-    // *** Example ***
-    // function testCannot_removeSupportedStable_sender() public {
-    //     // Expectations
-    //     vm.expectRevert("Ownable: caller is not the owner");
-
-    //     // Act
-    //     vm.prank(TEST_ADDRESS);
-    //     ITreasuryTest(address(treasury_proxy)).removeSupportedStable(TEST_STABLE);
-    // }
-    // ***************
-    //
-    //            O   testCannot_stakeCvx
-    //            O   testCannot_unstakeCvx
-    //            O   testCannot_claimRewardCvx
-    //            O   testCannot_stakeCrv
-    //            O   testCannot_stakeCvxCrv
-    //            O   testCannot_unstakeCvxCrv
-    //            O   testCannot_claimRewardCvxCrv
-    //            O   testCannot_stake3Crv
-    //            O   testCannot_unstake3Crv
-    //            O   testCannot_claimRewardCvx3Crv
-    //
-    // ************************************************************************************************
-    // ************************************************************************************************
-    // ************************************************************************************************
-    // ************************************************************************************************
-    // ************************************************************************************************
-
-
-
 }
