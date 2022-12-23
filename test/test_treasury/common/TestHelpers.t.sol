@@ -19,7 +19,7 @@ abstract contract TreasurySetup is Test {
 
     // Test Constants
     uint8 public constant PID_3POOL = 9;
-    address constant TEST_STABLE_SWAP_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7; // Ethereum
+    address constant STABLE_SWAP_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7; // Ethereum
     address constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31; // Ethereum
     address constant CVX_3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8; // Ethereum
     address constant CVX_CRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e; // Ethereum
@@ -92,8 +92,8 @@ contract RedeemHelper is Test, TreasurySetup {
     function mintForTestCurveMocked(address _tokenAddress, uint256 _amount) internal {
         // Mock Curve
         vm.mockCall(
-            TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            STABLE_SWAP_3POOL,
+            abi.encodeWithSelector(IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE)
         );
 
@@ -121,7 +121,7 @@ contract RedeemHelper is Test, TreasurySetup {
             uint256 preBalance = IERC20(coin).balanceOf(address(treasury_proxy));
 
             // Remove liquidity from Curve
-            IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).remove_liquidity_one_coin(lpTokens, int128(uint128(index)), 0);
+            IStableSwap3Pool(STABLE_SWAP_3POOL).remove_liquidity_one_coin(lpTokens, int128(uint128(index)), 0);
 
             // Calculate the amount of stablecoin received from removing liquidity
             redeemAmount = IERC20(coin).balanceOf(address(treasury_proxy)) - preBalance;
@@ -135,7 +135,7 @@ contract RedeemHelper is Test, TreasurySetup {
     }
 
     function calculateCurveTokenAmount(uint256 usxAmount) internal returns (uint256) {
-        uint256 lpTokenPrice = IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price();
+        uint256 lpTokenPrice = IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price();
         uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
         return (usxAmount * conversionFactor) / 1e18;
     }
@@ -151,11 +151,11 @@ contract MintHelper is Test, TreasurySetup {
 
         // Add liquidity
         if (coin != _3CRV) {
-            SafeTransferLib.safeApprove(ERC20(coin), TEST_STABLE_SWAP_3POOL, amount);
+            SafeTransferLib.safeApprove(ERC20(coin), STABLE_SWAP_3POOL, amount);
             uint256[3] memory amounts;
             amounts[index] = amount;
             uint256 preBalance = IERC20(_3CRV).balanceOf(TEST_USER);
-            IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).add_liquidity(amounts, 0);
+            IStableSwap3Pool(STABLE_SWAP_3POOL).add_liquidity(amounts, 0);
             uint256 postBalance = IERC20(_3CRV).balanceOf(TEST_USER);
             lpTokens = postBalance - preBalance;
         } else {
@@ -163,7 +163,7 @@ contract MintHelper is Test, TreasurySetup {
         }
 
         // Obtain 3CRV price
-        uint256 lpTokenPrice = IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price();
+        uint256 lpTokenPrice = IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price();
 
         // Revert to blockchain state before Curve interaction
         vm.revertTo(id);

@@ -24,8 +24,8 @@ contract TestPriceDropMint is Test, MintHelper {
         /// @dev Iteration 1, with a higher 3CRV price
         // Mock Curve 1, setting the 3CRV price
         vm.mockCall(
-            TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            STABLE_SWAP_3POOL,
+            abi.encodeWithSelector(IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE)
         );
 
@@ -59,8 +59,8 @@ contract TestPriceDropMint is Test, MintHelper {
 
         // Mock Curve 2, lowering the 3CRV price
         vm.mockCall(
-            TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            STABLE_SWAP_3POOL,
+            abi.encodeWithSelector(IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE - priceDelta)
         );
 

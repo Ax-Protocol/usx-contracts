@@ -22,8 +22,8 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Mock Curve 1
         vm.mockCall(
-            TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            STABLE_SWAP_3POOL,
+            abi.encodeWithSelector(IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE)
         );
 
@@ -62,8 +62,8 @@ contract TestPriceDropRedeem is Test, RedeemHelper {
 
         // Mock Curve 2
         vm.mockCall(
-            TEST_STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(TEST_STABLE_SWAP_3POOL).get_virtual_price.selector),
+            STABLE_SWAP_3POOL,
+            abi.encodeWithSelector(IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
             abi.encode(TEST_3CRV_VIRTUAL_PRICE - priceDelta)
         );
 

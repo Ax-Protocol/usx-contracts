@@ -140,21 +140,4 @@ contract TestAdmin is Test, TreasurySetup, RedeemHelper {
             ITreasuryTest(address(treasury_proxy)).extractERC20(COINS[i]);
         }
     }
-
-    function testCannot_extractERC20_treasury_backingToken(uint256 amount) public {
-        // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
-
-        // Setup: deal bridge the tokens
-        deal(_3CRV, address(treasury_proxy), amount);
-
-        // Setup: mint some USX so treasury has backing
-        mintForTest(DAI, DAI_AMOUNT);
-
-        // Exptectations
-        vm.expectRevert("Cannot withdraw backing token.");
-
-        // Act: attempt to extract backingToken
-        ITreasuryTest(address(treasury_proxy)).extractERC20(_3CRV);
-    }
 }

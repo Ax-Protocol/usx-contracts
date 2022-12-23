@@ -227,8 +227,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _token The address of token to remove.
      */
     function extractERC20(address _token) public onlyOwner {
-        require(_token != backingToken, "Cannot withdraw backing token.");
-
         uint256 balance = IERC20(_token).balanceOf(address(this));
 
         SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
@@ -270,11 +268,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     function claimRewardCvx(bool _stake) public onlyOwner {
         require(ICvxRewardPool(cvxRewardPool).earned(address(this)) > 0, "No rewards to claim.");
 
-        if (_stake) {
-            ICvxRewardPool(cvxRewardPool).getReward(true);
-        } else {
-            ICvxRewardPool(cvxRewardPool).getReward(false);
-        }
+        ICvxRewardPool(cvxRewardPool).getReward(_stake);
     }
 
     /**
@@ -289,21 +283,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         SafeTransferLib.safeApprove(ERC20(crv), crvDepositor, _amount);
 
         ICrvDepositor(crvDepositor).deposit(_amount, true, cvxCrvBaseRewardPool);
-    }
-
-    /**
-     * @dev This function allows contract admins to stake cvxCRV into cvxCrvBaseRewardPool. Doing this
-     * will accumulate CVX, CRV, and 3CRV rewards proportionate to the amount staked.
-     * @param _amount The amount of cvxCRV to stake.
-     */
-    function stakeCvxCrv(uint256 _amount) public onlyOwner {
-        uint256 balance = IERC20(cvxCrv).balanceOf(address(this));
-
-        require(balance > 0 && balance >= _amount, "Insufficient cvxCRV balance.");
-
-        SafeTransferLib.safeApprove(ERC20(cvxCrv), cvxCrvBaseRewardPool, _amount);
-
-        IBaseRewardPool(cvxCrvBaseRewardPool).stake(_amount);
     }
 
     /**
@@ -365,22 +344,6 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(IBaseRewardPool(cvx3CrvBaseRewardPool).earned(address(this)) > 0, "No rewards to claim.");
 
         IBaseRewardPool(cvx3CrvBaseRewardPool).getReward();
-    }
-
-    // TODO: Add conditional statements such that each function only gets called if earned() or
-    //       treasury's token balance is larger than some number, since these fucntions are
-    //       pretty gas-intensive. For example, if each unit of gas costs 21 Gwei and 1 Ether is $1250,
-    //       running all 5 of these functions would cost around ~$42).
-    function routineRewardManagement() public onlyOwner {
-        claimRewardCvxCrv();
-
-        claimRewardCvx(true);
-
-        stakeCvx(IERC20(cvx).balanceOf(address(this)));
-
-        stakeCrv(IERC20(crv).balanceOf(address(this)));
-
-        stake3Crv(IERC20(backingToken).balanceOf(address(this)));
     }
 
     /**
