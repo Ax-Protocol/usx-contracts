@@ -2,9 +2,9 @@
 pragma solidity >=0.8.0;
 
 import "./IUSX.sol";
-import "./IERC20Extended.sol";
+import "./IUERC20.sol";
 
-interface IUSXAdmin is IUSX, IERC20Extended {
+interface IUSXAdmin is IUSX, IUERC20 {
     error Paused();
 
     function treasuryKillSwitch() external;

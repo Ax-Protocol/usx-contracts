@@ -7,7 +7,7 @@ import "./IERC20.sol";
 /**
  * @dev Extends IERC20 to include permit functionality
  */
-interface IERC20Extended is IERC20 {
+interface IUERC20 is IERC20 {
     /**
      * @dev nonces is mapping given for replay protection.
      *

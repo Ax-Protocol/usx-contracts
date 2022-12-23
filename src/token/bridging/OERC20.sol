@@ -4,11 +4,13 @@ pragma solidity >=0.8.0;
 
 import "../introspection/ERC165.sol";
 import "../token/UERC20.sol";
-import "../admin/Privileged.sol";
+import "../../common/utils/InitOwnable.sol";
 import "../interfaces/IBridge.sol";
 import "../../common/interfaces/IOERC20.sol";
 
-abstract contract OERC20 is IOERC20, ERC165, UERC20, Privileged {
+abstract contract OERC20 is IOERC20, ERC165, UERC20, InitOwnable {
+    mapping(address => bool) public transferPrivileges;
+
     error Paused();
 
     function sendFrom(
@@ -56,6 +58,28 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Privileged {
             _spendAllowance(_from, spender, _amount);
         }
         _burn(_from, _amount);
+    }
+
+    /* ****************************************************************************
+    **
+    **  Admin Functions
+    **
+    ******************************************************************************/
+
+    /**
+     * @dev Manages cross-chain transfer privileges for each message passing protocol.
+     * @param _bridgeAddresses - An array of supported bridge IDs; the order must match `_privilges` array.
+     * @param _privileges - An array of protocol privileges; the order must match `_bridgeIds` array.
+     */
+    function manageCrossChainTransfers(address[2] calldata _bridgeAddresses, bool[2] calldata _privileges)
+        public
+        onlyOwner
+    {
+        require(_bridgeAddresses.length == _privileges.length, "Arrays must be equal length.");
+
+        for (uint256 i = 0; i < _bridgeAddresses.length; i++) {
+            transferPrivileges[_bridgeAddresses[i]] = _privileges[i];
+        }
     }
 
     /**

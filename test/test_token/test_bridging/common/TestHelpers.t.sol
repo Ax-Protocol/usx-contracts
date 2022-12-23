@@ -61,6 +61,6 @@ abstract contract BridgingSetup is Test {
         );
     }
 
-    // Need this to receive fund from layer zero
+    // Need this to receive funds from layer zero
     receive() external payable {}
 }

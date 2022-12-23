@@ -136,7 +136,7 @@ contract SendTest is Test, BridgingSetup {
             // Expectation
             vm.expectRevert("ERC20: insufficient allowance");
 
-            // Act: send more than balance
+            // Act: cannot spend without allowance
             IUSXAdmin(address(usx_proxy)).sendFrom(
                 bridges[i], payable(sender), chainIds[i], abi.encode(address(this)), transferAmount
             );

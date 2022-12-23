@@ -49,7 +49,13 @@ contract AdminTest is Test {
         address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
 
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
+        for (uint256 i = 0; i < COINS.length; i++) {
+            if (COINS[i] == USDC || COINS[i] == USDT) {
+                vm.assume(amount > 0 && amount <= 1e6 * 1e5);
+            } else {
+                vm.assume(amount > 0 && amount <= 1e18 * 1e5);
+            }
+        }
 
         // Setup: deal bridge the tokens
         deal(CVX_3RCV, address(layer_zero_bridge), amount);
@@ -62,7 +68,7 @@ contract AdminTest is Test {
             assertEq(
                 IERC20(COINS[i]).balanceOf(address(layer_zero_bridge)),
                 amount,
-                "Equivalence violation: treausury test coin balance and amount"
+                "Equivalence violation: treausury ERC20 token balance and amount."
             );
 
             // Act
@@ -72,17 +78,17 @@ contract AdminTest is Test {
             assertEq(
                 IERC20(COINS[i]).balanceOf(address(layer_zero_bridge)),
                 0,
-                "Equivalence violation: treausury test coin balance is not zero"
+                "Equivalence violation: treausury ERC20 token balance is not zero."
             );
             assertEq(
                 IERC20(COINS[i]).balanceOf(address(this)),
                 amount,
-                "Equivalence violation: owner ERC20 balance and amount"
+                "Equivalence violation: owner ERC20 token balance and amount."
             );
         }
     }
 
-    function testCannot_extractERC20(address sender, uint256 amount) public {
+    function testCannot_extractERC20_sender(address sender, uint256 amount) public {
         // Test Variables
         address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
         address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
@@ -91,8 +97,14 @@ contract AdminTest is Test {
         address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
 
         // Assumptions
-        vm.assume(amount > 0 && amount < 1e6);
         vm.assume(sender != address(this));
+        for (uint256 i = 0; i < COINS.length; i++) {
+            if (COINS[i] == USDC || COINS[i] == USDT) {
+                vm.assume(amount > 0 && amount <= 1e6 * 1e5);
+            } else {
+                vm.assume(amount > 0 && amount <= 1e18 * 1e5);
+            }
+        }
 
         // Setup: deal bridge the tokens
         deal(CVX_3RCV, address(layer_zero_bridge), amount);

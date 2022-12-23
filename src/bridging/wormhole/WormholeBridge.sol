@@ -87,7 +87,7 @@ contract WormholeBridge is Ownable {
     ******************************************************************************/
 
     /**
-     * @dev This function allows contract admins to manage trustworthiness remote emitter contracts.
+     * @dev This function allows contract admins to manage trustworthiness of remote emitter contracts.
      * @param _contract A remote emitter contract.
      * @param _isTrusted True, if trusted. False, if untrusted.
      */

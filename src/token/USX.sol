@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.16;
 
+import "solmate/utils/SafeTransferLib.sol";
 import "../common/utils/Initializable.sol";
 import "../common/utils/InitOwnable.sol";
 import "../proxy/UUPSUpgradeable.sol";
@@ -9,6 +10,13 @@ import "./bridging/OERC20.sol";
 import "../common/interfaces/IUSX.sol";
 
 contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
+    struct TreasuryPrivileges {
+        bool mint;
+        bool burn;
+    }
+
+    mapping(address => TreasuryPrivileges) public treasuries;
+
     function initialize() public initializer {
         __ERC20_init("USX", "USX");
         __Ownable_init();
@@ -36,6 +44,43 @@ contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
     function burn(address _account, uint256 _amount) public {
         require(treasuries[msg.sender].burn, "Unauthorized.");
         _burn(_account, _amount);
+    }
+
+    /* ****************************************************************************
+    **
+    **  Admin Functions
+    **
+    ******************************************************************************/
+
+    /**
+     * @dev Manages cross-chain transfer privileges for each message passing protocol.
+     * @param _treasury - The address of the USX Treasury contract.
+     * @param _mint - Whether or not this treasury can mint USX.
+     * @param _burn - Whether or not this treasury can burn USX.
+     */
+    function manageTreasuries(address _treasury, bool _mint, bool _burn) public onlyOwner {
+        treasuries[_treasury] = TreasuryPrivileges(_mint, _burn);
+    }
+
+    /**
+     * @dev This function allows contract admins to extract any ERC20 token.
+     * @param _token The address of token to remove.
+     */
+    function extractERC20(address _token) public onlyOwner {
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+
+        SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
+    }
+
+    /**
+     * @dev Allow a treasury to revoke its own mint and burn privileges.
+     */
+    function treasuryKillSwitch() public {
+        TreasuryPrivileges memory privileges = treasuries[msg.sender];
+
+        require(privileges.mint || privileges.burn, "Unauthorized.");
+
+        treasuries[msg.sender] = TreasuryPrivileges(false, false);
     }
 
     /**
