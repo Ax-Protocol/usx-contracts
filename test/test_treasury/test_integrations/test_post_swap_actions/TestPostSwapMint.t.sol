@@ -10,7 +10,7 @@ import "./../../common/TestHelpers.t.sol";
 contract TestPostSwapMint is Test, RedeemHelper {
     function testCannot_mint_after_emergency_swap() public {
         // Allocate initial funds for test
-        mintForTest(TEST_DAI, DAI_AMOUNT);
+        mintForTest(DAI, DAI_AMOUNT);
 
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {

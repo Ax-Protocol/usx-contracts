@@ -46,28 +46,24 @@ contract TestAdminUSX is Test, SupplyRegulationSetup {
         vm.assume(amount > 0 && amount < 1e6);
 
         // Send the treasury an ERC20 token
-        deal(TEST_USDC, address(usx_proxy), amount);
+        deal(USDC, address(usx_proxy), amount);
 
         // Pre-action assertions
         assertEq(
-            IERC20(TEST_USDC).balanceOf(address(usx_proxy)),
+            IERC20(USDC).balanceOf(address(usx_proxy)),
             amount,
             "Equivalence violation: treausury test coin balance and amount"
         );
 
         // Act
-        IUSXTest(address(usx_proxy)).extractERC20(TEST_USDC);
+        IUSXTest(address(usx_proxy)).extractERC20(USDC);
 
         // Post-action assertions
         assertEq(
-            IERC20(TEST_USDC).balanceOf(address(usx_proxy)),
+            IERC20(USDC).balanceOf(address(usx_proxy)),
             0,
             "Equivalence violation: treausury test coin balance is not zero"
         );
-        assertEq(
-            IERC20(TEST_USDC).balanceOf(address(this)),
-            amount,
-            "Equivalence violation: owner TEST_USDC balance and amount"
-        );
+        assertEq(IERC20(USDC).balanceOf(address(this)), amount, "Equivalence violation: owner USDC balance and amount");
     }
 }
