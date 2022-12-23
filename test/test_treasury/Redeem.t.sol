@@ -38,7 +38,7 @@ contract RedeemTest is Test, RedeemHelper {
             uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
 
             // Pre-action assertions
-            assertEq(preUserBalanceUSX, usxTotalSupply, "Equivalence violation: preUserBalanceUSX and usxTotalSupply");
+            assertEq(preUserBalanceUSX, usxTotalSupply, "Equivalence violation: preUserBalanceUSX and usxTotalSupply.");
 
             // Act
             ITreasuryAdmin(address(treasury_proxy)).redeem(TEST_COINS[i], burnAmountUSX);
@@ -48,31 +48,31 @@ contract RedeemTest is Test, RedeemHelper {
             assertEq(
                 IUSXAdmin(address(usx_proxy)).totalSupply(),
                 usxTotalSupply - burnAmountUSX,
-                "Equivalence violation: post-action total supply (USX) and usxTotalSupply - burnAmountUSX"
+                "Equivalence violation: post-action total supply (USX) and usxTotalSupply - burnAmountUSX."
             );
             assertEq(
                 ITreasuryAdmin(address(treasury_proxy)).totalSupply(),
                 usxTotalSupply - burnAmountUSX,
-                "Equivalence violation: post-action total supply (Treasury) and usxTotalSupply - burnAmountUSX"
+                "Equivalence violation: post-action total supply (Treasury) and usxTotalSupply - burnAmountUSX."
             );
             assertEq(
                 IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER),
                 usxTotalSupply - burnAmountUSX,
-                "Equivalence violation: post-action user USX balance and usxTotalSupply - burnAmountUSX"
+                "Equivalence violation: post-action user USX balance and usxTotalSupply - burnAmountUSX."
             );
 
             // Ensure the user received the desired output token
             assertEq(
                 IERC20(TEST_COINS[i]).balanceOf(TEST_USER),
                 expectedRedeemAmount,
-                "Equivalence violation: user test coin balance and expectedRedeemAmount"
+                "Equivalence violation: user test coin balance and expectedRedeemAmount."
             );
 
             // Ensure the deposit tokens in BaseRewardPool properly decreased
             assertEq(
                 IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 stakedAmount - curveAmountUsed,
-                "Equivalence violation: treasury staked cvx3CRV balance and stakedAmount - curveAmountUsed"
+                "Equivalence violation: treasury staked cvx3CRV balance and stakedAmount - curveAmountUsed."
             );
 
             usxTotalSupply -= burnAmountUSX;
@@ -105,7 +105,7 @@ contract RedeemTest is Test, RedeemHelper {
             uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
 
             // Pre-action assertions
-            assertEq(preUserBalanceUSX, usxTotalSupply, "Equivalence violation: preUserBalanceUSX and usxTotalSupply");
+            assertEq(preUserBalanceUSX, usxTotalSupply, "Equivalence violation: preUserBalanceUSX and usxTotalSupply.");
 
             // Act
             uint256 id = vm.snapshot();
@@ -116,17 +116,17 @@ contract RedeemTest is Test, RedeemHelper {
             assertEq(
                 IUSXAdmin(address(usx_proxy)).totalSupply(),
                 0,
-                "Equivalence violation: post-action total supply (USX) is not zero"
+                "Equivalence violation: post-action total supply (USX) is not zero."
             );
             assertEq(
                 ITreasuryAdmin(address(treasury_proxy)).totalSupply(),
                 0,
-                "Equivalence violation: post-action total supply (Treasury) is not zero"
+                "Equivalence violation: post-action total supply (Treasury) is not zero."
             );
             assertEq(
                 IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER),
                 0,
-                "Equivalence violation: post-action user USX balance is not zero"
+                "Equivalence violation: post-action user USX balance is not zero."
             );
 
             // Ensure the user received the desired output token
@@ -134,14 +134,14 @@ contract RedeemTest is Test, RedeemHelper {
             assertEq(
                 userERC20Balance,
                 expectedRedeemAmount,
-                "Equivalence violation: userERC20Balance and expectedRedeemAmount"
+                "Equivalence violation: userERC20Balance and expectedRedeemAmount."
             );
 
             // Ensure the deposit tokens in BaseRewardPool properly decreased
             assertEq(
                 IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 stakedAmount - curveAmountUsed,
-                "Equivalence violation: treasury staked cvx3CRV balance and stakedAmount - curveAmountUsed"
+                "Equivalence violation: treasury staked cvx3CRV balance and stakedAmount - curveAmountUsed."
             );
 
             /// @dev Revert blockchain state to before USX was redeemed for next iteration
@@ -176,12 +176,12 @@ contract RedeemTest is Test, RedeemHelper {
         assertEq(
             IUSXAdmin(address(usx_proxy)).totalSupply(),
             TEST_MINT_AMOUNT,
-            "Equivalence violation: pre-action total supply and TEST_MINT_AMOUNT"
+            "Equivalence violation: pre-action total supply and TEST_MINT_AMOUNT."
         );
         assertEq(
             IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
             TEST_MINT_AMOUNT,
-            "Equivalence violation: pre-action treasury USX balance and TEST_MINT_AMOUNT"
+            "Equivalence violation: pre-action treasury USX balance and TEST_MINT_AMOUNT."
         );
 
         // Act: burnAmount greater than amount minted
