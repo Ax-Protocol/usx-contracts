@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import "../interfaces/IBeacon.sol";
+import "./interfaces/IBeacon.sol";
 import "../libraries/Address.sol";
 import "../libraries/StorageSlot.sol";
 

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "../../src/interfaces/IWormhole.sol";
-import "../../src/interfaces/IERC20.sol";
+import "../../src/bridging/interfaces/IWormhole.sol";
+import "../../src/bridging/interfaces/IWormholeBridge.sol";
+import "../../src/common/interfaces/IERC20.sol";
 import "../common/Constants.t.sol";
 
 contract WormholeHelper {
-    function getVM() internal view returns (IWormhole.VM memory) {
-        uint256 transferAmount = IERC20(msg.sender).balanceOf(address(this));
+    function getVM() internal returns (IWormhole.VM memory) {
+        address usx = IWormholeBridge(msg.sender).usx();
+        uint256 transferAmount = IERC20(usx).balanceOf(address(this));
 
         IWormhole.Signature[] memory signatures;
 
@@ -30,7 +32,6 @@ contract WormholeHelper {
 contract MockWormhole is WormholeHelper {
     function parseAndVerifyVM(bytes memory)
         external
-        view
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
         vm = getVM();
@@ -42,7 +43,6 @@ contract MockWormhole is WormholeHelper {
 contract MockWormholeInvalid is WormholeHelper {
     function parseAndVerifyVM(bytes memory)
         external
-        view
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
         vm = getVM();
@@ -54,7 +54,6 @@ contract MockWormholeInvalid is WormholeHelper {
 contract MockWormholeUnauthorizedEmitter is WormholeHelper {
     function parseAndVerifyVM(bytes memory)
         external
-        view
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
         // Test variables

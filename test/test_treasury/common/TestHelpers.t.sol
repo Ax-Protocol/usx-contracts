@@ -3,11 +3,13 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "../../../src/Treasury.sol";
-import "../../../src/USX.sol";
+import "../../../src/treasury/Treasury.sol";
+import "../../../src/token/USX.sol";
 import "../../../src/proxy/ERC1967Proxy.sol";
-import "../../interfaces/IUSXTest.t.sol";
-import "../../interfaces/ITreasuryTest.t.sol";
+
+import "../../../src/common/interfaces/IUSXAdmin.sol";
+import "../../../src/treasury/interfaces/ITreasuryAdmin.sol";
+
 import "../../common/Constants.t.sol";
 
 abstract contract TreasurySetup is Test {
@@ -55,8 +57,7 @@ abstract contract TreasurySetup is Test {
     function setUp() public {
         // Deploy USX implementation, and link to proxy
         usx_implementation = new USX();
-        usx_proxy =
-        new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, WORMHOLE_CORE_BRIDGE));
+        usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
 
         // Deploy Treasury implementation, and link to proxy
         treasury_implementation = new Treasury();
@@ -64,43 +65,45 @@ abstract contract TreasurySetup is Test {
         new ERC1967Proxy(address(treasury_implementation), abi.encodeWithSignature("initialize(address)", address(usx_proxy)));
 
         // Set treasury admin on USX contract
-        IUSXTest(address(usx_proxy)).manageTreasuries(address(treasury_proxy), true, true);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(address(treasury_proxy), true, true);
 
         // Set supported stable coins on treasury contract
-        ITreasuryTest(address(treasury_proxy)).addSupportedStable(DAI, 0);
-        ITreasuryTest(address(treasury_proxy)).addSupportedStable(USDC, 1);
-        ITreasuryTest(address(treasury_proxy)).addSupportedStable(USDT, 2);
+        ITreasuryAdmin(address(treasury_proxy)).addSupportedStable(DAI, 0);
+        ITreasuryAdmin(address(treasury_proxy)).addSupportedStable(USDC, 1);
+        ITreasuryAdmin(address(treasury_proxy)).addSupportedStable(USDT, 2);
     }
 
     function test_setUpState() public {
-        (bool mint, bool burn) = IUSXTest(address(usx_proxy)).treasuries(address(treasury_proxy));
+        (bool mint, bool burn) = IUSXAdmin(address(usx_proxy)).treasuries(address(treasury_proxy));
 
         assertEq(mint, true, "Error: treasury does not have minting priveleges");
         assertEq(burn, true, "Error: treasury does not have burning priveleges");
     }
 }
 
-contract RedeemHelper is Test, TreasurySetup {
+contract FundingHelper is Test, TreasurySetup {
     function mintForTest(address _tokenAddress, uint256 _amount) internal {
         vm.startPrank(TEST_USER);
         deal(_tokenAddress, TEST_USER, _amount);
         IERC20(_tokenAddress).approve(address(treasury_proxy), _amount);
-        ITreasuryTest(address(treasury_proxy)).mint(_tokenAddress, _amount);
+        ITreasuryAdmin(address(treasury_proxy)).mint(_tokenAddress, _amount);
         vm.stopPrank();
     }
+}
 
+contract RedeemHelper is Test, TreasurySetup, FundingHelper {
     function mintForTestCurveMocked(address _tokenAddress, uint256 _amount) internal {
         // Mock Curve
         vm.mockCall(
             STABLE_SWAP_3POOL,
-            abi.encodeWithSelector(IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
-            abi.encode(TEST_3CRV_VIRTUAL_PRICE)
+            abi.encodeWithSelector(ICurve3Pool(STABLE_SWAP_3POOL).get_virtual_price.selector),
+            abi.encode(_3CRV_VIRTUAL_PRICE)
         );
 
         vm.startPrank(TEST_USER);
         deal(_tokenAddress, TEST_USER, _amount);
         IERC20(_tokenAddress).approve(address(treasury_proxy), _amount);
-        ITreasuryTest(address(treasury_proxy)).mint(_tokenAddress, _amount);
+        ITreasuryAdmin(address(treasury_proxy)).mint(_tokenAddress, _amount);
         vm.stopPrank();
     }
 
@@ -121,7 +124,7 @@ contract RedeemHelper is Test, TreasurySetup {
             uint256 preBalance = IERC20(coin).balanceOf(address(treasury_proxy));
 
             // Remove liquidity from Curve
-            IStableSwap3Pool(STABLE_SWAP_3POOL).remove_liquidity_one_coin(lpTokens, int128(uint128(index)), 0);
+            ICurve3Pool(STABLE_SWAP_3POOL).remove_liquidity_one_coin(lpTokens, int128(uint128(index)), 0);
 
             // Calculate the amount of stablecoin received from removing liquidity
             redeemAmount = IERC20(coin).balanceOf(address(treasury_proxy)) - preBalance;
@@ -135,7 +138,7 @@ contract RedeemHelper is Test, TreasurySetup {
     }
 
     function calculateCurveTokenAmount(uint256 usxAmount) internal returns (uint256) {
-        uint256 lpTokenPrice = IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price();
+        uint256 lpTokenPrice = ICurve3Pool(STABLE_SWAP_3POOL).get_virtual_price();
         uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
         return (usxAmount * conversionFactor) / 1e18;
     }
@@ -155,7 +158,7 @@ contract MintHelper is Test, TreasurySetup {
             uint256[3] memory amounts;
             amounts[index] = amount;
             uint256 preBalance = IERC20(_3CRV).balanceOf(TEST_USER);
-            IStableSwap3Pool(STABLE_SWAP_3POOL).add_liquidity(amounts, 0);
+            ICurve3Pool(STABLE_SWAP_3POOL).add_liquidity(amounts, 0);
             uint256 postBalance = IERC20(_3CRV).balanceOf(TEST_USER);
             lpTokens = postBalance - preBalance;
         } else {
@@ -163,7 +166,7 @@ contract MintHelper is Test, TreasurySetup {
         }
 
         // Obtain 3CRV price
-        uint256 lpTokenPrice = IStableSwap3Pool(STABLE_SWAP_3POOL).get_virtual_price();
+        uint256 lpTokenPrice = ICurve3Pool(STABLE_SWAP_3POOL).get_virtual_price();
 
         // Revert to blockchain state before Curve interaction
         vm.revertTo(id);

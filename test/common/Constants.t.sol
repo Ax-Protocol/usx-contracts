@@ -4,13 +4,14 @@ pragma solidity ^0.8.16;
 // uints
 uint256 constant TEST_MINT_AMOUNT = 100e18;
 uint256 constant TEST_BURN_AMOUNT = 1e18;
-uint256 constant TEST_3CRV_VIRTUAL_PRICE = 1022610147775387138;
+uint256 constant _3CRV_VIRTUAL_PRICE = 1022610147775387138;
 uint256 constant TEST_DEPOSIT_AMOUNT = TEST_BURN_AMOUNT;
 uint256 constant INITIAL_TOKENS = 100e18;
 uint256 constant TEST_TRANSFER_AMOUNT = 20e18;
+uint256 constant TEST_GAS_FEE = 0.01 ether;
 
 // addresses
-address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
+address constant LZ_ENDPOINT = 0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675;
 address constant WORMHOLE_CORE_BRIDGE = 0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B;
 address constant TRUSTED_WORMHOLE_RELAYER = 0xC88E7fac500B7f8B3B3d4333F132bd21a02b4a1A;
 uint16 constant TEST_WORMHOLE_CHAIN_ID = 2;
@@ -21,8 +22,3 @@ address constant _3CRV = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
 // bytes
 bytes32 constant TEST_TRUSTED_EMITTER_ADDRESS = bytes32(abi.encode(0xc144b96b42924EBb9e5f7eF7B27957E576A6D102));
-
-enum BridgingProtocols {
-    WORMHOLE,
-    LAYER_ZERO
-}
