@@ -64,7 +64,7 @@ contract SendTest is Test, BridgingSetup {
         vm.assume(transferAmount <= INITIAL_TOKENS / iterations);
 
         uint256 tokenBalance = INITIAL_TOKENS;
-        for (uint256 i = 0; i < 3; i++) {
+        for (uint256 i = 0; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
             emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
@@ -159,7 +159,7 @@ contract SendTest is Test, BridgingSetup {
             // Expectations
             vm.expectRevert(IUSXAdmin.Paused.selector);
 
-            // Act: send more than balance
+            // Act: both bridges are paused
             IUSXAdmin(address(usx_proxy)).sendFrom(
                 bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
             );

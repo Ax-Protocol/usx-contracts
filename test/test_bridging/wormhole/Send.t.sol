@@ -18,7 +18,7 @@ contract WormholeSendTest is Test, BridgingSetup {
         vm.startPrank(address(usx_proxy));
         vm.deal(address(usx_proxy), TEST_GAS_FEE * iterations);
 
-        for (uint256 i = 0; i < 3; i++) {
+        for (uint256 i = 0; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge));
             emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
@@ -34,7 +34,7 @@ contract WormholeSendTest is Test, BridgingSetup {
         vm.stopPrank();
     }
 
-    function testCannot_sendMessage_sender(uint256 transferAmount, address sender) public {
+    function testCannot_sendMessage_unauthorized(uint256 transferAmount, address sender) public {
         vm.assume(sender != address(usx_proxy));
 
         // Expectations

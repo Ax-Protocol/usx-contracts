@@ -10,7 +10,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 import "../../common/Constants.t.sol";
 
 contract AdminTest is Test, BridgingSetup {
-    function testCannot_manageCrossChainTransfers_sender() public {
+    function testCannot_manageCrossChainTransfers_unauthorized() public {
         bool[2][4] memory trials = [[true, true], [true, false], [false, true], [false, false]];
 
         for (uint256 i = 0; i < trials.length; i++) {

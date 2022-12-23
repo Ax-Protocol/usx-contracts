@@ -56,7 +56,7 @@ contract LayerZeroReceiveTest is Test, BridgingSetup {
         );
     }
 
-    function testCannot_lzReceive_invalid_sender(uint256 transferAmount, address sender) public {
+    function testCannot_lzReceive_invalid_unauthorized(uint256 transferAmount, address sender) public {
         // Assumptions
         vm.assume(transferAmount <= INITIAL_TOKENS);
         vm.assume(sender != LZ_ENDPOINT);

@@ -17,4 +17,24 @@ interface ITreasuryAdmin is ITreasury {
     function emergencySwapBacking(address _newBackingToken) external;
 
     function extractERC20(address _token) external;
+
+    function stakeCvx(uint256 _amount) external;
+
+    function unstakeCvx(uint256 _amount) external;
+
+    function claimRewardCvx(bool _stake) external;
+
+    function stakeCrv(uint256 _amount) external;
+
+    function stakeCvxCrv(uint256 _amount) external;
+
+    function unstakeCvxCrv(uint256 _amount) external;
+
+    function claimRewardCvxCrv() external;
+
+    function stake3Crv(uint256 _amount) external;
+
+    function unstake3Crv(uint256 _amount) external;
+
+    function claimRewardCvx3Crv() external;
 }

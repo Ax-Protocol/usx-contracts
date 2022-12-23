@@ -35,7 +35,7 @@ contract AdminUSXTest is Test, SupplyRegulationSetup {
         assertEq(burn, true, "Privilege failed: should have burn privileges.");
     }
 
-    function testCannot_manageTreasuries_sender() public {
+    function testCannot_manageTreasuries_unauthorized() public {
         // Expectations
         vm.expectRevert("Ownable: caller is not the owner");
 
@@ -92,7 +92,7 @@ contract AdminUSXTest is Test, SupplyRegulationSetup {
         }
     }
 
-    function testCannot_extractERC20_sender(address sender, uint256 amount) public {
+    function testCannot_extractERC20_unauthorized(address sender, uint256 amount) public {
         // Test Variables
         address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
         address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;

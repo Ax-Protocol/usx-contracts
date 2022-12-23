@@ -31,7 +31,7 @@ contract AdminTest is Test {
         assertEq(ILayerZeroBridge(address(layer_zero_bridge)).useCustomAdapterParams(), true);
     }
 
-    function testCannot_setUseCustomAdapterParams_sender(address sender) public {
+    function testCannot_setUseCustomAdapterParams_unauthorized(address sender) public {
         vm.assume(sender != address(this));
 
         vm.expectRevert("Ownable: caller is not the owner");
@@ -88,7 +88,7 @@ contract AdminTest is Test {
         }
     }
 
-    function testCannot_extractERC20_sender(address sender, uint256 amount) public {
+    function testCannot_extractERC20_unauthorized(address sender, uint256 amount) public {
         // Test Variables
         address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
         address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
@@ -124,7 +124,7 @@ contract AdminTest is Test {
 
     function test_extractNative(uint256 amount) public {
         // Setup
-        vm.assume(amount > 0 && amount < 1e5);
+        vm.assume(amount > 0 && amount < 1e22);
         vm.deal(address(layer_zero_bridge), amount);
 
         assertEq(address(layer_zero_bridge).balance, amount, "Equivalence violation: remote balance and amount");
@@ -136,9 +136,9 @@ contract AdminTest is Test {
         assertEq(address(this).balance, preLocalBalance + amount, "Equivalence violation: local balance and amount");
     }
 
-    function testCannot_extractNative_sender(uint256 amount, address sender) public {
+    function testCannot_extractNative_unauthorized(uint256 amount, address sender) public {
         // Setup
-        vm.assume(amount > 0 && amount < 1e5);
+        vm.assume(amount > 0 && amount < 1e22);
         vm.assume(sender != address(this));
         vm.deal(address(layer_zero_bridge), amount);
 

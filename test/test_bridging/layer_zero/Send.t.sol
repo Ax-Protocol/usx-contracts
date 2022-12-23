@@ -32,7 +32,7 @@ contract LayerZeroSendTest is Test, BridgingSetup {
         vm.stopPrank();
     }
 
-    function testCannot_sendMessage_sender(uint256 transferAmount, address sender) public {
+    function testCannot_sendMessage_unauthorized(uint256 transferAmount, address sender) public {
         vm.assume(sender != address(usx_proxy));
 
         // Expectations

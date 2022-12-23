@@ -61,7 +61,7 @@ contract WormholeReceiveTest is Test, BridgingSetup {
         IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
     }
 
-    function testCannot_processMessage_emiiter() public {
+    function testCannot_processMessage_emitter() public {
         // Setup
         vm.startPrank(TREASURY);
         IUSXAdmin(address(usx_proxy)).burn(address(this), INITIAL_TOKENS);

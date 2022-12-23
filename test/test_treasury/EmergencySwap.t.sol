@@ -3,13 +3,12 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "./common/TestHelpers.t.sol";
+import "../common/Constants.t.sol";
 
 import "../../src/treasury/interfaces/IBaseRewardPool.sol";
 import "../../src/common/interfaces/IERC20.sol";
 import "../../src/common/interfaces/IUSXAdmin.sol";
 import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
-
-import "../common/Constants.t.sol";
 
 contract EmergencySwapTest is Test, RedeemHelper {
     /// @dev Test that 3CRV can be swapped to each supported stable
@@ -17,20 +16,20 @@ contract EmergencySwapTest is Test, RedeemHelper {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         // Allocate funds for test
-        mintForTest(TEST_DAI, DAI_AMOUNT * amountMultiplier);
+        mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
 
         uint256 preUsxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
-            uint256 preStakedAmount = IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
+            uint256 preStakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
             uint256 expectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
 
             // Pre-action assertions
             uint256 userBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
             assertEq(userBalanceUSX, preUsxTotalSupply, "Equivalence violation: userBalanceUSX and preUsxTotalSupply");
             assertEq(
-                IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
+                IERC20(_3CRV).balanceOf(address(treasury_proxy)),
                 0,
                 "Equivalence violation: treasury 3CRV balance is not zero"
             );
@@ -55,12 +54,12 @@ contract EmergencySwapTest is Test, RedeemHelper {
 
             // Ensure balances were properly updated
             assertEq(
-                IBaseRewardPool(BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 0,
                 "Equivalence violation: treasury staked cvx3CRV balance is not zero"
             );
             assertEq(
-                IERC20(TEST_3CRV).balanceOf(address(treasury_proxy)),
+                IERC20(_3CRV).balanceOf(address(treasury_proxy)),
                 0,
                 "Equivalence violation: treasury 3CRV balance is not zero"
             );
@@ -78,12 +77,12 @@ contract EmergencySwapTest is Test, RedeemHelper {
     /// @dev Test that emergency swap fails if new backingToken is unsupported
     function testCannot_emergency_swap_unsupported() public {
         // Allocate initial funds for test
-        mintForTest(TEST_DAI, DAI_AMOUNT);
+        mintForTest(DAI, DAI_AMOUNT);
 
         // Expectations
         vm.expectRevert("Token not supported.");
 
         // Act: attempt to perform emergency swap to an unsupported token
-        ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(TEST_3CRV);
+        ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(_3CRV);
     }
 }
