@@ -16,7 +16,7 @@ contract PriceDropRedeemTest is Test, RedeemHelper {
         vm.assume(priceDelta <= _3CRV_VIRTUAL_PRICE);
 
         /// @dev Allocate funds for test
-        mintForTestCurveMocked(DAI, DAI_AMOUNT);
+        _mintForTestCurveMocked(DAI, DAI_AMOUNT);
         uint256 usxMinted = IERC20(address(usx_proxy)).balanceOf(TEST_USER);
         uint256 usxBurnAmount = usxMinted / 3;
 
@@ -30,8 +30,8 @@ contract PriceDropRedeemTest is Test, RedeemHelper {
         );
 
         // Expectations 1
-        uint256 curveAmountUsed1 = calculateCurveTokenAmount(usxBurnAmount);
-        uint256 expectedRedeemAmount1 = calculateRedeemAmount(0, curveAmountUsed1, DAI);
+        uint256 curveAmountUsed1 = _calculateCurveTokenAmount(usxBurnAmount);
+        uint256 expectedRedeemAmount1 = _calculateRedeemAmount(0, curveAmountUsed1, DAI);
 
         // Pre-action assertions 1
         uint256 initialUserBalance1 = IERC20(DAI).balanceOf(TEST_USER);
@@ -59,8 +59,8 @@ contract PriceDropRedeemTest is Test, RedeemHelper {
         /// @dev Iteration 2, with a lower 3CRV price
 
         // Expectations 1: calculate expectation before lowering 3CRV price, as it shouldn't decrease
-        uint256 curveAmountUsed2 = calculateCurveTokenAmount(usxBurnAmount);
-        uint256 expectedRedeemAmount2 = calculateRedeemAmount(0, curveAmountUsed2, DAI);
+        uint256 curveAmountUsed2 = _calculateCurveTokenAmount(usxBurnAmount);
+        uint256 expectedRedeemAmount2 = _calculateRedeemAmount(0, curveAmountUsed2, DAI);
 
         // Mock Curve 2
         vm.mockCall(

@@ -33,7 +33,7 @@ contract MintTest is Test, MintHelper {
             uint256 amount = TEST_AMOUNTS[i] * amountMultiplier;
 
             // Expectations
-            (uint256 expectedMintAmount, uint256 lpTokens) = calculateMintAmount(i, amount, TEST_COINS[i]);
+            (uint256 expectedMintAmount, uint256 lpTokens) = _calculateMintAmount(i, amount, TEST_COINS[i]);
             vm.expectEmit(true, true, true, true, address(treasury_proxy));
             emit Mint(TEST_USER, expectedMintAmount);
 
@@ -111,7 +111,7 @@ contract MintTest is Test, MintHelper {
             uint256 amount = TEST_AMOUNTS[i] * amountMultiplier;
 
             // Expectations
-            (uint256 expectedMintAmount, uint256 lpTokens) = calculateMintAmount(i, amount, TEST_COINS[i]);
+            (uint256 expectedMintAmount, uint256 lpTokens) = _calculateMintAmount(i, amount, TEST_COINS[i]);
             vm.expectEmit(true, true, true, true, address(treasury_proxy));
             emit Mint(TEST_USER, expectedMintAmount);
 

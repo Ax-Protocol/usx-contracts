@@ -14,8 +14,8 @@ contract WormholeBridge is Ownable {
     mapping(bytes32 => bool) public trustedContracts;
     mapping(address => bool) public trustedRelayers;
     mapping(bytes32 => bool) public processedMessages;
-    bytes32[] private trustedContractsList;
-    address[] private trustedRelayersList;
+    bytes32[] private __trustedContractsList;
+    address[] private __trustedRelayersList;
 
     // Events
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
@@ -95,15 +95,15 @@ contract WormholeBridge is Ownable {
         trustedContracts[_contract] = _isTrusted;
 
         if (!_isTrusted) {
-            for (uint256 i; i < trustedContractsList.length; i++) {
-                if (trustedContractsList[i] == _contract) {
-                    trustedContractsList[i] = trustedContractsList[trustedContractsList.length - 1];
-                    trustedContractsList.pop();
+            for (uint256 i; i < __trustedContractsList.length; i++) {
+                if (__trustedContractsList[i] == _contract) {
+                    __trustedContractsList[i] = __trustedContractsList[__trustedContractsList.length - 1];
+                    __trustedContractsList.pop();
                     break;
                 }
             }
         } else {
-            trustedContractsList.push(_contract);
+            __trustedContractsList.push(_contract);
         }
     }
 
@@ -116,15 +116,15 @@ contract WormholeBridge is Ownable {
         trustedRelayers[_relayer] = _isTrusted;
 
         if (!_isTrusted) {
-            for (uint256 i; i < trustedRelayersList.length; i++) {
-                if (trustedRelayersList[i] == _relayer) {
-                    trustedRelayersList[i] = trustedRelayersList[trustedRelayersList.length - 1];
-                    trustedRelayersList.pop();
+            for (uint256 i; i < __trustedRelayersList.length; i++) {
+                if (__trustedRelayersList[i] == _relayer) {
+                    __trustedRelayersList[i] = __trustedRelayersList[__trustedRelayersList.length - 1];
+                    __trustedRelayersList.pop();
                     break;
                 }
             }
         } else {
-            trustedRelayersList.push(_relayer);
+            __trustedRelayersList.push(_relayer);
         }
     }
 
@@ -132,14 +132,14 @@ contract WormholeBridge is Ownable {
      * @dev This function allows contract admins to retreive trusted, remote emitter contracts.
      */
     function getTrustedContracts() public view onlyOwner returns (bytes32[] memory) {
-        return trustedContractsList;
+        return __trustedContractsList;
     }
 
     /**
      * @dev This function allows contract admins retreive trusted relayers.
      */
     function getTrustedRelayers() public view onlyOwner returns (address[] memory) {
-        return trustedRelayersList;
+        return __trustedRelayersList;
     }
 
     /**

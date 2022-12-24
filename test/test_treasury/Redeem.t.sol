@@ -16,7 +16,7 @@ contract RedeemTest is Test, RedeemHelper {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         // Allocate funds for test
-        mintForTest(DAI, DAI_AMOUNT * 4 * amountMultiplier);
+        _mintForTest(DAI, DAI_AMOUNT * 4 * amountMultiplier);
 
         // Setup
         uint256 usxInitialSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
@@ -29,8 +29,8 @@ contract RedeemTest is Test, RedeemHelper {
             // Expectations
             skip(ONE_WEEK);
             uint256 burnAmountUSX = usxInitialSupply / TEST_COINS.length;
-            uint256 curveAmountUsed = calculateCurveTokenAmount(burnAmountUSX);
-            uint256 expectedRedeemAmount = calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
+            uint256 curveAmountUsed = _calculateCurveTokenAmount(burnAmountUSX);
+            uint256 expectedRedeemAmount = _calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
             uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
             uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
 
@@ -106,13 +106,13 @@ contract RedeemTest is Test, RedeemHelper {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         // Allocate funds for test
-        mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
+        _mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
 
         uint256 usxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         for (uint256 i; i < TEST_COINS.length; i++) {
             // Expectations
-            uint256 curveAmountUsed = calculateCurveTokenAmount(usxTotalSupply);
-            uint256 expectedRedeemAmount = calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
+            uint256 curveAmountUsed = _calculateCurveTokenAmount(usxTotalSupply);
+            uint256 expectedRedeemAmount = _calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
             uint256 stakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
             uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
             uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);

@@ -18,7 +18,7 @@ import "./Context.sol";
  * the owner.
  */
 abstract contract Ownable is Context {
-    address private _owner;
+    address private __owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -41,7 +41,7 @@ abstract contract Ownable is Context {
      * @dev Returns the address of the current owner.
      */
     function owner() public view virtual returns (address) {
-        return _owner;
+        return __owner;
     }
 
     /**
@@ -76,8 +76,8 @@ abstract contract Ownable is Context {
      * Internal function without access restriction.
      */
     function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
-        _owner = newOwner;
+        address oldOwner = __owner;
+        __owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);
     }
 

@@ -670,7 +670,7 @@ contract RewardsTest is Test, TreasurySetup, FundingHelper {
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
-        mintForTest(DAI, amount);
+        _mintForTest(DAI, amount);
         deal(_3CRV, address(treasury_proxy), amount);
 
         // Setup
@@ -763,7 +763,7 @@ contract RewardsTest is Test, TreasurySetup, FundingHelper {
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
-        mintForTest(DAI, amount);
+        _mintForTest(DAI, amount);
         deal(_3CRV, address(treasury_proxy), amount);
 
         // Setup

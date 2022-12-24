@@ -12,7 +12,7 @@ import "../libraries/StorageSlot.sol";
  */
 abstract contract ERC1967Upgrade {
     // This is the keccak-256 hash of "eip1967.proxy.rollback" subtracted by 1
-    bytes32 private constant _ROLLBACK_SLOT = 0x4910fdfa16fed3260ed0e7147f7cc6da11a60208b5b9406d12a635614ffd9143;
+    bytes32 private constant __ROLLBACK_SLOT = 0x4910fdfa16fed3260ed0e7147f7cc6da11a60208b5b9406d12a635614ffd9143;
 
     /**
      * @dev Storage slot with the address of the current implementation.
@@ -30,15 +30,15 @@ abstract contract ERC1967Upgrade {
      * @dev Returns the current implementation address.
      */
     function _getImplementation() internal view returns (address) {
-        return StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;
+        return StorageSlot._getAddressSlot(_IMPLEMENTATION_SLOT).value;
     }
 
     /**
      * @dev Stores a new address in the EIP1967 implementation slot.
      */
-    function _setImplementation(address newImplementation) private {
-        require(Address.isContract(newImplementation), "ERC1967: new implementation is not a contract");
-        StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
+    function __setImplementation(address newImplementation) private {
+        require(Address._isContract(newImplementation), "ERC1967: new implementation is not a contract");
+        StorageSlot._getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
     }
 
     /**
@@ -47,7 +47,7 @@ abstract contract ERC1967Upgrade {
      * Emits an {Upgraded} event.
      */
     function _upgradeTo(address newImplementation) internal {
-        _setImplementation(newImplementation);
+        __setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
 
@@ -59,7 +59,7 @@ abstract contract ERC1967Upgrade {
     function _upgradeToAndCall(address newImplementation, bytes memory data, bool forceCall) internal {
         _upgradeTo(newImplementation);
         if (data.length > 0 || forceCall) {
-            Address.functionDelegateCall(newImplementation, data);
+            Address._functionDelegateCall(newImplementation, data);
         }
     }
 
@@ -72,17 +72,17 @@ abstract contract ERC1967Upgrade {
         address oldImplementation = _getImplementation();
 
         // Initial upgrade and setup call
-        _setImplementation(newImplementation);
+        __setImplementation(newImplementation);
         if (data.length > 0 || forceCall) {
-            Address.functionDelegateCall(newImplementation, data);
+            Address._functionDelegateCall(newImplementation, data);
         }
 
         // Perform rollback test if not already in progress
-        StorageSlot.BooleanSlot storage rollbackTesting = StorageSlot.getBooleanSlot(_ROLLBACK_SLOT);
+        StorageSlot.BooleanSlot storage rollbackTesting = StorageSlot._getBooleanSlot(__ROLLBACK_SLOT);
         if (!rollbackTesting.value) {
             // Trigger rollback using upgradeTo from the new implementation
             rollbackTesting.value = true;
-            Address.functionDelegateCall(
+            Address._functionDelegateCall(
                 newImplementation, abi.encodeWithSignature("upgradeTo(address)", oldImplementation)
             );
             rollbackTesting.value = false;
@@ -109,15 +109,15 @@ abstract contract ERC1967Upgrade {
      * @dev Returns the current admin.
      */
     function _getAdmin() internal view returns (address) {
-        return StorageSlot.getAddressSlot(_ADMIN_SLOT).value;
+        return StorageSlot._getAddressSlot(_ADMIN_SLOT).value;
     }
 
     /**
      * @dev Stores a new address in the EIP1967 admin slot.
      */
-    function _setAdmin(address newAdmin) private {
+    function __setAdmin(address newAdmin) private {
         require(newAdmin != address(0), "ERC1967: new admin is the zero address");
-        StorageSlot.getAddressSlot(_ADMIN_SLOT).value = newAdmin;
+        StorageSlot._getAddressSlot(_ADMIN_SLOT).value = newAdmin;
     }
 
     /**
@@ -127,7 +127,7 @@ abstract contract ERC1967Upgrade {
      */
     function _changeAdmin(address newAdmin) internal {
         emit AdminChanged(_getAdmin(), newAdmin);
-        _setAdmin(newAdmin);
+        __setAdmin(newAdmin);
     }
 
     /**
@@ -145,31 +145,31 @@ abstract contract ERC1967Upgrade {
      * @dev Returns the current beacon.
      */
     function _getBeacon() internal view returns (address) {
-        return StorageSlot.getAddressSlot(_BEACON_SLOT).value;
+        return StorageSlot._getAddressSlot(_BEACON_SLOT).value;
     }
 
     /**
      * @dev Stores a new beacon in the EIP1967 beacon slot.
      */
-    function _setBeacon(address newBeacon) private {
-        require(Address.isContract(newBeacon), "ERC1967: new beacon is not a contract");
+    function __setBeacon(address newBeacon) private {
+        require(Address._isContract(newBeacon), "ERC1967: new beacon is not a contract");
         require(
-            Address.isContract(IBeacon(newBeacon).implementation()), "ERC1967: beacon implementation is not a contract"
+            Address._isContract(IBeacon(newBeacon).implementation()), "ERC1967: beacon implementation is not a contract"
         );
-        StorageSlot.getAddressSlot(_BEACON_SLOT).value = newBeacon;
+        StorageSlot._getAddressSlot(_BEACON_SLOT).value = newBeacon;
     }
 
     /**
      * @dev Perform beacon upgrade with additional setup call. Note: This upgrades the address of the beacon, it does
-     * not upgrade the implementation contained in the beacon (see {UpgradeableBeacon-_setImplementation} for that).
+     * not upgrade the implementation contained in the beacon (see {UpgradeableBeacon-__setImplementation} for that).
      *
      * Emits a {BeaconUpgraded} event.
      */
     function _upgradeBeaconToAndCall(address newBeacon, bytes memory data, bool forceCall) internal {
-        _setBeacon(newBeacon);
+        __setBeacon(newBeacon);
         emit BeaconUpgraded(newBeacon);
         if (data.length > 0 || forceCall) {
-            Address.functionDelegateCall(IBeacon(newBeacon).implementation(), data);
+            Address._functionDelegateCall(IBeacon(newBeacon).implementation(), data);
         }
     }
 

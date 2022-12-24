@@ -42,11 +42,7 @@ contract AdminTest is Test {
 
     function test_extractERC20(uint256 amount) public {
         // Test Variables
-        address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
-        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        address USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-        address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
+        address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
 
         // Assumptions
         for (uint256 i = 0; i < COINS.length; i++) {
@@ -58,10 +54,10 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
-        deal(CVX_3RCV, address(layer_zero_bridge), amount);
         deal(DAI, address(layer_zero_bridge), amount);
         deal(USDC, address(layer_zero_bridge), amount);
         deal(USDT, address(layer_zero_bridge), amount);
+        deal(_3CRV, address(layer_zero_bridge), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Pre-action assertions
@@ -90,11 +86,7 @@ contract AdminTest is Test {
 
     function testCannot_extractERC20_unauthorized(address sender, uint256 amount) public {
         // Test Variables
-        address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
-        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        address USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-        address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
+        address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
 
         // Assumptions
         vm.assume(sender != address(this));
@@ -107,10 +99,10 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
-        deal(CVX_3RCV, address(layer_zero_bridge), amount);
         deal(DAI, address(layer_zero_bridge), amount);
         deal(USDC, address(layer_zero_bridge), amount);
         deal(USDT, address(layer_zero_bridge), amount);
+        deal(_3CRV, address(layer_zero_bridge), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Exptectations

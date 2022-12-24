@@ -16,14 +16,14 @@ contract EmergencySwapTest is Test, RedeemHelper {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         // Allocate funds for test
-        mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
+        _mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
 
         uint256 preUsxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
             uint256 preStakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
-            uint256 expectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
+            uint256 expectedTokenAmount = _calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
 
             // Pre-action assertions
             uint256 userBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
@@ -77,7 +77,7 @@ contract EmergencySwapTest is Test, RedeemHelper {
     /// @dev Test that emergency swap fails if new backingToken is unsupported
     function testCannot_emergency_swap_unsupported() public {
         // Allocate initial funds for test
-        mintForTest(DAI, DAI_AMOUNT);
+        _mintForTest(DAI, DAI_AMOUNT);
 
         // Expectations
         vm.expectRevert("Token not supported.");

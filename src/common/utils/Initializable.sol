@@ -20,7 +20,7 @@ import "../../libraries/Address.sol";
  * ```
  * contract MyToken is ERC20Upgradeable {
  * function initialize() initializer public {
- * __ERC20_init("MyToken", "MTK");
+ * _ERC20_init("MyToken", "MTK");
  * }
  * }
  * contract MyTokenV2 is MyToken, ERC20PermitUpgradeable {
@@ -58,12 +58,12 @@ abstract contract Initializable {
      * @dev Indicates that the contract has been initialized.
      * @custom:oz-retyped-from bool
      */
-    uint8 private _initialized;
+    uint8 private __initialized;
 
     /**
      * @dev Indicates that the contract is in the process of being initialized.
      */
-    bool private _initializing;
+    bool private __initializing;
 
     /**
      * @dev Triggered when the contract has been initialized or reinitialized.
@@ -80,18 +80,18 @@ abstract contract Initializable {
      * Emits an {Initialized} event.
      */
     modifier initializer() {
-        bool isTopLevelCall = !_initializing;
+        bool isTopLevelCall = !__initializing;
         require(
-            (isTopLevelCall && _initialized < 1) || (!Address.isContract(address(this)) && _initialized == 1),
+            (isTopLevelCall && __initialized < 1) || (!Address._isContract(address(this)) && __initialized == 1),
             "Initializable: contract is already initialized"
         );
-        _initialized = 1;
+        __initialized = 1;
         if (isTopLevelCall) {
-            _initializing = true;
+            __initializing = true;
         }
         _;
         if (isTopLevelCall) {
-            _initializing = false;
+            __initializing = false;
             emit Initialized(1);
         }
     }
@@ -115,11 +115,11 @@ abstract contract Initializable {
      * Emits an {Initialized} event.
      */
     modifier reinitializer(uint8 version) {
-        require(!_initializing && _initialized < version, "Initializable: contract is already initialized");
-        _initialized = version;
-        _initializing = true;
+        require(!__initializing && __initialized < version, "Initializable: contract is already initialized");
+        __initialized = version;
+        __initializing = true;
         _;
-        _initializing = false;
+        __initializing = false;
         emit Initialized(version);
     }
 
@@ -128,7 +128,7 @@ abstract contract Initializable {
      * {initializer} and {reinitializer} modifiers, directly or indirectly.
      */
     modifier onlyInitializing() {
-        require(_initializing, "Initializable: contract is not initializing");
+        require(__initializing, "Initializable: contract is not initializing");
         _;
     }
 
@@ -141,24 +141,24 @@ abstract contract Initializable {
      * Emits an {Initialized} event the first time it is successfully executed.
      */
     function _disableInitializers() internal virtual {
-        require(!_initializing, "Initializable: contract is initializing");
-        if (_initialized < type(uint8).max) {
-            _initialized = type(uint8).max;
+        require(!__initializing, "Initializable: contract is initializing");
+        if (__initialized < type(uint8).max) {
+            __initialized = type(uint8).max;
             emit Initialized(type(uint8).max);
         }
     }
 
     /**
-     * @dev Internal function that returns the initialized version. Returns `_initialized`
+     * @dev Internal function that returns the initialized version. Returns `__initialized`
      */
     function _getInitializedVersion() internal view returns (uint8) {
-        return _initialized;
+        return __initialized;
     }
 
     /**
-     * @dev Internal function that returns the initialized version. Returns `_initializing`
+     * @dev Internal function that returns the initialized version. Returns `__initializing`
      */
     function _isInitializing() internal view returns (bool) {
-        return _initializing;
+        return __initializing;
     }
 }
