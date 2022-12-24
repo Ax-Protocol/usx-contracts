@@ -19,7 +19,7 @@ contract SendTest is Test, BridgingSetup {
         for (uint256 i = 0; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge));
-            emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -38,7 +38,7 @@ contract SendTest is Test, BridgingSetup {
                 address(wormhole_bridge),
                 payable(address(this)),
                 TEST_WORM_CHAIN_ID,
-                abi.encode(address(this)),
+                abi.encodePacked(address(this)),
                 transferAmount
             );
 
@@ -67,7 +67,7 @@ contract SendTest is Test, BridgingSetup {
         for (uint256 i = 0; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
-            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -86,7 +86,7 @@ contract SendTest is Test, BridgingSetup {
                 address(layer_zero_bridge),
                 payable(address(this)),
                 TEST_LZ_CHAIN_ID,
-                abi.encode(address(this)),
+                abi.encodePacked(address(this)),
                 transferAmount
             );
 
@@ -119,7 +119,7 @@ contract SendTest is Test, BridgingSetup {
 
             // Act: send more than balance
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+                bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
             );
         }
     }
@@ -138,7 +138,7 @@ contract SendTest is Test, BridgingSetup {
 
             // Act: cannot spend without allowance
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(sender), chainIds[i], abi.encode(address(this)), transferAmount
+                bridges[i], payable(sender), chainIds[i], abi.encodePacked(address(this)), transferAmount
             );
         }
     }
@@ -161,7 +161,7 @@ contract SendTest is Test, BridgingSetup {
 
             // Act: both bridges are paused
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+                bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
             );
         }
     }
@@ -192,12 +192,12 @@ contract SendTest is Test, BridgingSetup {
 
                     // Act: paused
                     IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+                        bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
                     );
                 } else {
                     // Act: not paused
                     IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
+                        bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
                     );
 
                     // Assertions

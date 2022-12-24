@@ -21,11 +21,11 @@ contract WormholeSendTest is Test, BridgingSetup {
         for (uint256 i = 0; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge));
-            emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Act
             uint64 sequence = IBridge(address(wormhole_bridge)).sendMessage{value: TEST_GAS_FEE}(
-                payable(address(this)), TEST_WORM_CHAIN_ID, abi.encode(address(this)), transferAmount
+                payable(address(this)), TEST_WORM_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
             );
 
             // Post-action Assertions
@@ -43,7 +43,7 @@ contract WormholeSendTest is Test, BridgingSetup {
         // Act: pranking as any non-USX address
         vm.prank(sender);
         IBridge(address(wormhole_bridge)).sendMessage(
-            payable(address(this)), TEST_WORM_CHAIN_ID, abi.encode(address(this)), transferAmount
+            payable(address(this)), TEST_WORM_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
         );
     }
 }

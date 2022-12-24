@@ -71,7 +71,10 @@ contract WormholeBridge is Ownable {
         (bytes memory srcAddress,, bytes memory toAddressBytes, uint256 amount) =
             abi.decode(vm.payload, (bytes, uint16, bytes, uint256));
 
-        (address toAddress) = abi.decode(toAddressBytes, (address));
+        address toAddress;
+        assembly {
+            toAddress := mload(add(toAddressBytes, 20))
+        }
 
         // Event
         emit ReceiveFromChain(vm.emitterChainId, srcAddress, toAddress, amount);
