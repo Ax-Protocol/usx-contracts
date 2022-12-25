@@ -21,6 +21,8 @@ interface IWormholeBridge {
 
     function getTrustedRelayers() external returns (address[] memory);
 
+    function setSendFees(uint16[] memory _destChainIds, uint256[] memory _fees) external;
+
     function extractERC20(address _token) external;
 
     function extractNative() external;
