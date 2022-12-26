@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "../../mocks/MockWormhole.t.sol";
-import "../common/TestHelpers.t.sol";
+import "../common/TestSetup.t.sol";
 
 import "../../../src/common/interfaces/IUSXAdmin.sol";
 import "../../../src/bridging/interfaces/IWormholeBridge.sol";
 
 import "../../common/Constants.t.sol";
 
-contract WormholeReceiveTest is Test, BridgingSetup {
+contract WormholeReceiveTest is BridgingSetup {
     function test_processMessage(uint256 transferAmount) public {
         vm.assume(transferAmount <= INITIAL_TOKENS);
 

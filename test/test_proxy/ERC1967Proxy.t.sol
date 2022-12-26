@@ -36,4 +36,19 @@ contract ERC1967ProxyTest is Test {
         assertEq(implementationAddressV2, address(usx_implementation_v2));
         assertEq(IUSX(address(usx_proxy)).name(), "USX");
     }
+
+    function testCannot_upgradeTo_unauthorized(address sender) public {
+        // Assumptions
+        vm.assume(sender != address(this));
+
+        // Setup
+        USX usx_implementation_v2 = new USX();
+
+        // Expectations
+        vm.expectRevert("Ownable: caller is not the owner");
+
+        // Act
+        vm.prank(sender);
+        IUSXAdmin(address(usx_proxy)).upgradeTo(address(usx_implementation_v2));
+    }
 }

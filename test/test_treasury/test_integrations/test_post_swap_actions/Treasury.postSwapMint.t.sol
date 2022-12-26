@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "./../../common/TestHelpers.t.sol";
+import "./../../common/TestSetup.t.sol";
 
 import "../../../../src/treasury/interfaces/ITreasuryAdmin.sol";
 import "../../../common/Constants.t.sol";
@@ -11,7 +11,7 @@ import "../../../common/Constants.t.sol";
 contract PostSwapMintTest is Test, RedeemHelper {
     function testCannot_mint_after_emergency_swap() public {
         // Allocate initial funds for test
-        mintForTest(DAI, DAI_AMOUNT);
+        _mintForTest(DAI, DAI_AMOUNT);
 
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {

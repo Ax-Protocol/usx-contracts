@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "../common/TestHelpers.t.sol";
+import "../common/TestSetup.t.sol";
 
 import "../../../src/bridging/interfaces/IWormhole.sol";
 
 import "../../common/Constants.t.sol";
 
-contract LayerZeroSendTest is Test, BridgingSetup {
+contract LayerZeroSendTest is BridgingSetup {
     function test_setUp() public {
         assertEq(wormhole_bridge.usx(), address(usx_proxy));
     }

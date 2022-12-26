@@ -57,10 +57,10 @@ contract LayerZeroBridge is NonBlockingLzApp {
     function _nonblockingLzReceive(
         uint16 _srcChainId,
         bytes memory _srcAddress,
-        uint64, /*_nonce*/
+        uint64, // _nonce
         bytes memory _payload
     ) internal virtual override {
-        // decode and load the toAddress
+        // decode and load toAddress
         (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
 
         address toAddress;

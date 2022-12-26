@@ -63,13 +63,13 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         internal
         view
     {
-        uint256 providedGasLimit = getGasLimit(_adapterParams);
+        uint256 providedGasLimit = _getGasLimit(_adapterParams);
         uint256 minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
         require(minGasLimit > 0, "LzApp: minGasLimit not set");
         require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
-    function getGasLimit(bytes memory _adapterParams) internal pure returns (uint256 gasLimit) {
+    function _getGasLimit(bytes memory _adapterParams) internal pure returns (uint256 gasLimit) {
         require(_adapterParams.length >= 34, "LzApp: invalid adapterParams");
         assembly {
             gasLimit := mload(add(_adapterParams, 34))

@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
-import "./common/TestHelpers.t.sol";
+import "./common/TestSetup.t.sol";
 import "../../../src/token/USX.sol";
 import "../../../src/proxy/ERC1967Proxy.sol";
 
 import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
-import "./common/Constants.t.sol";
 
-contract AdminUSXTest is Test, SupplyRegulationSetup {
+contract AdminUSXTest is SupplyRegulationSetup {
     function test_manageTreasuries() public {
         // Pre-action assertions
         (bool mint, bool burn) = IUSXAdmin(address(usx_proxy)).treasuries(TREASURY);
@@ -46,11 +44,7 @@ contract AdminUSXTest is Test, SupplyRegulationSetup {
 
     function test_extractERC20(uint256 amount) public {
         // Test Variables
-        address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
-        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        address USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-        address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
+        address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
 
         // Assumptions
         for (uint256 i = 0; i < COINS.length; i++) {
@@ -62,10 +56,10 @@ contract AdminUSXTest is Test, SupplyRegulationSetup {
         }
 
         // Setup: deal bridge the tokens
-        deal(CVX_3RCV, address(usx_proxy), amount);
         deal(DAI, address(usx_proxy), amount);
         deal(USDC, address(usx_proxy), amount);
         deal(USDT, address(usx_proxy), amount);
+        deal(_3CRV, address(usx_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Pre-action assertions
@@ -94,11 +88,7 @@ contract AdminUSXTest is Test, SupplyRegulationSetup {
 
     function testCannot_extractERC20_unauthorized(address sender, uint256 amount) public {
         // Test Variables
-        address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
-        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        address USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-        address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
+        address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
 
         // Assumptions
         vm.assume(sender != address(this));
@@ -111,10 +101,10 @@ contract AdminUSXTest is Test, SupplyRegulationSetup {
         }
 
         // Setup: deal bridge the tokens
-        deal(CVX_3RCV, address(usx_proxy), amount);
         deal(DAI, address(usx_proxy), amount);
         deal(USDC, address(usx_proxy), amount);
         deal(USDT, address(usx_proxy), amount);
+        deal(_3CRV, address(usx_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Exptectations

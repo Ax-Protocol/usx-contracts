@@ -28,9 +28,9 @@ abstract contract UERC20 is Initializable, InitContext, IERC20Metadata {
 
     // EIP-2612 STORAGE
 
-    uint256 internal INITIAL_CHAIN_ID;
+    uint256 internal _INITIAL_CHAIN_ID;
 
-    bytes32 internal INITIAL_DOMAIN_SEPARATOR;
+    bytes32 internal _INITIAL_DOMAIN_SEPARATOR;
 
     mapping(address => uint256) public nonces;
 
@@ -52,8 +52,8 @@ abstract contract UERC20 is Initializable, InitContext, IERC20Metadata {
         name = name_;
         symbol = symbol_;
         decimals = 18;
-        INITIAL_CHAIN_ID = block.chainid;
-        INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
+        _INITIAL_CHAIN_ID = block.chainid;
+        _INITIAL_DOMAIN_SEPARATOR = _computeDomainSeparator();
     }
 
     // ERC20 LOGIC
@@ -144,10 +144,10 @@ abstract contract UERC20 is Initializable, InitContext, IERC20Metadata {
     }
 
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
-        return block.chainid == INITIAL_CHAIN_ID ? INITIAL_DOMAIN_SEPARATOR : computeDomainSeparator();
+        return block.chainid == _INITIAL_CHAIN_ID ? _INITIAL_DOMAIN_SEPARATOR : _computeDomainSeparator();
     }
 
-    function computeDomainSeparator() internal view virtual returns (bytes32) {
+    function _computeDomainSeparator() internal view virtual returns (bytes32) {
         return keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),

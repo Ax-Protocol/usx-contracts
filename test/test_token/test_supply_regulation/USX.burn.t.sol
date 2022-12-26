@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
-import "./common/TestHelpers.t.sol";
+import "./common/TestSetup.t.sol";
 import "../../../src/token/USX.sol";
 import "../../../src/proxy/ERC1967Proxy.sol";
 
@@ -10,7 +9,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-contract BurnUSXTest is Test, SupplyRegulationSetup {
+contract BurnUSXTest is SupplyRegulationSetup {
     function test_burn(uint256 testBurnAmount) public {
         // Assumptions
         vm.assume(testBurnAmount <= TEST_MINT_AMOUNT);

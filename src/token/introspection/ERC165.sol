@@ -14,7 +14,7 @@ abstract contract ERC165 is IERC165 {
     /**
      * @dev Mapping of interface ids to whether or not it's supported.
      */
-    mapping(bytes4 => bool) private _supportedInterfaces;
+    mapping(bytes4 => bool) private __supportedInterfaces;
 
     constructor() {
         // Derived contracts need only register support for their own interfaces,
@@ -28,7 +28,7 @@ abstract contract ERC165 is IERC165 {
      * Time complexity O(1), guaranteed to always use less than 30 000 gas.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return _supportedInterfaces[interfaceId];
+        return __supportedInterfaces[interfaceId];
     }
 
     /**
@@ -44,6 +44,14 @@ abstract contract ERC165 is IERC165 {
      */
     function _registerInterface(bytes4 interfaceId) internal virtual {
         require(interfaceId != 0xffffffff, "ERC165: invalid interface id");
-        _supportedInterfaces[interfaceId] = true;
+        __supportedInterfaces[interfaceId] = true;
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage slots in the inheritance chain.
+     * Storage slot management is necessary, as we're using an upgradable proxy contract.
+     * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

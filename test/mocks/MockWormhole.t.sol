@@ -7,7 +7,7 @@ import "../../src/common/interfaces/IERC20.sol";
 import "../common/Constants.t.sol";
 
 contract WormholeHelper {
-    function getVM() internal returns (IWormhole.VM memory) {
+    function _getVM() internal returns (IWormhole.VM memory) {
         address usx = IWormholeBridge(msg.sender).usx();
         uint256 transferAmount = IERC20(usx).balanceOf(address(this));
 
@@ -34,7 +34,7 @@ contract MockWormhole is WormholeHelper {
         external
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
-        vm = getVM();
+        vm = _getVM();
         valid = true;
         reason = "";
     }
@@ -45,7 +45,7 @@ contract MockWormholeInvalid is WormholeHelper {
         external
         returns (IWormhole.VM memory vm, bool valid, string memory reason)
     {
-        vm = getVM();
+        vm = _getVM();
         valid = false;
         reason = "Untrustworthy message!";
     }
@@ -59,7 +59,7 @@ contract MockWormholeUnauthorizedEmitter is WormholeHelper {
         // Test variables
         bytes32 unauthorizedEmitter = bytes32(abi.encode(0xb9fB91D13f9Bc14a4370e3dC13c0510fe649Dde3));
 
-        vm = getVM();
+        vm = _getVM();
         vm.emitterAddress = unauthorizedEmitter;
         valid = true;
         reason = "";

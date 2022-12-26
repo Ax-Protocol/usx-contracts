@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "../common/Constants.t.sol";
-import "./common/TestHelpers.t.sol";
+import "./common/TestSetup.t.sol";
 import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 import "../../src/treasury/interfaces/ICvxMining.sol";
 import "../../src/treasury/interfaces/IVirtualBalanceRewardPool.sol";
 
-contract RewardsTest is Test, TreasurySetup, FundingHelper {
+contract RewardsTest is FundingHelper {
     /// @dev Test that contract admins can stake CVX into CVX_REWARD_POOL contract.
     function test_stakeCvx(uint256 amount) public {
         // Assumptions
@@ -670,7 +669,7 @@ contract RewardsTest is Test, TreasurySetup, FundingHelper {
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
-        mintForTest(DAI, amount);
+        _mintForTest(DAI, amount);
         deal(_3CRV, address(treasury_proxy), amount);
 
         // Setup
@@ -763,7 +762,7 @@ contract RewardsTest is Test, TreasurySetup, FundingHelper {
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
 
         // Allocate funds for test
-        mintForTest(DAI, amount);
+        _mintForTest(DAI, amount);
         deal(_3CRV, address(treasury_proxy), amount);
 
         // Setup

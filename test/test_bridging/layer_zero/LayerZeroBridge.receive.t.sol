@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
-import "../common/TestHelpers.t.sol";
+import "../common/TestSetup.t.sol";
 
 import "../../../src/common/interfaces/IUSXAdmin.sol";
 import "../../../src/bridging/interfaces/ILayerZeroBridge.sol";
 
 import "../../common/Constants.t.sol";
 
-contract LayerZeroReceiveTest is Test, BridgingSetup {
+contract LayerZeroReceiveTest is BridgingSetup {
     function test_lzReceive(uint256 transferAmount) public {
         vm.assume(transferAmount <= INITIAL_TOKENS);
 

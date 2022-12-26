@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
-import "./common/TestHelpers.t.sol";
+import "./common/TestSetup.t.sol";
 import "../common/Constants.t.sol";
 
 import "../../src/treasury/interfaces/IBaseRewardPool.sol";
@@ -10,20 +9,20 @@ import "../../src/common/interfaces/IERC20.sol";
 import "../../src/common/interfaces/IUSXAdmin.sol";
 import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
-contract EmergencySwapTest is Test, RedeemHelper {
+contract EmergencySwapTest is RedeemHelper {
     /// @dev Test that 3CRV can be swapped to each supported stable
     function test_emergency_swap(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
 
         // Allocate funds for test
-        mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
+        _mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
 
         uint256 preUsxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
             uint256 preStakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
-            uint256 expectedTokenAmount = calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
+            uint256 expectedTokenAmount = _calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
 
             // Pre-action assertions
             uint256 userBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
@@ -77,7 +76,7 @@ contract EmergencySwapTest is Test, RedeemHelper {
     /// @dev Test that emergency swap fails if new backingToken is unsupported
     function testCannot_emergency_swap_unsupported() public {
         // Allocate initial funds for test
-        mintForTest(DAI, DAI_AMOUNT);
+        _mintForTest(DAI, DAI_AMOUNT);
 
         // Expectations
         vm.expectRevert("Token not supported.");

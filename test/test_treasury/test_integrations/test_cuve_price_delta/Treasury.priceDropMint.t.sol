@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 import "solmate/utils/SafeTransferLib.sol";
-import "./../../common/TestHelpers.t.sol";
+import "./../../common/TestSetup.t.sol";
 
 import "../../../../src/treasury/interfaces/ICurve3Pool.sol";
 import "../../../../src/common/interfaces/IUSXAdmin.sol";
@@ -32,7 +32,7 @@ contract PriceDropMintTest is Test, MintHelper {
         );
 
         // Expectations 1
-        (uint256 expectedMintAmount1,) = calculateMintAmount(0, testDepositAmount, DAI);
+        (uint256 expectedMintAmount1,) = _calculateMintAmount(0, testDepositAmount, DAI);
         uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
         assertEq(
             IUSXAdmin(address(usx_proxy)).totalSupply(), 0, "Equivalence violation: pre-action total supply is not zero"
@@ -57,7 +57,7 @@ contract PriceDropMintTest is Test, MintHelper {
 
         /// @dev Iteration 2, with a lower 3CRV price
         // Expectations 2: calculate expectation before lowering 3CRV price, as it shouldn't decrease
-        (uint256 expectedMintAmount2,) = calculateMintAmount(0, testDepositAmount, DAI);
+        (uint256 expectedMintAmount2,) = _calculateMintAmount(0, testDepositAmount, DAI);
 
         // Mock Curve 2, lowering the 3CRV price
         vm.mockCall(

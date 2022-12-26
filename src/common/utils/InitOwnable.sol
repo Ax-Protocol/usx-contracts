@@ -18,7 +18,7 @@ import "./InitContext.sol";
  * the owner.
  */
 abstract contract InitOwnable is Initializable, InitContext {
-    address private _owner;
+    address private __owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -45,7 +45,7 @@ abstract contract InitOwnable is Initializable, InitContext {
      * @dev Returns the address of the current owner.
      */
     function owner() public view virtual returns (address) {
-        return _owner;
+        return __owner;
     }
 
     /**
@@ -80,8 +80,8 @@ abstract contract InitOwnable is Initializable, InitContext {
      * Internal function without access restriction.
      */
     function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
-        _owner = newOwner;
+        address oldOwner = __owner;
+        __owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);
     }
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "./../../common/TestHelpers.t.sol";
+import "./../../common/TestSetup.t.sol";
 
 import "../../../../src/treasury/interfaces/IBaseRewardPool.sol";
 import "../../../../src/common/interfaces/IERC20.sol";
@@ -14,7 +14,7 @@ import "../../../common/Constants.t.sol";
 contract EmergencySwapTest is Test, RedeemHelper {
     function testCannot_redeem_after_emergency_swap() public {
         // Allocate initial funds for test
-        mintForTest(DAI, DAI_AMOUNT);
+        _mintForTest(DAI, DAI_AMOUNT);
 
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
