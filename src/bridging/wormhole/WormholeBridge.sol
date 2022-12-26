@@ -11,6 +11,7 @@ contract WormholeBridge is Ownable {
     IWormhole public immutable wormholeCoreBridge; // no SLOAD
     address public immutable usx; // no SLOAD
 
+    mapping(uint16 => uint256) public sendFeeLookup;
     mapping(bytes32 => bool) public trustedContracts;
     mapping(address => bool) public trustedRelayers;
     mapping(bytes32 => bool) public processedMessages;
@@ -34,6 +35,8 @@ contract WormholeBridge is Ownable {
         returns (uint64 sequence)
     {
         require(msg.sender == usx, "Unauthorized.");
+        require(msg.value >= sendFeeLookup[_dstChainId], "Not enough native token for gas.");
+
         sequence = _publishMessage(_from, _dstChainId, _toAddress, _amount);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
@@ -71,7 +74,10 @@ contract WormholeBridge is Ownable {
         (bytes memory srcAddress,, bytes memory toAddressBytes, uint256 amount) =
             abi.decode(vm.payload, (bytes, uint16, bytes, uint256));
 
-        (address toAddress) = abi.decode(toAddressBytes, (address));
+        address toAddress;
+        assembly {
+            toAddress := mload(add(toAddressBytes, 20))
+        }
 
         // Event
         emit ReceiveFromChain(vm.emitterChainId, srcAddress, toAddress, amount);
@@ -157,5 +163,19 @@ contract WormholeBridge is Ownable {
      */
     function extractNative() public onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
+    }
+
+    /**
+     * @dev This function allows contract admins to update send fees.
+     * @param _destChainIds an array of destination chain IDs; the order must match `_fees` array.
+     * @param _fees an array of destination fees; the order must match `_destChainIds` array. Any
+     *              element with a value of zero will not get updated (allows for gas saving optionality).
+     */
+    function setSendFees(uint16[] memory _destChainIds, uint256[] memory _fees) public onlyOwner {
+        for (uint256 i = 0; i < _destChainIds.length; i++) {
+            if (_fees[i] != 0) {
+                sendFeeLookup[_destChainIds[i]] = _fees[i];
+            }
+        }
     }
 }

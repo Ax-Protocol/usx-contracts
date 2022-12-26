@@ -16,6 +16,10 @@ contract AdminTest is Test {
     ERC1967Proxy public usx_proxy;
     WormholeBridge public wormhole_bridge;
 
+    // Test Variables
+    uint16[] public destChainIds;
+    uint256[] public fees;
+
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
@@ -219,6 +223,92 @@ contract AdminTest is Test {
 
         vm.prank(sender);
         IWormholeBridge(address(wormhole_bridge)).extractNative();
+    }
+
+    function test_setSendFees_update_all(uint256 fee) public {
+        // Assumptions
+        vm.assume(fee >= 1e15 && fee < 5e16);
+
+        // Setup
+        uint256 testCases = 4;
+
+        for (uint256 i = 1; i < (testCases + 1); i++) {
+            destChainIds.push(uint16(i));
+            fees.push(fee);
+        }
+
+        // Pre-action assertions
+        for (uint256 i = 0; i < destChainIds.length; i++) {
+            uint256 destFee = wormhole_bridge.sendFeeLookup(destChainIds[i]);
+            assertEq(destFee, 0, "Equivalence violation: destFee should be 0, but it's not.");
+        }
+
+        // Act: update
+        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+
+        // Post-action assertions
+        for (uint256 i = 0; i < destChainIds.length; i++) {
+            uint256 destFee = wormhole_bridge.sendFeeLookup(destChainIds[i]);
+            assertEq(destFee, fees[i], "Equivalence violation: destFee and updated fee.");
+        }
+    }
+
+    function test_setSendFees_update_some(uint256 fee) public {
+        // Assumptions
+        vm.assume(fee >= 1e15 && fee < 5e16);
+
+        // Setup
+        uint256 testCases = 4;
+
+        for (uint256 i = 1; i < (testCases + 1); i++) {
+            destChainIds.push(uint16(i));
+            fees.push(fee);
+        }
+
+        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+
+        uint256[] memory old_fees = fees;
+
+        for (uint256 i = 0; i < destChainIds.length; i++) {
+            if (i % 2 == 0) {
+                fees[i] = 0;
+            } else {
+                fees[i] *= 2;
+            }
+        }
+
+        // Act: update, with some fees as zero
+        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+
+        // Post-action assertions
+        for (uint256 i = 0; i < fees.length; i++) {
+            uint256 destFee = wormhole_bridge.sendFeeLookup(destChainIds[i]);
+            if (fees[i] == 0) {
+                assertEq(destFee, old_fees[i], "Equivalence violation: destFee and old fee.");
+            } else {
+                assertEq(destFee, fees[i], "Equivalence violation: destFee and updated fee.");
+            }
+        }
+    }
+
+    function testCannot_setSendFees_unauthorized(uint256 fee, address sender) public {
+        // Assumptions
+        vm.assume(fee >= 1e15 && fee < 5e16);
+        vm.assume(sender != address(this));
+
+        // Setup
+        uint256 testCases = 4;
+
+        for (uint256 i = 1; i < (testCases + 1); i++) {
+            destChainIds.push(uint16(i));
+            fees.push(fee);
+        }
+
+        // Exptectations
+        vm.expectRevert("Ownable: caller is not the owner");
+
+        vm.prank(sender);
+        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
     }
 
     receive() external payable {}

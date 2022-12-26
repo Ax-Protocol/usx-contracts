@@ -41,7 +41,7 @@ contract LayerZeroSendTest is Test, BridgingSetup {
         // Act: pranking as any non-USX address
         vm.prank(sender);
         IBridge(address(layer_zero_bridge)).sendMessage(
-            payable(address(this)), TEST_LZ_CHAIN_ID, abi.encode(address(this)), transferAmount
+            payable(address(this)), TEST_LZ_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
         );
     }
 }

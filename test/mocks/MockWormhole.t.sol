@@ -21,7 +21,7 @@ contract WormholeHelper {
             emitterAddress: TEST_TRUSTED_EMITTER_ADDRESS,
             sequence: 0,
             consistencyLevel: 200,
-            payload: abi.encode(abi.encodePacked(TEST_USER), 1, abi.encode(TEST_USER), transferAmount),
+            payload: abi.encode(abi.encodePacked(TEST_USER), 1, abi.encodePacked(TEST_USER), transferAmount),
             guardianSetIndex: 19,
             signatures: signatures,
             hash: 0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
