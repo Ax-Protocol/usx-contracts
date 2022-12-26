@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "./common/TestSetup.t.sol";
 import "../common/Constants.t.sol";
 import "../../src/treasury/interfaces/IBaseRewardPool.sol";
@@ -10,7 +9,7 @@ import "../../src/common/interfaces/IERC20.sol";
 import "../../src/common/interfaces/IUSXAdmin.sol";
 import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
-contract RedeemTest is Test, RedeemHelper {
+contract RedeemTest is RedeemHelper {
     /// @dev Test that each supported token can be redeemed in a sequential manner, without resetting chain state after each mint
     function test_redeem_sequential(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);

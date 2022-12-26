@@ -169,7 +169,7 @@ contract WormholeBridge is Ownable {
      * @dev This function allows contract admins to update send fees.
      * @param _destChainIds an array of destination chain IDs; the order must match `_fees` array.
      * @param _fees an array of destination fees; the order must match `_destChainIds` array. Any
-     *              element with a value of zero will not get updated (allows for gas saving optionality).
+     *              element with a value of zero will not get updated (allows for gas-saving optionality).
      */
     function setSendFees(uint16[] memory _destChainIds, uint256[] memory _fees) public onlyOwner {
         for (uint256 i = 0; i < _destChainIds.length; i++) {

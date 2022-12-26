@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "./common/TestSetup.t.sol";
 import "../common/Constants.t.sol";
 
@@ -10,7 +9,7 @@ import "../../src/common/interfaces/IERC20.sol";
 import "../../src/common/interfaces/IUSXAdmin.sol";
 import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 
-contract EmergencySwapTest is Test, RedeemHelper {
+contract EmergencySwapTest is RedeemHelper {
     /// @dev Test that 3CRV can be swapped to each supported stable
     function test_emergency_swap(uint256 amountMultiplier) public {
         vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);

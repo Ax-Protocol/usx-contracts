@@ -18,10 +18,6 @@ abstract contract BridgingSetup is Test {
     LayerZeroBridge public layer_zero_bridge;
     WormholeBridge public wormhole_bridge;
 
-    // Test Constants
-    uint16 constant TEST_LZ_CHAIN_ID = 109;
-    uint16 constant TEST_WORM_CHAIN_ID = 5;
-
     // Test Variables
     uint16[] public destChainIds;
     uint256[] public fees;

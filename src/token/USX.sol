@@ -2,14 +2,18 @@
 
 pragma solidity ^0.8.16;
 
+// Contracts
 import "solmate/utils/SafeTransferLib.sol";
 import "../common/utils/Initializable.sol";
 import "../common/utils/InitOwnable.sol";
 import "../proxy/UUPSUpgradeable.sol";
 import "./bridging/OERC20.sol";
+
+// Interfaces
 import "../common/interfaces/IUSX.sol";
 
 contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
+    // Storage Variables: follow storage slot restrictions
     struct TreasuryPrivileges {
         bool mint;
         bool burn;
@@ -18,9 +22,9 @@ contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
     mapping(address => TreasuryPrivileges) public treasuries;
 
     function initialize() public initializer {
-        __ERC20_init("USX", "USX");
-        __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
+        __Ownable_init();
+        __ERC20_init("USX", "USX");
     }
 
     /// @dev Required by the UUPS module.

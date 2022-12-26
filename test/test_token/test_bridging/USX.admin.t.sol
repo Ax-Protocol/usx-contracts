@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "../../../src/token/USX.sol";
 import "./common/TestSetup.t.sol";
 
@@ -9,7 +8,7 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-contract AdminTest is Test, BridgingSetup {
+contract AdminTest is BridgingSetup {
     function testCannot_manageCrossChainTransfers_unauthorized() public {
         bool[2][4] memory trials = [[true, true], [true, false], [false, true], [false, false]];
 

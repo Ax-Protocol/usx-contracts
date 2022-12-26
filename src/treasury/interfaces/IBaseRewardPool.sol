@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 interface IBaseRewardPool {
     /**
-     * @dev This function only works with a BaseRewardPool addresses where stakingToken
+     * @dev withdrawAndUnwrap() only works for a BaseRewardPool address where stakingToken
      * corresponds to a Curve pool (i.e., cvx3CRV can unrwap to 3CRV). This function
      * will not work for the BaseRewardPool address that corresponds to cvxCRV, because
      * it cannot be unwrapped to CRV.

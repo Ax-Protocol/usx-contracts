@@ -17,11 +17,6 @@ import "../common/interfaces/IERC20.sol";
 import "../common/interfaces/IUSXAdmin.sol";
 
 contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
-    struct SupportedStable {
-        bool supported;
-        int128 curveIndex;
-    }
-
     // Constants: no SLOAD to save gas
     address public constant backingToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
     address public constant curve3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
@@ -36,6 +31,11 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     uint8 public constant PID_3POOL = 9;
 
     // Storage Variables: follow storage slot restrictions
+    struct SupportedStable {
+        bool supported;
+        int128 curveIndex;
+    }
+
     mapping(address => SupportedStable) public supportedStables;
     address public usx;
     uint256 public previousLpTokenPrice;
@@ -46,8 +46,8 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     event Redemption(address indexed account, uint256 amount);
 
     function initialize(address _usx) public initializer {
-        __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
+        __Ownable_init();
         usx = _usx;
     }
 
@@ -55,9 +55,9 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     /**
-     * @dev This function deposits any one of the supported stable coins to Curve,
-     *      receives 3CRV tokens in exchange, and mints the USX token, such that
-     *      it's valued at a dollar.
+     * @dev This function deposits any one of the supported stablecoins to Curve,
+     * receives 3CRV tokens in exchange, and mints the USX token, such that it's
+     * valued at approximately one US dollar.
      * @param _stable The address of the input token used to mint USX.
      * @param _amount The amount of the input token used to mint USX.
      */
@@ -84,20 +84,17 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
 
     /**
      * @dev This function facilitates redeeming a single supported stablecoin, in
-     *      exchange for USX tokens, such that USX is valued at a dollar.
+     * exchange for USX tokens, such that USX is valued at approximately one US dollar.
      * @param _stable The address of the token to withdraw.
      * @param _amount The amount of USX tokens to burn upon redemption.
      */
     function redeem(address _stable, uint256 _amount) public {
         require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
 
-        // Get amount of LP token based on USX burn amount
         uint256 lpTokenAmount = __getLpTokenAmount(_amount);
 
-        // Unstake LP tokens
         __unstakeLpTokens(lpTokenAmount);
 
-        // Remove liquidity from Curve
         uint256 redeemAmount;
         if (_stable != backingToken) {
             redeemAmount = __removeLiquidity(_stable, lpTokenAmount);
@@ -105,10 +102,8 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
             redeemAmount = lpTokenAmount;
         }
 
-        // Transfer desired withdrawal tokens to user
         SafeTransferLib.safeTransfer(ERC20(_stable), msg.sender, redeemAmount);
 
-        // Burn USX tokens
         totalSupply -= _amount;
         IUSXAdmin(usx).burn(msg.sender, _amount);
         emit Redemption(msg.sender, _amount);
@@ -186,7 +181,7 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     ******************************************************************************/
 
     /**
-     * @dev This function allows contract admins to add supported stablecoins.
+     * @dev Allow contract admins to add supported stablecoins.
      * @param _stable The address of stablecoin to add.
      * @param _curveIndex The stablecoin's Curve-assigned index.
      */
@@ -195,7 +190,7 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to remove supported stablecoins.
+     * @dev Allow contract admins to remove supported stablecoins.
      * @param _stable The address of stablecoin to remove.
      */
     function removeSupportedStable(address _stable) public onlyOwner {
@@ -203,27 +198,27 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev Allows contract admins to swap the backing token to a supported stable, in an emergency.
+     * @dev Allow contract admins to swap the backing token to a supported stable, in an emergency.
      */
     function emergencySwapBacking(address _newBackingToken) public onlyOwner {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
 
-        // 1. Withdraw all staked 3CRV
+        // Withdraw all staked 3CRV
         uint256 totalStaked = IBaseRewardPool(cvx3CrvBaseRewardPool).balanceOf(address(this));
         __unstakeLpTokens(totalStaked);
 
-        // 2. Remove liquidity from Curve, receiving _newBackingToken
+        // Remove liquidity from Curve, receiving _newBackingToken
         ICurve3Pool(curve3Pool).remove_liquidity_one_coin(totalStaked, supportedStables[_newBackingToken].curveIndex, 0);
 
-        // 3. Pause minting and redeeming
+        // Pause minting and redeeming
         IUSXAdmin(usx).treasuryKillSwitch();
 
         // This contract is now backed by _newBackingToken, but backingToken was not updated, because it's a constant.
-        // Admins may need to update backingToken depending on the post-emergency swap resolution.
+        // Admins may need to update backingToken via proxy upgrade, depending on the post-emergency-swap resolution.
     }
 
     /**
-     * @dev This function allows contract admins to extract any non-backing ERC20 token.
+     * @dev Allow contract admins to extract any non-backing ERC20 token.
      * @param _token The address of token to remove.
      */
     function extractERC20(address _token) public onlyOwner {
@@ -233,8 +228,8 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to stake CVX into cvxRewardPool contract.
-     * Doing this will accumulate cvxCRV rewards proportionate to the amount staked.
+     * @dev Allow contract admins to stake CVX into cvxRewardPool contract. This will
+     * accumulate cvxCRV rewards proportionate to the amount staked.
      * @param _amount The amount of CVX to stake.
      */
     function stakeCvx(uint256 _amount) public onlyOwner {
@@ -248,8 +243,8 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to withdraw CVX from cvxRewardPool contract
-     * and claim all unclaimed cvxCRV rewards.
+     * @dev Allow contract admins to withdraw CVX from cvxRewardPool contract and claim all
+     * unclaimed cvxCRV rewards.
      * @param _amount The amount of CVX to withdraw.
      */
     function unstakeCvx(uint256 _amount) public onlyOwner {
@@ -261,8 +256,7 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to claim all unclaimed cvxCRV rewards
-     * from cvxRewardPool contract.
+     * @dev Allow contract admins to claim all unclaimed cvxCRV rewards from cvxRewardPool contract.
      * @param _stake If true, all claimed cvxCRV rewards will be staked into cvxCrvBaseRewardPool.
      */
     function claimRewardCvx(bool _stake) public onlyOwner {
@@ -272,9 +266,9 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to deposit CRV into CrvDepositor, convert it to cvxCRV,
-     * and stake the corresponding cvxCRV into cvxCrvBaseRewardPool. Doing this will accumulate CVX, CRV,
-     * and 3CRV rewards proportionate to the amount staked.
+     * @dev Allow contract admins to deposit CRV into CrvDepositor, convert it to cvxCRV, and stake the
+     * corresponding cvxCRV into cvxCrvBaseRewardPool. This will accumulate CVX, CRV, and 3CRV
+     * rewards proportionate to the amount staked.
      * @param _amount The amount of CRV to deposit, convert, and stake.
      */
     function stakeCrv(uint256 _amount) public onlyOwner {
@@ -286,8 +280,8 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to withdraw cvxCRV from cvxCrvBaseRewardPool, and
-     * claim all unclaimed CVX, CRV, and 3CRV rewards.
+     * @dev Allow contract admins to withdraw cvxCRV from cvxCrvBaseRewardPool and claim all
+     * unclaimed CVX, CRV, and 3CRV rewards.
      * @param _amount The amount of cvxCRV to withdraw.
      */
     function unstakeCvxCrv(uint256 _amount) public onlyOwner {
@@ -299,8 +293,7 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to claim all unclaimed CVX, CRV, and 3CRV rewards from
-     * cvxCrvBaseRewardPool.
+     * @dev Allow contract admins to claim all unclaimed CVX, CRV, and 3CRV rewards from cvxCrvBaseRewardPool.
      */
     function claimRewardCvxCrv() public onlyOwner {
         require(IBaseRewardPool(cvxCrvBaseRewardPool).earned(address(this)) > 0, "No rewards to claim.");
@@ -309,9 +302,9 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to deposit 3CRV into Booster, convert it to cvx3CRV,
-     * and stake the corresponding cvx3CRV into cvx3CrvBaseRewardPool. Doing this will accumulate CVX
-     * and CRV rewards proportionate to the amount staked.
+     * @dev Allow contract admins to deposit 3CRV into Booster, convert it to cvx3CRV, and
+     * stake the corresponding cvx3CRV into cvx3CrvBaseRewardPool. This will accumulate
+     * CVX and CRV rewards proportionate to the amount staked.
      * @param _amount The amount of 3CRV to deposit, convert, and stake.
      */
     function stake3Crv(uint256 _amount) public onlyOwner {
@@ -323,8 +316,8 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to withdraw cvx3CRV from cvx3CrvBaseRewardPool,
-     * unwrap it into 3CRV, and claim all unclaimed CVX and CRV rewards.
+     * @dev Allow contract admins to withdraw cvx3CRV from cvx3CrvBaseRewardPool, unwrap it into 3CRV,
+     * and claim all unclaimed CVX and CRV rewards.
      * @param _amount The amount of cvx3CRV to withdraw.
      */
     function unstake3Crv(uint256 _amount) public onlyOwner {
@@ -337,8 +330,7 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev This function allows contract admins to claim all unclaimed CVX and CRV rewards from
-     * cvx3CrvBaseRewardPool.
+     * @dev Allow contract admins to claim all unclaimed CVX and CRV rewards from cvx3CrvBaseRewardPool.
      */
     function claimRewardCvx3Crv() public onlyOwner {
         require(IBaseRewardPool(cvx3CrvBaseRewardPool).earned(address(this)) > 0, "No rewards to claim.");

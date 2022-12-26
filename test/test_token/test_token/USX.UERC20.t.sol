@@ -176,8 +176,9 @@ contract UERC20Test is Test {
         vm.assume(approvalAmount > 0 && approvalAmount <= INITIAL_TOKENS);
 
         // Test Variables
-        address testSpender = 0x2F1E029b0d642b9846Ed45551deCd7e7f07ae98d;
-        address testOwner = vm.addr(1);
+        address testSpender = TEST_USER;
+        uint8 testPrivateKey = 1;
+        address testOwner = vm.addr(testPrivateKey);
         uint256 testNonce = IUSXAdmin(address(usx_proxy)).nonces(testOwner);
         uint256 weekSeconds = 604800;
         uint256 deadline = block.timestamp + weekSeconds;
@@ -199,7 +200,7 @@ contract UERC20Test is Test {
         );
 
         // Setup
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, messageHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(testPrivateKey, messageHash);
 
         // Expectations
         vm.expectEmit(true, true, true, true, address(usx_proxy));
@@ -230,13 +231,14 @@ contract UERC20Test is Test {
         vm.assume(approvalAmount > 0 && approvalAmount <= INITIAL_TOKENS);
 
         // Test Variables
-        address testSpender = 0x2F1E029b0d642b9846Ed45551deCd7e7f07ae98d;
-        address testOwner = vm.addr(1);
+        address testSpender = TEST_USER;
+        uint8 testPrivateKey = 1;
+        address testOwner = vm.addr(testPrivateKey);
         uint256 weekSeconds = 604800;
         bytes32 messageHash = keccak256("Wrong message.");
 
         // Setup
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, messageHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(testPrivateKey, messageHash);
 
         // Expectation
         vm.expectRevert("INVALID_SIGNER");

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "../../../src/token/USX.sol";
 import "./common/TestSetup.t.sol";
 
@@ -9,12 +8,12 @@ import "../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../common/Constants.t.sol";
 
-contract SendTest is Test, BridgingSetup {
+contract SendTest is BridgingSetup {
     function test_sendFrom_wormhole(uint256 transferAmount, uint256 gasFee) public {
         // Setup
         uint256 iterations = 4;
         vm.assume(transferAmount <= INITIAL_TOKENS / iterations);
-        uint256 destGasFee = wormhole_bridge.sendFeeLookup(TEST_WORM_CHAIN_ID);
+        uint256 destGasFee = wormhole_bridge.sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
         gasFee = bound(gasFee, destGasFee, 5e16);
         vm.deal(address(wormhole_bridge), gasFee * iterations);
 
@@ -22,7 +21,7 @@ contract SendTest is Test, BridgingSetup {
         for (uint256 i = 0; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge));
-            emit SendToChain(TEST_WORM_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -40,7 +39,7 @@ contract SendTest is Test, BridgingSetup {
             uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
                 address(wormhole_bridge),
                 payable(address(this)),
-                TEST_WORM_CHAIN_ID,
+                TEST_WORMHOLE_CHAIN_ID,
                 abi.encodePacked(address(this)),
                 transferAmount
             );
@@ -64,7 +63,7 @@ contract SendTest is Test, BridgingSetup {
     function testCannot_sendFrom_wormhole_not_enough_fees(uint256 transferAmount, uint256 gasFee) public {
         // Setup
         vm.assume(transferAmount <= INITIAL_TOKENS);
-        uint256 destGasFee = wormhole_bridge.sendFeeLookup(TEST_WORM_CHAIN_ID);
+        uint256 destGasFee = wormhole_bridge.sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
         vm.assume(gasFee > 0 && gasFee < destGasFee);
         vm.deal(address(wormhole_bridge), gasFee);
 
@@ -75,7 +74,7 @@ contract SendTest is Test, BridgingSetup {
         IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
             address(wormhole_bridge),
             payable(address(this)),
-            TEST_WORM_CHAIN_ID,
+            TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
             transferAmount
         );
@@ -134,7 +133,7 @@ contract SendTest is Test, BridgingSetup {
         vm.assume(transferAmount > INITIAL_TOKENS);
 
         address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
-        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
+        uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
         for (uint256 i = 0; i < bridges.length; i++) {
             // Expectation
@@ -153,11 +152,11 @@ contract SendTest is Test, BridgingSetup {
         vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS);
 
         address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
-        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
+        uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
         for (uint256 i = 0; i < bridges.length; i++) {
             // Expectation
-            vm.expectRevert("ERC20: insufficient allowance");
+            vm.expectRevert("ERC20: insufficient allowance.");
 
             // Act: cannot spend without allowance
             IUSXAdmin(address(usx_proxy)).sendFrom(
@@ -176,7 +175,7 @@ contract SendTest is Test, BridgingSetup {
         );
 
         address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
-        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
+        uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
         for (uint256 i = 0; i < bridges.length; i++) {
             // Expectations
@@ -196,7 +195,7 @@ contract SendTest is Test, BridgingSetup {
 
         uint256 id = vm.snapshot();
         address[2] memory bridges = [address(wormhole_bridge), address(layer_zero_bridge)];
-        uint16[2] memory chainIds = [TEST_WORM_CHAIN_ID, TEST_LZ_CHAIN_ID];
+        uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
         bool[2] memory privileges = [true, true];
 
         // Iterate through privileges, each time revoking privileges for only one bridge

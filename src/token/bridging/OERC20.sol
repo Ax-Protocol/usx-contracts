@@ -9,6 +9,7 @@ import "../interfaces/IBridge.sol";
 import "../../common/interfaces/IOERC20.sol";
 
 abstract contract OERC20 is IOERC20, ERC165, UERC20, InitOwnable {
+    // Storage Variables: follow storage slot restrictions
     mapping(address => bool) public transferPrivileges;
 
     error Paused();
@@ -45,7 +46,7 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, InitOwnable {
     function _spendAllowance(address owner, address spender, uint256 amount) internal virtual {
         uint256 currentAllowance = allowance[owner][spender];
         if (currentAllowance != type(uint256).max) {
-            require(currentAllowance >= amount, "ERC20: insufficient allowance");
+            require(currentAllowance >= amount, "ERC20: insufficient allowance.");
             unchecked {
                 allowance[owner][spender] = currentAllowance - amount;
             }

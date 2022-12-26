@@ -74,7 +74,7 @@ abstract contract TreasurySetup is Test {
     }
 }
 
-contract FundingHelper is Test, TreasurySetup {
+contract FundingHelper is TreasurySetup {
     function _mintForTest(address _tokenAddress, uint256 _amount) internal {
         vm.startPrank(TEST_USER);
         deal(_tokenAddress, TEST_USER, _amount);
@@ -84,7 +84,7 @@ contract FundingHelper is Test, TreasurySetup {
     }
 }
 
-contract RedeemHelper is Test, FundingHelper {
+contract RedeemHelper is FundingHelper {
     function _mintForTestCurveMocked(address _tokenAddress, uint256 _amount) internal {
         // Mock Curve
         vm.mockCall(
@@ -137,7 +137,7 @@ contract RedeemHelper is Test, FundingHelper {
     }
 }
 
-contract MintHelper is Test, TreasurySetup {
+contract MintHelper is TreasurySetup {
     function _calculateMintAmount(uint256 index, uint256 amount, address coin)
         internal
         returns (uint256 mintAmount, uint256 lpTokens)

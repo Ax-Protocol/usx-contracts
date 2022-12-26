@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "../../../../src/token/USX.sol";
 import "./../common/TestSetup.t.sol";
 import "../../../../src/proxy/ERC1967Proxy.sol";
@@ -10,7 +9,7 @@ import "../../../../src/common/interfaces/IUSXAdmin.sol";
 
 import "../../../common/Constants.t.sol";
 
-contract TreasuryPrivilegesTest is Test, SupplyRegulationSetup {
+contract TreasuryPrivilegesTest is SupplyRegulationSetup {
     /// @dev Integration tests.
 
     function test_manageTreasuries_mint_integration() public {

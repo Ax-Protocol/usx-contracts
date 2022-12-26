@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
 import "./common/TestSetup.t.sol";
 import "../common/Constants.t.sol";
 import "../../src/treasury/interfaces/ITreasuryAdmin.sol";
 import "../../src/treasury/interfaces/ICvxMining.sol";
 import "../../src/treasury/interfaces/IVirtualBalanceRewardPool.sol";
 
-contract AdminTest is Test, TreasurySetup, FundingHelper {
+contract AdminTest is FundingHelper {
     function test_addSupportedStable() public {
         // Test Variables
         int128 testCurveIndex = 0;
