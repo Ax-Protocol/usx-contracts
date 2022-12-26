@@ -233,7 +233,7 @@ contract AdminTest is Test {
         IWormholeBridge(address(wormhole_bridge)).extractNative();
     }
 
-    function test_setSendFees(uint256 fee) public {
+    function test_setSendFees_update_all(uint256 fee) public {
         // Assumptions
         vm.assume(fee >= 1e15 && fee < 5e16);
 
@@ -261,7 +261,7 @@ contract AdminTest is Test {
         }
     }
 
-    function test_setSendFees_only_zeros(uint256 fee) public {
+    function test_setSendFees_update_some(uint256 fee) public {
         // Assumptions
         vm.assume(fee >= 1e15 && fee < 5e16);
 
@@ -294,7 +294,7 @@ contract AdminTest is Test {
             if (fees[i] == 0) {
                 assertEq(destFee, old_fees[i]);
             } else {
-                assertEq(destFee, old_fees[i] * 2);
+                assertEq(destFee, fees[i]);
             }
         }
     }

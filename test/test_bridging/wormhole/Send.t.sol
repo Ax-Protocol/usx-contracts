@@ -13,7 +13,7 @@ contract WormholeSendTest is Test, BridgingSetup {
         assertEq(wormhole_bridge.usx(), address(usx_proxy));
     }
 
-    function test_7_sendMessage(uint256 transferAmount, uint256 gasFee) public {
+    function test_sendMessage(uint256 transferAmount, uint256 gasFee) public {
         // Setup
         uint256 iterations = 3;
         vm.startPrank(address(usx_proxy));
@@ -60,7 +60,7 @@ contract WormholeSendTest is Test, BridgingSetup {
         // Expectations
         vm.expectRevert("Not enough native token for gas.");
 
-        // Act: gasFee is less than rquired destGasFee
+        // Act: gasFee is less than required destGasFee
         IBridge(address(wormhole_bridge)).sendMessage{value: gasFee}(
             payable(address(this)), TEST_WORM_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
         );

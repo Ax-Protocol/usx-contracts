@@ -71,7 +71,7 @@ contract SendTest is Test, BridgingSetup {
         // Expectations
         vm.expectRevert("Not enough native token for gas.");
 
-        // Act: gasFee is less than rquired destGasFee
+        // Act: gasFee is less than required destGasFee
         IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
             address(wormhole_bridge),
             payable(address(this)),
