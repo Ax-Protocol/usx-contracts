@@ -22,6 +22,10 @@ abstract contract BridgingSetup is Test {
     uint16 constant TEST_LZ_CHAIN_ID = 109;
     uint16 constant TEST_WORM_CHAIN_ID = 5;
 
+    // Test Variables
+    uint16[] public destChainIds;
+    uint256[] public fees;
+
     // Events
     event ReceiveFromChain(
         uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
@@ -55,10 +59,26 @@ abstract contract BridgingSetup is Test {
         wormhole_bridge.manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
         wormhole_bridge.manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
 
+        // Set Destination Gas Fees for Wormhole
+        setDestinationFees();
+
         // Grant Transfer privliges
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
             [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
         );
+    }
+
+    function setDestinationFees() internal {
+        // Setup
+        uint256 testCases = 5;
+
+        for (uint256 i = 1; i < (testCases + 1); i++) {
+            destChainIds.push(uint16(i));
+            fees.push(i * 1e15);
+        }
+
+        // Act: update
+        wormhole_bridge.setSendFees(destChainIds, fees);
     }
 
     // Need this to receive funds from layer zero
