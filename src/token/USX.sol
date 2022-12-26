@@ -18,8 +18,8 @@ contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
     mapping(address => TreasuryPrivileges) public treasuries;
 
     function initialize() public initializer {
-        _ERC20_init("USX", "USX");
-        _Ownable_init();
+        __ERC20_init("USX", "USX");
+        __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
     }
 

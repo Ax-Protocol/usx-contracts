@@ -2,7 +2,7 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "./../../common/TestHelpers.t.sol";
+import "./../../common/TestSetup.t.sol";
 
 import "../../../../src/treasury/interfaces/IBaseRewardPool.sol";
 import "../../../../src/common/interfaces/IERC20.sol";

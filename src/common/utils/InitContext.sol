@@ -15,9 +15,9 @@ import "./Initializable.sol";
  * This contract is only required for intermediate, library-like contracts.
  */
 abstract contract InitContext is Initializable {
-    function _Context_init() internal onlyInitializing {}
+    function __Context_init() internal onlyInitializing {}
 
-    function _Context_init_unchained() internal onlyInitializing {}
+    function ___Context_init_unchained() internal onlyInitializing {}
 
     function _msgSender() internal view virtual returns (address) {
         return msg.sender;

@@ -46,7 +46,7 @@ contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
     event Redemption(address indexed account, uint256 amount);
 
     function initialize(address _usx) public initializer {
-        _Ownable_init();
+        __Ownable_init();
         /// @dev No constructor, so initialize Ownable explicitly.
         usx = _usx;
     }

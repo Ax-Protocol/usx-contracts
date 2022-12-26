@@ -20,7 +20,7 @@ import "../../libraries/Address.sol";
  * ```
  * contract MyToken is ERC20Upgradeable {
  * function initialize() initializer public {
- * _ERC20_init("MyToken", "MTK");
+ * __ERC20_init("MyToken", "MTK");
  * }
  * }
  * contract MyTokenV2 is MyToken, ERC20PermitUpgradeable {

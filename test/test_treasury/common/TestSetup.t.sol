@@ -84,7 +84,7 @@ contract FundingHelper is Test, TreasurySetup {
     }
 }
 
-contract RedeemHelper is Test, TreasurySetup, FundingHelper {
+contract RedeemHelper is Test, FundingHelper {
     function _mintForTestCurveMocked(address _tokenAddress, uint256 _amount) internal {
         // Mock Curve
         vm.mockCall(

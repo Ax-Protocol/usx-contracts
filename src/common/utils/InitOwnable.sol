@@ -25,11 +25,11 @@ abstract contract InitOwnable is Initializable, InitContext {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    function _Ownable_init() internal onlyInitializing {
-        _Ownable_init_unchained();
+    function __Ownable_init() internal onlyInitializing {
+        __Ownable_init_unchained();
     }
 
-    function _Ownable_init_unchained() internal onlyInitializing {
+    function __Ownable_init_unchained() internal onlyInitializing {
         _transferOwnership(_msgSender());
     }
 
