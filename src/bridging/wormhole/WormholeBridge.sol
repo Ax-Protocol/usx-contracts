@@ -35,7 +35,7 @@ contract WormholeBridge is Ownable {
         returns (uint64 sequence)
     {
         require(msg.sender == usx, "Unauthorized.");
-        require(msg.value >= sendFeeLookup[_dstChainId], "Not enough native token.");
+        require(msg.value >= sendFeeLookup[_dstChainId], "Not enough native token for gas.");
 
         sequence = _publishMessage(_from, _dstChainId, _toAddress, _amount);
 
