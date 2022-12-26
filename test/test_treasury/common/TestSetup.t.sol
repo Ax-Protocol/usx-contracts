@@ -19,8 +19,7 @@ abstract contract TreasurySetup is Test {
     ERC1967Proxy public treasury_proxy;
     ERC1967Proxy public usx_proxy;
 
-    // Test Constants
-    uint8 public constant PID_3POOL = 9;
+    // Addresses (Ethereum)
     address constant STABLE_SWAP_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     address constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
     address constant CVX_3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
@@ -36,6 +35,8 @@ abstract contract TreasurySetup is Test {
     address constant TEST_STABLE = 0xaD37Cd49a9dd24BE734212AEFA1b862ead92eEF2;
     address[4] TEST_COINS = [DAI, USDC, USDT, _3CRV];
 
+    // Integers
+    uint8 public constant PID_3POOL = 9;
     uint256 constant ONE_WEEK = 604800;
     uint256 constant CRV_AMOUNT = 1e18;
     uint256 constant CVX_AMOUNT = 1e18;

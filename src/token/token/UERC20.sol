@@ -44,7 +44,7 @@ abstract contract UERC20 is Initializable, InitContext, IERC20Metadata {
      * construction.
      */
     function __ERC20_init(string memory name_, string memory symbol_) internal initializer {
-        ___Context_init_unchained();
+        __Context_init_unchained();
         __ERC20_init_unchained(name_, symbol_);
     }
 
