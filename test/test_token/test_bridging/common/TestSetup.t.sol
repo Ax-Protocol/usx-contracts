@@ -60,7 +60,7 @@ abstract contract BridgingSetup is Test {
         );
 
         // Set Trusted Entities for Wormhole
-        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
 
         // Set Destination Gas Fees for Wormhole

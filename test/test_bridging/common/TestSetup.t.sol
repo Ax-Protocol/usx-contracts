@@ -60,15 +60,15 @@ abstract contract BridgingSetup is Test {
         );
 
         // Set Trusted Entities for Wormhole
-        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
 
         // Set Destination Gas Fees for Wormhole
         _setDestinationFees();
 
-        // Grant Transfer privliges
+        // Grant Transfer priviliges
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
     }
 

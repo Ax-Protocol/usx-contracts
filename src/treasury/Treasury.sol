@@ -338,6 +338,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         IBaseRewardPool(cvx3CrvBaseRewardPool).getReward();
     }
 
+    receive() external payable {}
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage slots in the inheritance chain.

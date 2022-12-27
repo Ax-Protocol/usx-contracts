@@ -30,12 +30,12 @@ contract AdminTest is Test {
     }
 
     function test_manageTrustedContracts() public {
-        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedContracts(TEST_TRUSTED_EMITTER_ADDRESS), false);
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedContracts(TEST_TRUSTED_EMITTER), false);
 
         // Act
-        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
 
-        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedContracts(TEST_TRUSTED_EMITTER_ADDRESS), true);
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedContracts(TEST_TRUSTED_EMITTER), true);
     }
 
     function testCannot_manageTrustedContracts_unauthorized(address sender) public {
@@ -45,7 +45,7 @@ contract AdminTest is Test {
 
         // Act
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
     }
 
     function test_manageTrustedRelayers() public {

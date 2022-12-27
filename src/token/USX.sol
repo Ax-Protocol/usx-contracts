@@ -87,6 +87,8 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
         treasuries[msg.sender] = TreasuryPrivileges(false, false);
     }
 
+    receive() external payable {}
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage slots in the inheritance chain.

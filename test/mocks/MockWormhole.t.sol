@@ -18,7 +18,7 @@ contract WormholeHelper {
             timestamp: 1670023605,
             nonce: 0,
             emitterChainId: TEST_WORMHOLE_CHAIN_ID,
-            emitterAddress: TEST_TRUSTED_EMITTER_ADDRESS,
+            emitterAddress: TEST_TRUSTED_EMITTER,
             sequence: 0,
             consistencyLevel: 200,
             payload: abi.encode(abi.encodePacked(TEST_USER), 1, abi.encodePacked(TEST_USER), transferAmount),

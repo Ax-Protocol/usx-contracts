@@ -139,6 +139,8 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         payable(msg.sender).transfer(address(this).balance);
     }
 
+    receive() external payable {}
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage slots in the inheritance chain.
