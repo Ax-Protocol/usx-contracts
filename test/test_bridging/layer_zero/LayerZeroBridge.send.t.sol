@@ -9,7 +9,7 @@ import "../../common/Constants.t.sol";
 
 contract LayerZeroSendTest is BridgingSetup {
     function test_setUp() public {
-        assertEq(ILayerZeroBridge(address(layer_zero_bridge_proxy)).usx(), address(usx_proxy)); // FIXME
+        assertEq(ILayerZeroBridge(address(layer_zero_bridge_proxy)).usx(), address(usx_proxy));
     }
 
     function test_sendMessage(uint256 transferAmount) public {

@@ -9,9 +9,9 @@ import "../interfaces/IWormhole.sol";
 import "../../common/interfaces/IUSX.sol";
 
 contract WormholeBridge is Ownable, UUPSUpgradeable {
+    // Storage Variables: follow storage slot restrictions
     IWormhole public wormholeCoreBridge;
     address public usx;
-
     mapping(uint16 => uint256) public sendFeeLookup;
     mapping(bytes32 => bool) public trustedContracts;
     mapping(address => bool) public trustedRelayers;
@@ -184,4 +184,12 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
             }
         }
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage slots in the inheritance chain.
+     * Storage slot management is necessary, as we're using an upgradable proxy contract.
+     * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

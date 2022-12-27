@@ -8,11 +8,11 @@ import "../../proxy/UUPSUpgradeable.sol";
 import "../../common/interfaces/IUSX.sol";
 
 contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
-    // Constants
-    uint256 public constant NO_EXTRA_GAS = 0; // no SLOAD
-    uint256 public constant FUNCTION_TYPE_SEND = 1; // no SLOAD
+    // Constants: no SLOAD
+    uint256 public constant NO_EXTRA_GAS = 0;
+    uint256 public constant FUNCTION_TYPE_SEND = 1;
 
-    // Storage Variables
+    // Storage Variables: follow storage slot restrictions
     bool public useCustomAdapterParams;
     address public usx;
 
@@ -138,4 +138,12 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     function extractNative() public onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage slots in the inheritance chain.
+     * Storage slot management is necessary, as we're using an upgradable proxy contract.
+     * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

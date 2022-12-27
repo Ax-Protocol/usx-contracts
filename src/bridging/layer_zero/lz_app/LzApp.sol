@@ -10,6 +10,7 @@ import "../../interfaces/ILayerZeroReceiver.sol";
  * a generic LzReceiver implementation
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
+    // Storage Variables: follow storage slot restrictions
     ILayerZeroEndpoint public lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint256 => uint256)) public minDstGasLookup;
