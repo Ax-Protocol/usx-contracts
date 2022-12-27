@@ -8,15 +8,19 @@ import "../../../../src/bridging/layer_zero/LayerZeroBridge.sol";
 import "../../../../src/proxy/ERC1967Proxy.sol";
 
 import "../../../../src/common/interfaces/IUSXAdmin.sol";
+import "../../../../src/bridging/interfaces/IWormholeBridge.sol";
+import "../../../../src/bridging/interfaces/ILayerZeroBridge.sol";
 
 import "../../../common/Constants.t.sol";
 
 abstract contract BridgingSetup is Test {
     // Test Contracts
     USX public usx_implementation;
-    ERC1967Proxy public usx_proxy;
     LayerZeroBridge public layer_zero_bridge;
     WormholeBridge public wormhole_bridge;
+    ERC1967Proxy public usx_proxy;
+    ERC1967Proxy public wormhole_bridge_proxy;
+    ERC1967Proxy public layer_zero_bridge_proxy;
 
     // Test Variables
     uint16[] public destChainIds;
@@ -34,33 +38,37 @@ abstract contract BridgingSetup is Test {
         usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
 
         // Deploy Bridge contracts
-        wormhole_bridge = new WormholeBridge(WORMHOLE_CORE_BRIDGE, address(usx_proxy));
-        layer_zero_bridge = new LayerZeroBridge(LZ_ENDPOINT, address(usx_proxy));
+        wormhole_bridge = new WormholeBridge();
+        wormhole_bridge_proxy =
+        new ERC1967Proxy(address(wormhole_bridge), abi.encodeWithSignature("initialize(address,address)", WORMHOLE_CORE_BRIDGE, address(usx_proxy)));
+        layer_zero_bridge = new LayerZeroBridge();
+        layer_zero_bridge_proxy =
+        new ERC1967Proxy(address(layer_zero_bridge), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, address(usx_proxy)));
 
         // Set Treasury admins
         IUSXAdmin(address(usx_proxy)).manageTreasuries(TREASURY, true, true);
-        IUSXAdmin(address(usx_proxy)).manageTreasuries(address(wormhole_bridge), true, false);
-        IUSXAdmin(address(usx_proxy)).manageTreasuries(address(layer_zero_bridge), true, false);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(address(wormhole_bridge_proxy), true, false);
+        IUSXAdmin(address(usx_proxy)).manageTreasuries(address(layer_zero_bridge_proxy), true, false);
 
         // Mint initial Tokens
         vm.prank(TREASURY);
         IUSXAdmin(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
 
         // Set Trusted Remote for LayerZero
-        layer_zero_bridge.setTrustedRemote(
-            TEST_LZ_CHAIN_ID, abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge))
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).setTrustedRemote(
+            TEST_LZ_CHAIN_ID, abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy))
         );
 
         // Set Trusted Entities for Wormhole
-        wormhole_bridge.manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
-        wormhole_bridge.manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
 
         // Set Destination Gas Fees for Wormhole
         _setDestinationFees();
 
         // Grant Transfer privliges
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
     }
 
@@ -74,7 +82,7 @@ abstract contract BridgingSetup is Test {
         }
 
         // Act: update
-        wormhole_bridge.setSendFees(destChainIds, fees);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
     }
 
     // Need this to receive funds from layer zero

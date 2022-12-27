@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import "../../utils/Ownable.sol";
+import "../../../common/utils/Ownable.sol";
 import "../../interfaces/ILayerZeroEndpoint.sol";
 import "../../interfaces/ILayerZeroReceiver.sol";
 
@@ -10,14 +10,18 @@ import "../../interfaces/ILayerZeroReceiver.sol";
  * a generic LzReceiver implementation
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    ILayerZeroEndpoint public immutable lzEndpoint; // no SLOAD
+    ILayerZeroEndpoint public lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint256 => uint256)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
     event SetMinDstGasLookup(uint16 _dstChainId, uint256 _type, uint256 _dstGasAmount);
 
-    constructor(address _lzEndpoint) {
+    function __LzApp_init(address _endpoint) internal initializer {
+        __LzApp_init_unchained(_endpoint);
+    }
+
+    function __LzApp_init_unchained(address _lzEndpoint) internal initializer {
         lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
     }
 

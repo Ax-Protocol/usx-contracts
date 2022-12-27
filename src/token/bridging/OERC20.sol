@@ -4,11 +4,11 @@ pragma solidity >=0.8.0;
 
 import "../introspection/ERC165.sol";
 import "../token/UERC20.sol";
-import "../../common/utils/InitOwnable.sol";
+import "../../common/utils/Ownable.sol";
 import "../interfaces/IBridge.sol";
 import "../../common/interfaces/IOERC20.sol";
 
-abstract contract OERC20 is IOERC20, ERC165, UERC20, InitOwnable {
+abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
     // Storage Variables: follow storage slot restrictions
     mapping(address => bool) public transferPrivileges;
 

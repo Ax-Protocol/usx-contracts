@@ -13,10 +13,10 @@ contract LayerZeroReceiveTest is BridgingSetup {
         vm.assume(transferAmount <= INITIAL_TOKENS);
 
         // Expectations
-        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+        vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
         emit ReceiveFromChain(
             TEST_LZ_CHAIN_ID,
-            abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge)),
+            abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)),
             address(this),
             transferAmount
             );
@@ -35,9 +35,9 @@ contract LayerZeroReceiveTest is BridgingSetup {
 
         // Act: send message, pranking as Layer Zero's contract
         vm.prank(LZ_ENDPOINT);
-        ILayerZeroBridge(address(layer_zero_bridge)).lzReceive(
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).lzReceive(
             TEST_LZ_CHAIN_ID,
-            abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge)),
+            abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)),
             1,
             abi.encode(abi.encodePacked(address(this)), transferAmount)
         );
@@ -65,9 +65,9 @@ contract LayerZeroReceiveTest is BridgingSetup {
 
         // Act: wrong prank
         vm.prank(sender);
-        ILayerZeroBridge(address(layer_zero_bridge)).lzReceive(
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).lzReceive(
             TEST_LZ_CHAIN_ID,
-            abi.encodePacked(address(layer_zero_bridge), address(layer_zero_bridge)),
+            abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)),
             1,
             abi.encode(abi.encodePacked(address(this)), transferAmount)
         );
@@ -76,14 +76,14 @@ contract LayerZeroReceiveTest is BridgingSetup {
     function testCannot_lzReceive_invalid_source_address(uint256 transferAmount, address sourceAddress) public {
         // Assumptions
         vm.assume(transferAmount <= INITIAL_TOKENS);
-        vm.assume(sourceAddress != address(layer_zero_bridge));
+        vm.assume(sourceAddress != address(layer_zero_bridge_proxy));
 
         // Expectation
         vm.expectRevert("LzApp: invalid source sending contract");
 
         // Act: source address not layer zero bridge
         vm.prank(LZ_ENDPOINT);
-        ILayerZeroBridge(address(layer_zero_bridge)).lzReceive(
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).lzReceive(
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(sourceAddress, sourceAddress),
             1,

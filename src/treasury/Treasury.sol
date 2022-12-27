@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 // Contracts
 import "solmate/utils/SafeTransferLib.sol";
 import "../proxy/UUPSUpgradeable.sol";
-import "../common/utils/InitOwnable.sol";
+import "../common/utils/Ownable.sol";
 
 // Interfaces
 import "./interfaces/ICurve3Pool.sol";
@@ -16,7 +16,7 @@ import "./interfaces/ITreasury.sol";
 import "../common/interfaces/IERC20.sol";
 import "../common/interfaces/IUSXAdmin.sol";
 
-contract Treasury is InitOwnable, UUPSUpgradeable, ITreasury {
+contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     // Constants: no SLOAD to save gas
     address public constant backingToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
     address public constant curve3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;

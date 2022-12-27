@@ -3,13 +3,14 @@
 pragma solidity >=0.8.0;
 
 import "solmate/utils/SafeTransferLib.sol";
-import "../utils/Ownable.sol";
+import "../../common/utils/Ownable.sol";
+import "../../proxy/UUPSUpgradeable.sol";
 import "../interfaces/IWormhole.sol";
 import "../../common/interfaces/IUSX.sol";
 
-contract WormholeBridge is Ownable {
-    IWormhole public immutable wormholeCoreBridge; // no SLOAD
-    address public immutable usx; // no SLOAD
+contract WormholeBridge is Ownable, UUPSUpgradeable {
+    IWormhole public wormholeCoreBridge;
+    address public usx;
 
     mapping(uint16 => uint256) public sendFeeLookup;
     mapping(bytes32 => bool) public trustedContracts;
@@ -24,10 +25,15 @@ contract WormholeBridge is Ownable {
         uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
     );
 
-    constructor(address _wormholeCoreBridge, address _usx) {
+    function initialize(address _wormholeCoreBridge, address _usx) public initializer {
+        /// @dev No constructor, so initialize Ownable explicitly.
+        __Ownable_init();
         wormholeCoreBridge = IWormhole(_wormholeCoreBridge);
         usx = _usx;
     }
+
+    /// @dev Required by the UUPS module.
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external

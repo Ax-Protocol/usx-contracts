@@ -16,19 +16,22 @@ contract AdminTest is Test {
     USX public usx_implementation;
     ERC1967Proxy public usx_proxy;
     LayerZeroBridge public layer_zero_bridge;
+    ERC1967Proxy public layer_zero_bridge_proxy;
 
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
-        layer_zero_bridge = new LayerZeroBridge(LZ_ENDPOINT, address(usx_proxy));
+        layer_zero_bridge = new LayerZeroBridge();
+        layer_zero_bridge_proxy =
+        new ERC1967Proxy(address(layer_zero_bridge), abi.encodeWithSignature("initialize(address,address)", LZ_ENDPOINT, address(usx_proxy)));
     }
 
     function test_setUseCustomAdapterParams() public {
-        assertEq(ILayerZeroBridge(address(layer_zero_bridge)).useCustomAdapterParams(), false);
+        assertEq(ILayerZeroBridge(address(layer_zero_bridge_proxy)).useCustomAdapterParams(), false);
 
-        ILayerZeroBridge(address(layer_zero_bridge)).setUseCustomAdapterParams(true);
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).setUseCustomAdapterParams(true);
 
-        assertEq(ILayerZeroBridge(address(layer_zero_bridge)).useCustomAdapterParams(), true);
+        assertEq(ILayerZeroBridge(address(layer_zero_bridge_proxy)).useCustomAdapterParams(), true);
     }
 
     function testCannot_setUseCustomAdapterParams_unauthorized(address sender) public {
@@ -37,7 +40,7 @@ contract AdminTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(sender);
-        ILayerZeroBridge(address(layer_zero_bridge)).setUseCustomAdapterParams(true);
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).setUseCustomAdapterParams(true);
     }
 
     function test_extractERC20(uint256 amount) public {
@@ -54,25 +57,25 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
-        deal(DAI, address(layer_zero_bridge), amount);
-        deal(USDC, address(layer_zero_bridge), amount);
-        deal(USDT, address(layer_zero_bridge), amount);
-        deal(_3CRV, address(layer_zero_bridge), amount);
+        deal(DAI, address(layer_zero_bridge_proxy), amount);
+        deal(USDC, address(layer_zero_bridge_proxy), amount);
+        deal(USDT, address(layer_zero_bridge_proxy), amount);
+        deal(_3CRV, address(layer_zero_bridge_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Pre-action assertions
             assertEq(
-                IERC20(COINS[i]).balanceOf(address(layer_zero_bridge)),
+                IERC20(COINS[i]).balanceOf(address(layer_zero_bridge_proxy)),
                 amount,
                 "Equivalence violation: treausury ERC20 token balance and amount."
             );
 
             // Act
-            ILayerZeroBridge(address(layer_zero_bridge)).extractERC20(COINS[i]);
+            ILayerZeroBridge(address(layer_zero_bridge_proxy)).extractERC20(COINS[i]);
 
             // Post-action assertions
             assertEq(
-                IERC20(COINS[i]).balanceOf(address(layer_zero_bridge)),
+                IERC20(COINS[i]).balanceOf(address(layer_zero_bridge_proxy)),
                 0,
                 "Equivalence violation: treausury ERC20 token balance is not zero."
             );
@@ -99,10 +102,10 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
-        deal(DAI, address(layer_zero_bridge), amount);
-        deal(USDC, address(layer_zero_bridge), amount);
-        deal(USDT, address(layer_zero_bridge), amount);
-        deal(_3CRV, address(layer_zero_bridge), amount);
+        deal(DAI, address(layer_zero_bridge_proxy), amount);
+        deal(USDC, address(layer_zero_bridge_proxy), amount);
+        deal(USDT, address(layer_zero_bridge_proxy), amount);
+        deal(_3CRV, address(layer_zero_bridge_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Exptectations
@@ -110,20 +113,20 @@ contract AdminTest is Test {
 
             // Act: pranking as other addresses
             vm.prank(sender);
-            ILayerZeroBridge(address(layer_zero_bridge)).extractERC20(COINS[i]);
+            ILayerZeroBridge(address(layer_zero_bridge_proxy)).extractERC20(COINS[i]);
         }
     }
 
     function test_extractNative(uint256 amount) public {
         // Setup
         vm.assume(amount > 0 && amount < 1e22);
-        vm.deal(address(layer_zero_bridge), amount);
+        vm.deal(address(layer_zero_bridge_proxy), amount);
 
-        assertEq(address(layer_zero_bridge).balance, amount, "Equivalence violation: remote balance and amount");
+        assertEq(address(layer_zero_bridge_proxy).balance, amount, "Equivalence violation: remote balance and amount");
 
         uint256 preLocalBalance = address(this).balance;
 
-        ILayerZeroBridge(address(layer_zero_bridge)).extractNative();
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).extractNative();
 
         assertEq(address(this).balance, preLocalBalance + amount, "Equivalence violation: local balance and amount");
     }
@@ -132,13 +135,13 @@ contract AdminTest is Test {
         // Setup
         vm.assume(amount > 0 && amount < 1e22);
         vm.assume(sender != address(this));
-        vm.deal(address(layer_zero_bridge), amount);
+        vm.deal(address(layer_zero_bridge_proxy), amount);
 
         // Exptectations
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(sender);
-        ILayerZeroBridge(address(layer_zero_bridge)).extractNative();
+        ILayerZeroBridge(address(layer_zero_bridge_proxy)).extractNative();
     }
 
     receive() external payable {}

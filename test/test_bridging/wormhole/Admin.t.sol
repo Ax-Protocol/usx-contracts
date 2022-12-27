@@ -129,7 +129,8 @@ contract AdminTest is Test {
 
     function test_extractERC20(uint256 amount) public {
         // Test Variables
-        address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
+        address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
+        address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
 
         // Assumptions
         for (uint256 i = 0; i < COINS.length; i++) {
@@ -141,10 +142,10 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
+        deal(CVX_3RCV, address(wormhole_bridge_proxy), amount);
         deal(DAI, address(wormhole_bridge_proxy), amount);
         deal(USDC, address(wormhole_bridge_proxy), amount);
         deal(USDT, address(wormhole_bridge_proxy), amount);
-        deal(_3CRV, address(wormhole_bridge_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Pre-action assertions
@@ -173,7 +174,8 @@ contract AdminTest is Test {
 
     function testCannot_extractERC20_unauthorized(address sender, uint256 amount) public {
         // Test Variables
-        address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
+        address CVX_3RCV = 0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C;
+        address[4] memory COINS = [DAI, USDC, USDT, CVX_3RCV];
 
         // Assumptions
         vm.assume(sender != address(this));
@@ -186,10 +188,10 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
+        deal(CVX_3RCV, address(wormhole_bridge_proxy), amount);
         deal(DAI, address(wormhole_bridge_proxy), amount);
         deal(USDC, address(wormhole_bridge_proxy), amount);
         deal(USDT, address(wormhole_bridge_proxy), amount);
-        deal(_3CRV, address(wormhole_bridge_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Exptectations
@@ -243,7 +245,7 @@ contract AdminTest is Test {
         // Pre-action assertions
         for (uint256 i = 0; i < destChainIds.length; i++) {
             uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
-            assertEq(destFee, 0, "Equivalence violation: destFee should be 0, but it's not.");
+            assertEq(destFee, 0);
         }
 
         // Act: update
@@ -252,7 +254,7 @@ contract AdminTest is Test {
         // Post-action assertions
         for (uint256 i = 0; i < destChainIds.length; i++) {
             uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
-            assertEq(destFee, fees[i], "Equivalence violation: destFee and updated fee.");
+            assertEq(destFee, fees[i]);
         }
     }
 
@@ -287,9 +289,9 @@ contract AdminTest is Test {
         for (uint256 i = 0; i < fees.length; i++) {
             uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             if (fees[i] == 0) {
-                assertEq(destFee, old_fees[i], "Equivalence violation: destFee and old fee.");
+                assertEq(destFee, old_fees[i]);
             } else {
-                assertEq(destFee, fees[i], "Equivalence violation: destFee and updated fee.");
+                assertEq(destFee, fees[i]);
             }
         }
     }

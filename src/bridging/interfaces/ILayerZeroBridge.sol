@@ -5,6 +5,10 @@ import "./ILayerZeroReceiver.sol";
 
 interface ILayerZeroBridge is ILayerZeroReceiver {
     //Admin functions
+    function usx() external returns (address);
+
+    function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external;
+
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external;
 
     function useCustomAdapterParams() external returns (bool);

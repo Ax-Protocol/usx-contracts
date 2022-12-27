@@ -4,30 +4,31 @@ pragma solidity ^0.8.16;
 import "../common/TestSetup.t.sol";
 
 import "../../../src/bridging/interfaces/IWormhole.sol";
+import "../../../src/bridging/interfaces/IWormholeBridge.sol";
 import "../../../src/token/interfaces/IBridge.sol";
 
 import "../../common/Constants.t.sol";
 
 contract WormholeSendTest is BridgingSetup {
     function test_setUp() public {
-        assertEq(wormhole_bridge.usx(), address(usx_proxy));
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).usx(), address(usx_proxy));
     }
 
     function test_sendMessage(uint256 transferAmount, uint256 gasFee) public {
         // Setup
         uint256 iterations = 3;
         vm.startPrank(address(usx_proxy));
-        uint256 destGasFee = wormhole_bridge.sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
+        uint256 destGasFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
         gasFee = bound(gasFee, destGasFee, 5e16);
         vm.deal(address(usx_proxy), gasFee * iterations);
 
         for (uint256 i = 0; i < iterations; i++) {
             // Expectations
-            vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+            vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
             emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Act
-            uint64 sequence = IBridge(address(wormhole_bridge)).sendMessage{value: gasFee}(
+            uint64 sequence = IBridge(address(wormhole_bridge_proxy)).sendMessage{value: gasFee}(
                 payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
             );
 
@@ -45,7 +46,7 @@ contract WormholeSendTest is BridgingSetup {
 
         // Act: pranking as any non-USX address
         vm.prank(sender);
-        IBridge(address(wormhole_bridge)).sendMessage(
+        IBridge(address(wormhole_bridge_proxy)).sendMessage(
             payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
         );
     }
@@ -53,7 +54,7 @@ contract WormholeSendTest is BridgingSetup {
     function testCannot_sendMessage_not_enough_fees(uint256 transferAmount, uint256 gasFee) public {
         // Setup
         vm.startPrank(address(usx_proxy));
-        uint256 destGasFee = wormhole_bridge.sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
+        uint256 destGasFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
         vm.assume(gasFee > 0 && gasFee < destGasFee);
         vm.deal(address(usx_proxy), gasFee);
 
@@ -61,7 +62,7 @@ contract WormholeSendTest is BridgingSetup {
         vm.expectRevert("Not enough native token for gas.");
 
         // Act: gasFee is less than required destGasFee
-        IBridge(address(wormhole_bridge)).sendMessage{value: gasFee}(
+        IBridge(address(wormhole_bridge_proxy)).sendMessage{value: gasFee}(
             payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
         );
     }
