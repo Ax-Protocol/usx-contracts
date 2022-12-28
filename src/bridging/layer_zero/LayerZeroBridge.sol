@@ -4,14 +4,17 @@ pragma solidity >=0.8.0;
 
 import "solmate/utils/SafeTransferLib.sol";
 import "./lz_app/NonBlockingLzApp.sol";
+import "../../proxy/UUPSUpgradeable.sol";
 import "../../common/interfaces/IUSX.sol";
 
-contract LayerZeroBridge is NonBlockingLzApp {
-    uint256 public constant NO_EXTRA_GAS = 0; // no SLOAD
-    uint256 public constant FUNCTION_TYPE_SEND = 1; // no SLOAD
-    bool public useCustomAdapterParams;
+contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
+    // Constants: no SLOAD
+    uint256 public constant NO_EXTRA_GAS = 0;
+    uint256 public constant FUNCTION_TYPE_SEND = 1;
 
-    address public immutable usx; // no SLOAD
+    // Storage Variables: follow storage slot restrictions
+    bool public useCustomAdapterParams;
+    address public usx;
 
     // Events
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
@@ -20,9 +23,15 @@ contract LayerZeroBridge is NonBlockingLzApp {
     );
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    constructor(address _lzEndpoint, address _usx) NonBlockingLzApp(_lzEndpoint) {
+    function initialize(address _lzEndpoint, address _usx) public initializer {
+        /// @dev No constructor, so initialize Ownable explicitly.
+        __Ownable_init();
+        __NonBlockingLzApp_init_unchained(_lzEndpoint);
         usx = _usx;
     }
+
+    /// @dev Required by the UUPS module.
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external
@@ -129,4 +138,14 @@ contract LayerZeroBridge is NonBlockingLzApp {
     function extractNative() public onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
+
+    receive() external payable {}
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage slots in the inheritance chain.
+     * Storage slot management is necessary, as we're using an upgradable proxy contract.
+     * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

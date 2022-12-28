@@ -19,11 +19,11 @@ contract PauseIntegrationTest is BridgingSetup {
         uint256 BALANCE_AFTER_SECOND_TRANSFER = BALANCE_AFTER_FIRST_TRANSFER - transferAmount;
 
         // 1. Ensure Wormhole transfers work
-        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+        vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
         emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -43,14 +43,14 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 2. Pause
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [false, true]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [false, true]
         );
 
         // 3. Ensure Wormhole transfers are disabled
         vm.expectRevert(IUSXAdmin.Paused.selector);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -60,7 +60,7 @@ contract PauseIntegrationTest is BridgingSetup {
         // 4. Ensure Layer Zero transfers still work
         uint256 id = vm.snapshot();
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -81,15 +81,15 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 5. Unpause
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
 
         // 6. Ensure cross-chain transfers work again
-        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+        vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
         emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -116,11 +116,11 @@ contract PauseIntegrationTest is BridgingSetup {
         uint256 BALANCE_AFTER_SECOND_TRANSFER = BALANCE_AFTER_FIRST_TRANSFER - transferAmount;
 
         // 1. Ensure cross-chain transfers work
-        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+        vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
         emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -140,14 +140,14 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 2. Pause
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [true, false]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, false]
         );
 
         // 3. Ensure Layer Zero transfers are disabled
         vm.expectRevert(IUSXAdmin.Paused.selector);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -157,7 +157,7 @@ contract PauseIntegrationTest is BridgingSetup {
         // 4. Ensure Wormhole transfers still work
         uint256 id = vm.snapshot();
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -178,15 +178,15 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 5. Unpause
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
 
         // 6. Ensure Layer Zero transfers work again
-        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+        vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
         emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -213,12 +213,12 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 1. Ensure all messaging protocols' transfers work
         // Expectation
-        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+        vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
         emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         uint256 id_1 = vm.snapshot();
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -238,11 +238,11 @@ contract PauseIntegrationTest is BridgingSetup {
         vm.revertTo(id_1);
 
         // Expectation
-        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+        vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
         emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -262,14 +262,14 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 2. Pause
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [false, false]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [false, false]
         );
 
         // 3. Ensure all messaging protocols' transfers are disabled
         vm.expectRevert(IUSXAdmin.Paused.selector);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -279,7 +279,7 @@ contract PauseIntegrationTest is BridgingSetup {
         vm.expectRevert(IUSXAdmin.Paused.selector);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -288,16 +288,16 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // 4. Unpause
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
-            [address(wormhole_bridge), address(layer_zero_bridge)], [true, true]
+            [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
 
         // 5. Ensure all messaging protocols' transfers work again
-        vm.expectEmit(true, true, true, true, address(layer_zero_bridge));
+        vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
         emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         uint256 id_2 = vm.snapshot();
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(layer_zero_bridge),
+            address(layer_zero_bridge_proxy),
             payable(address(this)),
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(this)),
@@ -316,11 +316,11 @@ contract PauseIntegrationTest is BridgingSetup {
         );
         vm.revertTo(id_2);
 
-        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+        vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
         emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
         IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-            address(wormhole_bridge),
+            address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
             abi.encodePacked(address(this)),

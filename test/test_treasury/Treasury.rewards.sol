@@ -208,7 +208,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury staked CVX balance and amount."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             expectedRewardAmount,
             "Equivalence violation: treasury staked cvxCRV balance and expectedRewardAmount."
         );
@@ -266,7 +266,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury staked CVX balance and amount."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             0,
             "Equivalence violation: treasury staked cvxCRV balance is not zero."
         );
@@ -316,7 +316,7 @@ contract RewardsTest is FundingHelper {
         ITreasuryAdmin(address(treasury_proxy)).claimRewardCvx(false);
     }
 
-    /// @dev Test that contract admins can deposit CRV into CRV_DEPOSITOR, convert the CRV to cvxCRV, and stake the corresponding cvxCRV into CVX_CRV_BASE_REWARD_POOL.
+    /// @dev Test that contract admins can deposit CRV into CRV_DEPOSITOR, convert the CRV to cvxCRV, and stake the corresponding cvxCRV into CVXCRV_BASE_REWARD_POOL.
     function test_stakeCrv(uint256 amount) public {
         // Assumptions
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
@@ -331,7 +331,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury CRV balance and amount."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             0,
             "Equivalence violation: treasury staked cvxCRV balance is not zero."
         );
@@ -346,7 +346,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury CRV balance is not zero."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvxCRV balance and amount."
         );
@@ -380,7 +380,7 @@ contract RewardsTest is FundingHelper {
         ITreasuryAdmin(address(treasury_proxy)).stakeCrv(stakeAmount);
     }
 
-    /// @dev Test that contract admins can withdraw all staked cvxCRV from CVX_CRV_BASE_REWARD_POOL, and claim all unclaimed CVX, CRV, and 3CRV rewards.
+    /// @dev Test that contract admins can withdraw all staked cvxCRV from CVXCRV_BASE_REWARD_POOL, and claim all unclaimed CVX, CRV, and 3CRV rewards.
     function test_unstakeCvxCrv(uint256 amount) public {
         // Assumptions
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
@@ -393,7 +393,7 @@ contract RewardsTest is FundingHelper {
         skip(ONE_WEEK);
 
         // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
+        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
         uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
         uint256 expected3CrvRewardAmount =
             IVirtualBalanceRewardPool(VIRTUAL_BALANCE_REWARD_POOL).earned(address(treasury_proxy));
@@ -420,7 +420,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury 3CRV balance is not zero."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvxCRV balance and amount."
         );
@@ -450,7 +450,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury 3CRV balance and expected3CrvRewardAmount."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             0,
             "Equivalence violation: treasury staked cvxCRV balance is not zero."
         );
@@ -487,7 +487,7 @@ contract RewardsTest is FundingHelper {
         ITreasuryAdmin(address(treasury_proxy)).unstakeCvxCrv(amount);
     }
 
-    /// @dev Test that contract admins can claim all unclaimed CVX, CRV, and 3CRV rewards from CVX_CRV_BASE_REWARD_POOL, without withrawing cvxCRV principal.
+    /// @dev Test that contract admins can claim all unclaimed CVX, CRV, and 3CRV rewards from CVXCRV_BASE_REWARD_POOL, without withrawing cvxCRV principal.
     function test_claimRewardCvxCrv(uint256 amount) public {
         // Assumptions
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
@@ -500,7 +500,7 @@ contract RewardsTest is FundingHelper {
         skip(ONE_WEEK);
 
         // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
+        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
         uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
         uint256 expected3CrvRewardAmount =
             IVirtualBalanceRewardPool(VIRTUAL_BALANCE_REWARD_POOL).earned(address(treasury_proxy));
@@ -527,7 +527,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury 3CRV balance is not zero."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvxCRV balance and amount."
         );
@@ -557,7 +557,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury 3CRV balance and expected3CrvRewardAmount."
         );
         assertEq(
-            IBaseRewardPool(CVX_CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvxCRV balance and amount."
         );
@@ -593,11 +593,11 @@ contract RewardsTest is FundingHelper {
         // Exptectations
         vm.expectRevert("No rewards to claim.");
 
-        // Act: treasury has no rewards to claim on CVX_CRV_BASE_REWARD_POOL
+        // Act: treasury has no rewards to claim on CVXCRV_BASE_REWARD_POOL
         ITreasuryAdmin(address(treasury_proxy)).claimRewardCvxCrv();
     }
 
-    /// @dev Test that contract admins can stake 3CRV into CVX_3CRV_BASE_REWARD_POOL.
+    /// @dev Test that contract admins can stake 3CRV into CVX3CRV_BASE_REWARD_POOL.
     function test_stake3Crv(uint256 amount) public {
         // Assumptions
         vm.assume(amount > 1e12 && amount < 1e18 * 1e6);
@@ -611,7 +611,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury 3CRV balance and amount."
         );
         assertEq(
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             0,
             "Equivalence violation: treasury staked cvx3CRV balance is not zero."
         );
@@ -626,7 +626,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury 3CRV balance is not zero."
         );
         assertEq(
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvx3CRV balance and amount."
         );
@@ -661,7 +661,7 @@ contract RewardsTest is FundingHelper {
     }
 
     /**
-     * @dev Test that contract admins can withdraw cvx3CRV from CVX_3CRV_BASE_REWARD_POOL,
+     * @dev Test that contract admins can withdraw cvx3CRV from CVX3CRV_BASE_REWARD_POOL,
      * unwrap it into 3CRV, and claim all unclaimed CVX and CRV rewards.
      */
     function test_unstake3Crv(uint256 amount, uint256 withdrawAmount) public {
@@ -679,14 +679,14 @@ contract RewardsTest is FundingHelper {
         uint256 lpTokenPrice = ICurve3Pool(STABLE_SWAP_3POOL).get_virtual_price();
         uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
         uint256 backingAmount = (totalSupply * conversionFactor) / 1e18;
-        uint256 totalStaked = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
+        uint256 totalStaked = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
         uint256 maxWithdrawAmount = totalStaked - backingAmount;
 
         // Assumptions 2
         vm.assume(withdrawAmount <= maxWithdrawAmount);
 
         // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
+        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
         uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
 
         // Pre-action assertions
@@ -706,7 +706,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury CVX balance is not zero."
         );
         assertEq(
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             totalStaked,
             "Equivalence violation: treasury staked cvx3CRV balance and totalStaked."
         );
@@ -731,7 +731,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury CVX balance and expectedCvxRewardAmount."
         );
         assertEq(
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             backingAmount + (maxWithdrawAmount - withdrawAmount),
             "Equivalence violation: treasury staked cvx3CRV balance and backingAmount."
         );
@@ -772,7 +772,7 @@ contract RewardsTest is FundingHelper {
         uint256 lpTokenPrice = ICurve3Pool(STABLE_SWAP_3POOL).get_virtual_price();
         uint256 conversionFactor = (1e18 * 1e18 / lpTokenPrice);
         uint256 backingAmount = (totalSupply * conversionFactor) / 1e18;
-        uint256 totalStaked = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
+        uint256 totalStaked = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
         uint256 maxWithdrawAmount = totalStaked - backingAmount;
 
         // Assumptions 2
@@ -797,7 +797,7 @@ contract RewardsTest is FundingHelper {
         skip(ONE_WEEK);
 
         // Expectations
-        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
+        uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
         uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
 
         // Pre-action assertions
@@ -817,7 +817,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury CVX balance is not zero."
         );
         assertEq(
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvx3CRV balance and amount."
         );
@@ -842,7 +842,7 @@ contract RewardsTest is FundingHelper {
             "Equivalence violation: treasury CVX balance and expectedCvxRewardAmount."
         );
         assertEq(
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvx3CRV balance is not zero."
         );
@@ -875,7 +875,7 @@ contract RewardsTest is FundingHelper {
         // Exptectations
         vm.expectRevert("No rewards to claim.");
 
-        // Act: treasury has no rewards to claim on CVX_3CRV_BASE_REWARD_POOL
+        // Act: treasury has no rewards to claim on CVX3CRV_BASE_REWARD_POOL
         ITreasuryAdmin(address(treasury_proxy)).claimRewardCvx3Crv();
     }
 }

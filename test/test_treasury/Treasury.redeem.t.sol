@@ -20,7 +20,7 @@ contract RedeemTest is RedeemHelper {
         // Setup
         uint256 usxInitialSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
         uint256 usxTotalSupply = IUSXAdmin(address(usx_proxy)).totalSupply();
-        uint256 stakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
+        uint256 stakedAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
         uint256 treasuryBalanceCRV = IERC20(CRV).balanceOf(address(treasury_proxy));
         uint256 treasuryBalanceCVX = IERC20(CVX).balanceOf(address(treasury_proxy));
 
@@ -30,7 +30,7 @@ contract RedeemTest is RedeemHelper {
             uint256 burnAmountUSX = usxInitialSupply / TEST_COINS.length;
             uint256 curveAmountUsed = _calculateCurveTokenAmount(burnAmountUSX);
             uint256 expectedRedeemAmount = _calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
-            uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
+            uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
             uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
 
             vm.expectEmit(true, true, true, true, address(treasury_proxy));
@@ -73,9 +73,9 @@ contract RedeemTest is RedeemHelper {
                 "Equivalence violation: user test coin balance and expectedRedeemAmount."
             );
 
-            // Ensure cvx3CRV in CVX_3CRV_BASE_REWARD_POOL properly decreased
+            // Ensure cvx3CRV in CVX3CRV_BASE_REWARD_POOL properly decreased
             assertEq(
-                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 stakedAmount - curveAmountUsed,
                 "Equivalence violation: treasury staked cvx3CRV balance and stakedAmount - curveAmountUsed."
             );
@@ -112,8 +112,8 @@ contract RedeemTest is RedeemHelper {
             // Expectations
             uint256 curveAmountUsed = _calculateCurveTokenAmount(usxTotalSupply);
             uint256 expectedRedeemAmount = _calculateRedeemAmount(i, curveAmountUsed, TEST_COINS[i]);
-            uint256 stakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
-            uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
+            uint256 stakedAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
+            uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
             uint256 expectedCvxRewardAmount = ICvxMining(CVX_MINING).ConvertCrvToCvx(expectedCrvRewardAmount);
 
             vm.expectEmit(true, true, true, true, address(treasury_proxy));
@@ -170,7 +170,7 @@ contract RedeemTest is RedeemHelper {
 
             // Ensure cvx3CRV in BaseRewardPool properly decreased
             assertEq(
-                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 stakedAmount - curveAmountUsed,
                 "Equivalence violation: treasury staked cvx3CRV balance and stakedAmount - curveAmountUsed."
             );

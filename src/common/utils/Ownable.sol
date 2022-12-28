@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.7.0) (access/Ownable2.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0;
 
+import "./Initializable.sol";
 import "./Context.sol";
 
 /**
@@ -17,7 +17,7 @@ import "./Context.sol";
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-abstract contract Ownable is Context {
+abstract contract Ownable is Initializable, Context {
     address private __owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -25,7 +25,11 @@ abstract contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor() {
+    function __Ownable_init() internal onlyInitializing {
+        __Ownable_init_unchained();
+    }
+
+    function __Ownable_init_unchained() internal onlyInitializing {
         _transferOwnership(_msgSender());
     }
 

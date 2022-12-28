@@ -13,8 +13,9 @@ import "../../common/Constants.t.sol";
 contract AdminTest is Test {
     // Test Contracts
     USX public usx_implementation;
-    ERC1967Proxy public usx_proxy;
     WormholeBridge public wormhole_bridge;
+    ERC1967Proxy public usx_proxy;
+    ERC1967Proxy public wormhole_bridge_proxy;
 
     // Test Variables
     uint16[] public destChainIds;
@@ -23,16 +24,18 @@ contract AdminTest is Test {
     function setUp() public {
         usx_implementation = new USX();
         usx_proxy = new ERC1967Proxy(address(usx_implementation), abi.encodeWithSignature("initialize()"));
-        wormhole_bridge = new WormholeBridge(WORMHOLE_CORE_BRIDGE, address(usx_proxy));
+        wormhole_bridge = new WormholeBridge();
+        wormhole_bridge_proxy =
+        new ERC1967Proxy(address(wormhole_bridge), abi.encodeWithSignature("initialize(address,address)", WORMHOLE_CORE_BRIDGE, address(usx_proxy)));
     }
 
     function test_manageTrustedContracts() public {
-        assertEq(IWormholeBridge(address(wormhole_bridge)).trustedContracts(TEST_TRUSTED_EMITTER_ADDRESS), false);
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedContracts(TEST_TRUSTED_EMITTER), false);
 
         // Act
-        IWormholeBridge(address(wormhole_bridge)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
 
-        assertEq(IWormholeBridge(address(wormhole_bridge)).trustedContracts(TEST_TRUSTED_EMITTER_ADDRESS), true);
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedContracts(TEST_TRUSTED_EMITTER), true);
     }
 
     function testCannot_manageTrustedContracts_unauthorized(address sender) public {
@@ -42,16 +45,16 @@ contract AdminTest is Test {
 
         // Act
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge)).manageTrustedContracts(TEST_TRUSTED_EMITTER_ADDRESS, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
     }
 
     function test_manageTrustedRelayers() public {
-        assertEq(IWormholeBridge(address(wormhole_bridge)).trustedRelayers(TRUSTED_WORMHOLE_RELAYER), false);
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedRelayers(TRUSTED_WORMHOLE_RELAYER), false);
 
         // Act
-        IWormholeBridge(address(wormhole_bridge)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
 
-        assertEq(IWormholeBridge(address(wormhole_bridge)).trustedRelayers(TRUSTED_WORMHOLE_RELAYER), true);
+        assertEq(IWormholeBridge(address(wormhole_bridge_proxy)).trustedRelayers(TRUSTED_WORMHOLE_RELAYER), true);
     }
 
     function testCannot_manageTrustedRelayers_unauthorized(address sender) public {
@@ -61,7 +64,7 @@ contract AdminTest is Test {
 
         // Act
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
     }
 
     function test_getTrustedContracts() public {
@@ -73,11 +76,11 @@ contract AdminTest is Test {
         ];
 
         for (uint256 i = 0; i < testTrustedEmitters.length; i++) {
-            IWormholeBridge(address(wormhole_bridge)).manageTrustedContracts(testTrustedEmitters[i], true);
+            IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(testTrustedEmitters[i], true);
         }
 
         // Act
-        bytes32[] memory trustedEmitters = IWormholeBridge(address(wormhole_bridge)).getTrustedContracts();
+        bytes32[] memory trustedEmitters = IWormholeBridge(address(wormhole_bridge_proxy)).getTrustedContracts();
 
         // Assertions
         for (uint256 i = 0; i < testTrustedEmitters.length; i++) {
@@ -91,7 +94,7 @@ contract AdminTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge)).getTrustedContracts();
+        IWormholeBridge(address(wormhole_bridge_proxy)).getTrustedContracts();
     }
 
     function test_getTrustedRelayers() public {
@@ -103,11 +106,11 @@ contract AdminTest is Test {
         ];
 
         for (uint256 i = 0; i < testTrustedRelayers.length; i++) {
-            IWormholeBridge(address(wormhole_bridge)).manageTrustedRelayers(testTrustedRelayers[i], true);
+            IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(testTrustedRelayers[i], true);
         }
 
         // Act
-        address[] memory trustedRelayers = IWormholeBridge(address(wormhole_bridge)).getTrustedRelayers();
+        address[] memory trustedRelayers = IWormholeBridge(address(wormhole_bridge_proxy)).getTrustedRelayers();
 
         // Assertions
         for (uint256 i = 0; i < testTrustedRelayers.length; i++) {
@@ -121,7 +124,7 @@ contract AdminTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge)).getTrustedRelayers();
+        IWormholeBridge(address(wormhole_bridge_proxy)).getTrustedRelayers();
     }
 
     function test_extractERC20(uint256 amount) public {
@@ -138,25 +141,25 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
-        deal(DAI, address(wormhole_bridge), amount);
-        deal(USDC, address(wormhole_bridge), amount);
-        deal(USDT, address(wormhole_bridge), amount);
-        deal(_3CRV, address(wormhole_bridge), amount);
+        deal(DAI, address(wormhole_bridge_proxy), amount);
+        deal(USDC, address(wormhole_bridge_proxy), amount);
+        deal(USDT, address(wormhole_bridge_proxy), amount);
+        deal(_3CRV, address(wormhole_bridge_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Pre-action assertions
             assertEq(
-                IERC20(COINS[i]).balanceOf(address(wormhole_bridge)),
+                IERC20(COINS[i]).balanceOf(address(wormhole_bridge_proxy)),
                 amount,
                 "Equivalence violation: ERC20 token balance and amount"
             );
 
             // Act
-            IWormholeBridge(address(wormhole_bridge)).extractERC20(COINS[i]);
+            IWormholeBridge(address(wormhole_bridge_proxy)).extractERC20(COINS[i]);
 
             // Post-action assertions
             assertEq(
-                IERC20(COINS[i]).balanceOf(address(wormhole_bridge)),
+                IERC20(COINS[i]).balanceOf(address(wormhole_bridge_proxy)),
                 0,
                 "Equivalence violation: ERC20 token balance is not zero"
             );
@@ -183,10 +186,10 @@ contract AdminTest is Test {
         }
 
         // Setup: deal bridge the tokens
-        deal(DAI, address(wormhole_bridge), amount);
-        deal(USDC, address(wormhole_bridge), amount);
-        deal(USDT, address(wormhole_bridge), amount);
-        deal(_3CRV, address(wormhole_bridge), amount);
+        deal(DAI, address(wormhole_bridge_proxy), amount);
+        deal(USDC, address(wormhole_bridge_proxy), amount);
+        deal(USDT, address(wormhole_bridge_proxy), amount);
+        deal(_3CRV, address(wormhole_bridge_proxy), amount);
 
         for (uint256 i = 0; i < COINS.length; i++) {
             // Exptectations
@@ -194,20 +197,20 @@ contract AdminTest is Test {
 
             // Act: pranking as other addresses
             vm.prank(sender);
-            IWormholeBridge(address(wormhole_bridge)).extractERC20(COINS[i]);
+            IWormholeBridge(address(wormhole_bridge_proxy)).extractERC20(COINS[i]);
         }
     }
 
     function test_extractNative(uint256 amount) public {
         // Setup
         vm.assume(amount > 0 && amount < 1e22);
-        vm.deal(address(wormhole_bridge), amount);
+        vm.deal(address(wormhole_bridge_proxy), amount);
 
-        assertEq(address(wormhole_bridge).balance, amount, "Equivalence violation: remote balance and amount");
+        assertEq(address(wormhole_bridge_proxy).balance, amount, "Equivalence violation: remote balance and amount");
 
         uint256 preLocalBalance = address(this).balance;
 
-        IWormholeBridge(address(wormhole_bridge)).extractNative();
+        IWormholeBridge(address(wormhole_bridge_proxy)).extractNative();
 
         assertEq(address(this).balance, preLocalBalance + amount, "Equivalence violation: local balance and amount");
     }
@@ -216,13 +219,13 @@ contract AdminTest is Test {
         // Setup
         vm.assume(amount > 0 && amount < 1e22);
         vm.assume(sender != address(this));
-        vm.deal(address(wormhole_bridge), amount);
+        vm.deal(address(wormhole_bridge_proxy), amount);
 
         // Exptectations
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge)).extractNative();
+        IWormholeBridge(address(wormhole_bridge_proxy)).extractNative();
     }
 
     function test_setSendFees_update_all(uint256 fee) public {
@@ -239,16 +242,16 @@ contract AdminTest is Test {
 
         // Pre-action assertions
         for (uint256 i = 0; i < destChainIds.length; i++) {
-            uint256 destFee = wormhole_bridge.sendFeeLookup(destChainIds[i]);
+            uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             assertEq(destFee, 0, "Equivalence violation: destFee should be 0, but it's not.");
         }
 
         // Act: update
-        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions
         for (uint256 i = 0; i < destChainIds.length; i++) {
-            uint256 destFee = wormhole_bridge.sendFeeLookup(destChainIds[i]);
+            uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             assertEq(destFee, fees[i], "Equivalence violation: destFee and updated fee.");
         }
     }
@@ -265,7 +268,7 @@ contract AdminTest is Test {
             fees.push(fee);
         }
 
-        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         uint256[] memory old_fees = fees;
 
@@ -278,11 +281,11 @@ contract AdminTest is Test {
         }
 
         // Act: update, with some fees as zero
-        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions
         for (uint256 i = 0; i < fees.length; i++) {
-            uint256 destFee = wormhole_bridge.sendFeeLookup(destChainIds[i]);
+            uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             if (fees[i] == 0) {
                 assertEq(destFee, old_fees[i], "Equivalence violation: destFee and old fee.");
             } else {
@@ -308,7 +311,7 @@ contract AdminTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(sender);
-        IWormholeBridge(address(wormhole_bridge)).setSendFees(destChainIds, fees);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
     }
 
     receive() external payable {}

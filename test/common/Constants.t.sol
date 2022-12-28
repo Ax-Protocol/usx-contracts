@@ -29,4 +29,4 @@ uint256 constant USDT_AMOUNT = 1e6;
 uint256 constant _3CRV_AMOUNT = 1e18;
 
 // bytes
-bytes32 constant TEST_TRUSTED_EMITTER_ADDRESS = bytes32(abi.encode(0xc144b96b42924EBb9e5f7eF7B27957E576A6D102));
+bytes32 constant TEST_TRUSTED_EMITTER = bytes32(abi.encode(0xc144b96b42924EBb9e5f7eF7B27957E576A6D102));

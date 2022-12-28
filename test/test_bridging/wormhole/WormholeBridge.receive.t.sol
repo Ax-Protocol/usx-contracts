@@ -25,7 +25,7 @@ contract WormholeReceiveTest is BridgingSetup {
         vm.etch(WORMHOLE_CORE_BRIDGE, MockWormholeCode);
 
         // Expectations
-        vm.expectEmit(true, true, true, true, address(wormhole_bridge));
+        vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
         emit ReceiveFromChain(TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(TEST_USER), TEST_USER, transferAmount);
 
         // Pre-action Assertions
@@ -34,7 +34,7 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Act: mocking Wormhole, so no need to send a fake VAA
         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+        IWormholeBridge(address(wormhole_bridge_proxy)).processMessage(bytes(""));
 
         // Post-action Assertions
         assertEq(IUSXAdmin(address(usx_proxy)).totalSupply(), INITIAL_TOKENS + transferAmount);
@@ -57,7 +57,7 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Act: mocking Wormhole, so no need to send a fake VAA
         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+        IWormholeBridge(address(wormhole_bridge_proxy)).processMessage(bytes(""));
     }
 
     function testCannot_processMessage_emitter() public {
@@ -76,7 +76,7 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Act: mocking Wormhole, so no need to send a fake VAA
         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+        IWormholeBridge(address(wormhole_bridge_proxy)).processMessage(bytes(""));
     }
 
     function testCannot_processMessage_unauthorized_relayer(address untrustedRelayer) public {
@@ -98,7 +98,7 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Act: prank untrusted relayer
         vm.prank(untrustedRelayer);
-        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+        IWormholeBridge(address(wormhole_bridge_proxy)).processMessage(bytes(""));
     }
 
     function testCannot_processMessage_replay(uint256 transferAmount) public {
@@ -124,7 +124,7 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Act 1
         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+        IWormholeBridge(address(wormhole_bridge_proxy)).processMessage(bytes(""));
 
         // Post-action Assertions 1
         assertEq(
@@ -149,6 +149,6 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Act 2: attempt to replay previous message
         vm.prank(TRUSTED_WORMHOLE_RELAYER);
-        IWormholeBridge(address(wormhole_bridge)).processMessage(bytes(""));
+        IWormholeBridge(address(wormhole_bridge_proxy)).processMessage(bytes(""));
     }
 }

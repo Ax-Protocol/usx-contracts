@@ -21,7 +21,7 @@ contract EmergencySwapTest is RedeemHelper {
         // Excluding last index (3CRV)
         for (uint256 i; i < TEST_COINS.length - 1; i++) {
             // Expectations
-            uint256 preStakedAmount = IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
+            uint256 preStakedAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy));
             uint256 expectedTokenAmount = _calculateRedeemAmount(i, preStakedAmount, TEST_COINS[i]);
 
             // Pre-action assertions
@@ -53,7 +53,7 @@ contract EmergencySwapTest is RedeemHelper {
 
             // Ensure balances were properly updated
             assertEq(
-                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 0,
                 "Equivalence violation: treasury staked cvx3CRV balance is not zero"
             );

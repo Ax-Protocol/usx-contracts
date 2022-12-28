@@ -23,6 +23,8 @@ interface IWormholeBridge {
 
     function setSendFees(uint16[] memory _destChainIds, uint256[] memory _fees) external;
 
+    function sendFeeLookup(uint16 destChainId) external returns (uint256);
+
     function extractERC20(address _token) external;
 
     function extractNative() external;

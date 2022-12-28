@@ -5,14 +5,14 @@ pragma solidity ^0.8.16;
 // Contracts
 import "solmate/utils/SafeTransferLib.sol";
 import "../common/utils/Initializable.sol";
-import "../common/utils/InitOwnable.sol";
+import "../common/utils/Ownable.sol";
 import "../proxy/UUPSUpgradeable.sol";
 import "./bridging/OERC20.sol";
 
 // Interfaces
 import "../common/interfaces/IUSX.sol";
 
-contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
+contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     // Storage Variables: follow storage slot restrictions
     struct TreasuryPrivileges {
         bool mint;
@@ -86,6 +86,8 @@ contract USX is Initializable, UUPSUpgradeable, InitOwnable, OERC20, IUSX {
 
         treasuries[msg.sender] = TreasuryPrivileges(false, false);
     }
+
+    receive() external payable {}
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

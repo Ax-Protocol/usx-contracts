@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (utils/Context2.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0;
+
+import "./Initializable.sol";
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -13,7 +14,11 @@ pragma solidity ^0.8.0;
  *
  * This contract is only required for intermediate, library-like contracts.
  */
-abstract contract Context {
+abstract contract Context is Initializable {
+    function __Context_init() internal onlyInitializing {}
+
+    function __Context_init_unchained() internal onlyInitializing {}
+
     function _msgSender() internal view virtual returns (address) {
         return msg.sender;
     }
