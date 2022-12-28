@@ -18,16 +18,15 @@ import "../common/interfaces/IUSXAdmin.sol";
 
 contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     // Constants: no SLOAD to save gas
-    address public constant backingToken = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
-    address public constant curve3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
-    address public constant crv = 0xD533a949740bb3306d119CC777fa900bA034cd52;
-    address public constant cvx = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
-    address public constant cvxCrv = 0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7;
-    address public constant booster = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
-    address public constant crvDepositor = 0x8014595F2AB54cD7c604B00E9fb932176fDc86Ae;
-    address public constant cvx3CrvBaseRewardPool = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
-    address public constant cvxCrvBaseRewardPool = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
-    address public constant cvxRewardPool = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
+    address public constant BACKING_TOKEN = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
+    address public constant CURVE_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
+    address public constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+    address public constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+    address public constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
+    address public constant CRV_DEPOSITOR = 0x8014595F2AB54cD7c604B00E9fb932176fDc86Ae;
+    address public constant CVX3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
+    address public constant CVXCRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
+    address public constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
     uint8 public constant PID_3POOL = 9;
 
     // Storage Variables: follow storage slot restrictions
@@ -62,12 +61,12 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of the input token used to mint USX.
      */
     function mint(address _stable, uint256 _amount) public {
-        require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
+        require(supportedStables[_stable].supported || _stable == BACKING_TOKEN, "Unsupported stable.");
 
         SafeTransferLib.safeTransferFrom(ERC20(_stable), msg.sender, address(this), _amount);
 
         uint256 lpTokenAmount;
-        if (_stable != backingToken) {
+        if (_stable != BACKING_TOKEN) {
             lpTokenAmount = __provideLiquidity(_stable, _amount);
         } else {
             lpTokenAmount = _amount;
@@ -89,14 +88,14 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
      * @param _amount The amount of USX tokens to burn upon redemption.
      */
     function redeem(address _stable, uint256 _amount) public {
-        require(supportedStables[_stable].supported || _stable == backingToken, "Unsupported stable.");
+        require(supportedStables[_stable].supported || _stable == BACKING_TOKEN, "Unsupported stable.");
 
         uint256 lpTokenAmount = __getLpTokenAmount(_amount);
 
         __unstakeLpTokens(lpTokenAmount);
 
         uint256 redeemAmount;
-        if (_stable != backingToken) {
+        if (_stable != BACKING_TOKEN) {
             redeemAmount = __removeLiquidity(_stable, lpTokenAmount);
         } else {
             redeemAmount = lpTokenAmount;
@@ -111,16 +110,16 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     function __provideLiquidity(address _stable, uint256 _amount) private returns (uint256 lpTokenAmount) {
         // Obtain contract's LP token balance before adding liquidity
-        uint256 preBalance = IERC20(backingToken).balanceOf(address(this));
+        uint256 preBalance = IERC20(BACKING_TOKEN).balanceOf(address(this));
 
         // Add liquidity to Curve
-        SafeTransferLib.safeApprove(ERC20(_stable), curve3Pool, _amount);
+        SafeTransferLib.safeApprove(ERC20(_stable), CURVE_3POOL, _amount);
         uint256[3] memory amounts;
         amounts[uint256(uint128(supportedStables[_stable].curveIndex))] = _amount;
-        ICurve3Pool(curve3Pool).add_liquidity(amounts, 0);
+        ICurve3Pool(CURVE_3POOL).add_liquidity(amounts, 0);
 
         // Calculate the amount of LP tokens received from adding liquidity
-        lpTokenAmount = IERC20(backingToken).balanceOf(address(this)) - preBalance;
+        lpTokenAmount = IERC20(BACKING_TOKEN).balanceOf(address(this)) - preBalance;
     }
 
     function __removeLiquidity(address _stable, uint256 _lpTokenAmount) private returns (uint256 redeemAmount) {
@@ -128,7 +127,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         uint256 preBalance = IERC20(_stable).balanceOf(address(this));
 
         // Remove liquidity from Curve
-        ICurve3Pool(curve3Pool).remove_liquidity_one_coin(_lpTokenAmount, supportedStables[_stable].curveIndex, 0);
+        ICurve3Pool(CURVE_3POOL).remove_liquidity_one_coin(_lpTokenAmount, supportedStables[_stable].curveIndex, 0);
 
         // Calculate the amount of stablecoin received from removing liquidity
         redeemAmount = IERC20(_stable).balanceOf(address(this)) - preBalance;
@@ -136,19 +135,19 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     function __stakeLpTokens(uint256 _amount) private {
         // Approve Booster to spend Treasury's 3CRV
-        SafeTransferLib.safeApprove(ERC20(backingToken), booster, _amount);
+        SafeTransferLib.safeApprove(ERC20(BACKING_TOKEN), BOOSTER, _amount);
 
         // Deposit 3CRV into Booster and have it stake cvx3CRV into BaseRewardPool on Treasury's behalf
-        IBooster(booster).deposit(PID_3POOL, _amount, true);
+        IBooster(BOOSTER).deposit(PID_3POOL, _amount, true);
     }
 
     function __unstakeLpTokens(uint256 _amount) private {
         // Unstake cvx3CRV, unwrap it into 3RCV, and claim all rewards
-        IBaseRewardPool(cvx3CrvBaseRewardPool).withdrawAndUnwrap(_amount, true);
+        IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).withdrawAndUnwrap(_amount, true);
     }
 
     function __getMintAmount(uint256 _lpTokenAmount) private returns (uint256 mintAmount) {
-        uint256 lpTokenPrice = ICurve3Pool(curve3Pool).get_virtual_price();
+        uint256 lpTokenPrice = ICurve3Pool(CURVE_3POOL).get_virtual_price();
 
         // Don't allow LP token price to decrease
         if (lpTokenPrice < previousLpTokenPrice) {
@@ -161,7 +160,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     function __getLpTokenAmount(uint256 _amount) private returns (uint256 lpTokenAmount) {
-        uint256 lpTokenPrice = ICurve3Pool(curve3Pool).get_virtual_price();
+        uint256 lpTokenPrice = ICurve3Pool(CURVE_3POOL).get_virtual_price();
 
         // Don't allow LP token price to decrease
         if (lpTokenPrice < previousLpTokenPrice) {
@@ -204,17 +203,19 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");
 
         // Withdraw all staked 3CRV
-        uint256 totalStaked = IBaseRewardPool(cvx3CrvBaseRewardPool).balanceOf(address(this));
+        uint256 totalStaked = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(this));
         __unstakeLpTokens(totalStaked);
 
         // Remove liquidity from Curve, receiving _newBackingToken
-        ICurve3Pool(curve3Pool).remove_liquidity_one_coin(totalStaked, supportedStables[_newBackingToken].curveIndex, 0);
+        ICurve3Pool(CURVE_3POOL).remove_liquidity_one_coin(
+            totalStaked, supportedStables[_newBackingToken].curveIndex, 0
+        );
 
         // Pause minting and redeeming
         IUSXAdmin(usx).treasuryKillSwitch();
 
-        // This contract is now backed by _newBackingToken, but backingToken was not updated, because it's a constant.
-        // Admins may need to update backingToken via proxy upgrade, depending on the post-emergency-swap resolution.
+        // This contract is now backed by _newBackingToken, but BACKING_TOKEN was not updated, because it's a constant.
+        // Admins may need to update BACKING_TOKEN via proxy upgrade, depending on the post-emergency-swap resolution.
     }
 
     /**
@@ -228,87 +229,87 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev Allow contract admins to stake CVX into cvxRewardPool contract. This will
+     * @dev Allow contract admins to stake CVX into CVX_REWARD_POOL contract. This will
      * accumulate cvxCRV rewards proportionate to the amount staked.
      * @param _amount The amount of CVX to stake.
      */
     function stakeCvx(uint256 _amount) public onlyOwner {
-        uint256 balance = IERC20(cvx).balanceOf(address(this));
+        uint256 balance = IERC20(CVX).balanceOf(address(this));
 
         require(balance > 0 && balance >= _amount, "Insufficient CVX balance.");
 
-        SafeTransferLib.safeApprove(ERC20(cvx), cvxRewardPool, _amount);
+        SafeTransferLib.safeApprove(ERC20(CVX), CVX_REWARD_POOL, _amount);
 
-        ICvxRewardPool(cvxRewardPool).stake(_amount);
+        ICvxRewardPool(CVX_REWARD_POOL).stake(_amount);
     }
 
     /**
-     * @dev Allow contract admins to withdraw CVX from cvxRewardPool contract and claim all
+     * @dev Allow contract admins to withdraw CVX from CVX_REWARD_POOL contract and claim all
      * unclaimed cvxCRV rewards.
      * @param _amount The amount of CVX to withdraw.
      */
     function unstakeCvx(uint256 _amount) public onlyOwner {
-        uint256 stakedAmount = ICvxRewardPool(cvxRewardPool).balanceOf(address(this));
+        uint256 stakedAmount = ICvxRewardPool(CVX_REWARD_POOL).balanceOf(address(this));
 
         require(stakedAmount > 0 && stakedAmount >= _amount, "Amount exceeds staked balance.");
 
-        ICvxRewardPool(cvxRewardPool).withdraw(_amount, true);
+        ICvxRewardPool(CVX_REWARD_POOL).withdraw(_amount, true);
     }
 
     /**
-     * @dev Allow contract admins to claim all unclaimed cvxCRV rewards from cvxRewardPool contract.
-     * @param _stake If true, all claimed cvxCRV rewards will be staked into cvxCrvBaseRewardPool.
+     * @dev Allow contract admins to claim all unclaimed cvxCRV rewards from CVX_REWARD_POOL contract.
+     * @param _stake If true, all claimed cvxCRV rewards will be staked into CVXCRV_BASE_REWARD_POOL.
      */
     function claimRewardCvx(bool _stake) public onlyOwner {
-        require(ICvxRewardPool(cvxRewardPool).earned(address(this)) > 0, "No rewards to claim.");
+        require(ICvxRewardPool(CVX_REWARD_POOL).earned(address(this)) > 0, "No rewards to claim.");
 
-        ICvxRewardPool(cvxRewardPool).getReward(_stake);
+        ICvxRewardPool(CVX_REWARD_POOL).getReward(_stake);
     }
 
     /**
      * @dev Allow contract admins to deposit CRV into CrvDepositor, convert it to cvxCRV, and stake the
-     * corresponding cvxCRV into cvxCrvBaseRewardPool. This will accumulate CVX, CRV, and 3CRV
+     * corresponding cvxCRV into CVXCRV_BASE_REWARD_POOL. This will accumulate CVX, CRV, and 3CRV
      * rewards proportionate to the amount staked.
      * @param _amount The amount of CRV to deposit, convert, and stake.
      */
     function stakeCrv(uint256 _amount) public onlyOwner {
-        require(IERC20(crv).balanceOf(address(this)) >= _amount, "Insufficient CRV balance.");
+        require(IERC20(CRV).balanceOf(address(this)) >= _amount, "Insufficient CRV balance.");
 
-        SafeTransferLib.safeApprove(ERC20(crv), crvDepositor, _amount);
+        SafeTransferLib.safeApprove(ERC20(CRV), CRV_DEPOSITOR, _amount);
 
-        ICrvDepositor(crvDepositor).deposit(_amount, true, cvxCrvBaseRewardPool);
+        ICrvDepositor(CRV_DEPOSITOR).deposit(_amount, true, CVXCRV_BASE_REWARD_POOL);
     }
 
     /**
-     * @dev Allow contract admins to withdraw cvxCRV from cvxCrvBaseRewardPool and claim all
+     * @dev Allow contract admins to withdraw cvxCRV from CVXCRV_BASE_REWARD_POOL and claim all
      * unclaimed CVX, CRV, and 3CRV rewards.
      * @param _amount The amount of cvxCRV to withdraw.
      */
     function unstakeCvxCrv(uint256 _amount) public onlyOwner {
-        uint256 stakedAmount = IBaseRewardPool(cvxCrvBaseRewardPool).balanceOf(address(this));
+        uint256 stakedAmount = IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).balanceOf(address(this));
 
         require(stakedAmount > 0 && stakedAmount >= _amount, "Amount exceeds staked balance.");
 
-        IBaseRewardPool(cvxCrvBaseRewardPool).withdraw(_amount, true);
+        IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).withdraw(_amount, true);
     }
 
     /**
-     * @dev Allow contract admins to claim all unclaimed CVX, CRV, and 3CRV rewards from cvxCrvBaseRewardPool.
+     * @dev Allow contract admins to claim all unclaimed CVX, CRV, and 3CRV rewards from CVXCRV_BASE_REWARD_POOL.
      */
     function claimRewardCvxCrv() public onlyOwner {
-        require(IBaseRewardPool(cvxCrvBaseRewardPool).earned(address(this)) > 0, "No rewards to claim.");
+        require(IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).earned(address(this)) > 0, "No rewards to claim.");
 
-        IBaseRewardPool(cvxCrvBaseRewardPool).getReward();
+        IBaseRewardPool(CVXCRV_BASE_REWARD_POOL).getReward();
     }
 
     /**
      * @dev Allow contract admins to deposit 3CRV into Booster, convert it to cvx3CRV, and
-     * stake the corresponding cvx3CRV into cvx3CrvBaseRewardPool. This will accumulate
+     * stake the corresponding cvx3CRV into CVX3CRV_BASE_REWARD_POOL. This will accumulate
      * CVX and CRV rewards proportionate to the amount staked.
      * @param _amount The amount of 3CRV to deposit, convert, and stake.
      */
     function stake3Crv(uint256 _amount) public onlyOwner {
-        uint256 balance = IERC20(backingToken).balanceOf(address(this));
+        uint256 balance = IERC20(BACKING_TOKEN).balanceOf(address(this));
 
         require(balance > 0 && balance >= _amount, "Insufficient 3CRV balance.");
 
@@ -316,12 +317,12 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev Allow contract admins to withdraw cvx3CRV from cvx3CrvBaseRewardPool, unwrap it into 3CRV,
+     * @dev Allow contract admins to withdraw cvx3CRV from CVX3CRV_BASE_REWARD_POOL, unwrap it into 3CRV,
      * and claim all unclaimed CVX and CRV rewards.
      * @param _amount The amount of cvx3CRV to withdraw.
      */
     function unstake3Crv(uint256 _amount) public onlyOwner {
-        uint256 balanceCvx3Crv = IBaseRewardPool(cvx3CrvBaseRewardPool).balanceOf(address(this));
+        uint256 balanceCvx3Crv = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(this));
         uint256 backingAmount = __getLpTokenAmount(totalSupply);
 
         require(_amount <= balanceCvx3Crv - backingAmount, "Cannot withdraw backing cvx3CRV.");
@@ -330,12 +331,12 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     /**
-     * @dev Allow contract admins to claim all unclaimed CVX and CRV rewards from cvx3CrvBaseRewardPool.
+     * @dev Allow contract admins to claim all unclaimed CVX and CRV rewards from CVX3CRV_BASE_REWARD_POOL.
      */
     function claimRewardCvx3Crv() public onlyOwner {
-        require(IBaseRewardPool(cvx3CrvBaseRewardPool).earned(address(this)) > 0, "No rewards to claim.");
+        require(IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned(address(this)) > 0, "No rewards to claim.");
 
-        IBaseRewardPool(cvx3CrvBaseRewardPool).getReward();
+        IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).getReward();
     }
 
     receive() external payable {}

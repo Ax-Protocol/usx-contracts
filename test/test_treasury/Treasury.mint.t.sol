@@ -82,7 +82,7 @@ contract MintTest is MintHelper {
 
             // Ensure that cvx3CRV was staked through Convex
             assertEq(
-                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 totalStaked + lpTokens,
                 "Equivalence violation: treasury staked cvx3CRV balance and totalStaked + lpTokens"
             );
@@ -158,7 +158,7 @@ contract MintTest is MintHelper {
 
             // Ensure that cvx3CRV was staked through Convex
             assertEq(
-                IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
+                IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
                 lpTokens,
                 "Equivalence violation: treasury staked cvx3CRV balance and lpTokens"
             );

@@ -22,8 +22,8 @@ abstract contract TreasurySetup is Test {
     // Addresses (Ethereum)
     address constant STABLE_SWAP_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     address constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
-    address constant CVX_3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
-    address constant CVX_CRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
+    address constant CVX3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
+    address constant CVXCRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
     address constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
     address constant CRV_DEPOSITOR = 0x8014595F2AB54cD7c604B00E9fb932176fDc86Ae;
     address constant CVX_MINING = 0x3c75BFe6FbfDa3A94E7E7E8c2216AFc684dE5343;
@@ -112,7 +112,7 @@ contract RedeemHelper is FundingHelper {
             vm.startPrank(address(treasury_proxy));
 
             // Unstake 3CRV
-            IBaseRewardPool(CVX_3CRV_BASE_REWARD_POOL).withdrawAndUnwrap(lpTokens, true);
+            IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).withdrawAndUnwrap(lpTokens, true);
 
             // Obtain contract's withdraw token balance before adding removing liquidity
             uint256 preBalance = IERC20(coin).balanceOf(address(treasury_proxy));

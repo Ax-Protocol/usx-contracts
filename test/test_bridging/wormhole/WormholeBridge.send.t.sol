@@ -53,9 +53,9 @@ contract WormholeSendTest is BridgingSetup {
 
     function testCannot_sendMessage_not_enough_fees(uint256 transferAmount, uint256 gasFee) public {
         // Setup
-        vm.startPrank(address(usx_proxy));
         uint256 destGasFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(TEST_WORMHOLE_CHAIN_ID);
-        vm.assume(gasFee > 0 && gasFee < destGasFee);
+        vm.assume(gasFee < destGasFee);
+        vm.startPrank(address(usx_proxy));
         vm.deal(address(usx_proxy), gasFee);
 
         // Expectations
