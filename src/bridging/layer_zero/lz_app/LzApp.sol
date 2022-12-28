@@ -18,8 +18,8 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
     event SetMinDstGasLookup(uint16 _dstChainId, uint256 _type, uint256 _dstGasAmount);
 
-    function __LzApp_init(address _endpoint) internal initializer {
-        __LzApp_init_unchained(_endpoint);
+    function __LzApp_init(address _lzEndpoint) internal initializer {
+        __LzApp_init_unchained(_lzEndpoint);
     }
 
     function __LzApp_init_unchained(address _lzEndpoint) internal initializer {
