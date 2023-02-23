@@ -23,6 +23,9 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     function initialize() public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
+        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
+        //       Unit tests must know this address.
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
         __Ownable_init();
         __ERC20_init("USX", "USX");
     }
@@ -74,6 +77,13 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
         uint256 balance = IERC20(_token).balanceOf(address(this));
 
         SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, balance);
+    }
+
+    /**
+     * @dev Allow contract admins to extract native token.
+     */
+    function extractNative() public onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
     }
 
     /**

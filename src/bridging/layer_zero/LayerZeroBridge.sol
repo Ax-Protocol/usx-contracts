@@ -25,6 +25,10 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
 
     function initialize(address _lzEndpoint, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
+        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
+        //       Unit tests must know this address.
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
+        require(_lzEndpoint != address(0) && _usx != address(0), "Invalid Parameter");
         __Ownable_init();
         __NonBlockingLzApp_init_unchained(_lzEndpoint);
         usx = _usx;

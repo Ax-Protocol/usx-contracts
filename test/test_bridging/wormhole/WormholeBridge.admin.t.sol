@@ -75,7 +75,7 @@ contract AdminTest is Test {
             bytes32(abi.encode(0xB78535ca0CFA787455e65BFFC0f4446472F5E297))
         ];
 
-        for (uint256 i = 0; i < testTrustedEmitters.length; i++) {
+        for (uint256 i; i < testTrustedEmitters.length; i++) {
             IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(testTrustedEmitters[i], true);
         }
 
@@ -83,7 +83,7 @@ contract AdminTest is Test {
         bytes32[] memory trustedEmitters = IWormholeBridge(address(wormhole_bridge_proxy)).getTrustedContracts();
 
         // Assertions
-        for (uint256 i = 0; i < testTrustedEmitters.length; i++) {
+        for (uint256 i; i < testTrustedEmitters.length; i++) {
             assertEq(trustedEmitters[i], testTrustedEmitters[i]);
         }
     }
@@ -105,7 +105,7 @@ contract AdminTest is Test {
             0x8A65B1aB965dE3D1f1d90BE7999eB15D490fb271
         ];
 
-        for (uint256 i = 0; i < testTrustedRelayers.length; i++) {
+        for (uint256 i; i < testTrustedRelayers.length; i++) {
             IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(testTrustedRelayers[i], true);
         }
 
@@ -113,7 +113,7 @@ contract AdminTest is Test {
         address[] memory trustedRelayers = IWormholeBridge(address(wormhole_bridge_proxy)).getTrustedRelayers();
 
         // Assertions
-        for (uint256 i = 0; i < testTrustedRelayers.length; i++) {
+        for (uint256 i; i < testTrustedRelayers.length; i++) {
             assertEq(trustedRelayers[i], testTrustedRelayers[i]);
         }
     }
@@ -132,7 +132,7 @@ contract AdminTest is Test {
         address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
 
         // Assumptions
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             if (COINS[i] == USDC || COINS[i] == USDT) {
                 vm.assume(amount > 0 && amount <= 1e6 * 1e5);
             } else {
@@ -146,7 +146,7 @@ contract AdminTest is Test {
         deal(USDT, address(wormhole_bridge_proxy), amount);
         deal(_3CRV, address(wormhole_bridge_proxy), amount);
 
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             // Pre-action assertions
             assertEq(
                 IERC20(COINS[i]).balanceOf(address(wormhole_bridge_proxy)),
@@ -177,7 +177,7 @@ contract AdminTest is Test {
 
         // Assumptions
         vm.assume(sender != address(this));
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             if (COINS[i] == USDC || COINS[i] == USDT) {
                 vm.assume(amount > 0 && amount <= 1e6 * 1e5);
             } else {
@@ -191,7 +191,7 @@ contract AdminTest is Test {
         deal(USDT, address(wormhole_bridge_proxy), amount);
         deal(_3CRV, address(wormhole_bridge_proxy), amount);
 
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             // Exptectations
             vm.expectRevert("Ownable: caller is not the owner");
 
@@ -241,7 +241,7 @@ contract AdminTest is Test {
         }
 
         // Pre-action assertions
-        for (uint256 i = 0; i < destChainIds.length; i++) {
+        for (uint256 i; i < destChainIds.length; i++) {
             uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             assertEq(destFee, 0, "Equivalence violation: destFee should be 0, but it's not.");
         }
@@ -250,7 +250,7 @@ contract AdminTest is Test {
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions
-        for (uint256 i = 0; i < destChainIds.length; i++) {
+        for (uint256 i; i < destChainIds.length; i++) {
             uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             assertEq(destFee, fees[i], "Equivalence violation: destFee and updated fee.");
         }
@@ -272,7 +272,7 @@ contract AdminTest is Test {
 
         uint256[] memory old_fees = fees;
 
-        for (uint256 i = 0; i < destChainIds.length; i++) {
+        for (uint256 i; i < destChainIds.length; i++) {
             if (i % 2 == 0) {
                 fees[i] = 0;
             } else {
@@ -284,7 +284,7 @@ contract AdminTest is Test {
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions
-        for (uint256 i = 0; i < fees.length; i++) {
+        for (uint256 i; i < fees.length; i++) {
             uint256 destFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(destChainIds[i]);
             if (fees[i] == 0) {
                 assertEq(destFee, old_fees[i], "Equivalence violation: destFee and old fee.");

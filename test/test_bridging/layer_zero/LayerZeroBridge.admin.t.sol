@@ -48,7 +48,7 @@ contract AdminTest is Test {
         address[4] memory COINS = [DAI, USDC, USDT, _3CRV];
 
         // Assumptions
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             if (COINS[i] == USDC || COINS[i] == USDT) {
                 vm.assume(amount > 0 && amount <= 1e6 * 1e5);
             } else {
@@ -62,7 +62,7 @@ contract AdminTest is Test {
         deal(USDT, address(layer_zero_bridge_proxy), amount);
         deal(_3CRV, address(layer_zero_bridge_proxy), amount);
 
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             // Pre-action assertions
             assertEq(
                 IERC20(COINS[i]).balanceOf(address(layer_zero_bridge_proxy)),
@@ -93,7 +93,7 @@ contract AdminTest is Test {
 
         // Assumptions
         vm.assume(sender != address(this));
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             if (COINS[i] == USDC || COINS[i] == USDT) {
                 vm.assume(amount > 0 && amount <= 1e6 * 1e5);
             } else {
@@ -107,7 +107,7 @@ contract AdminTest is Test {
         deal(USDT, address(layer_zero_bridge_proxy), amount);
         deal(_3CRV, address(layer_zero_bridge_proxy), amount);
 
-        for (uint256 i = 0; i < COINS.length; i++) {
+        for (uint256 i; i < COINS.length; i++) {
             // Exptectations
             vm.expectRevert("Ownable: caller is not the owner");
 

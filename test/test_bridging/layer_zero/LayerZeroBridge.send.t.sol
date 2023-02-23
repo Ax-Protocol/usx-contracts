@@ -16,7 +16,7 @@ contract LayerZeroSendTest is BridgingSetup {
         uint256 iterations = 3;
         vm.startPrank(address(usx_proxy));
         vm.deal(address(usx_proxy), TEST_GAS_FEE * iterations);
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
             emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);

@@ -22,7 +22,7 @@ contract WormholeSendTest is BridgingSetup {
         gasFee = bound(gasFee, destGasFee, 5e16);
         vm.deal(address(usx_proxy), gasFee * iterations);
 
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
             emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);

@@ -27,6 +27,10 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
 
     function initialize(address _wormholeCoreBridge, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
+        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
+        //       Unit tests must know this address.
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
+        require(_wormholeCoreBridge != address(0) && _usx != address(0), "Invalid Parameter");
         __Ownable_init();
         wormholeCoreBridge = IWormhole(_wormholeCoreBridge);
         usx = _usx;
@@ -40,22 +44,16 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         payable
         returns (uint64 sequence)
     {
+        uint256 wormholeMessageFee = wormholeCoreBridge.messageFee();
+
         require(msg.sender == usx, "Unauthorized.");
-        require(msg.value >= sendFeeLookup[_dstChainId], "Not enough native token for gas.");
+        require(msg.value >= sendFeeLookup[_dstChainId] + wormholeMessageFee, "Not enough native token for gas.");
 
-        sequence = _publishMessage(_from, _dstChainId, _toAddress, _amount);
-
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
-    }
-
-    function _publishMessage(address _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
-        internal
-        virtual
-        returns (uint64 sequence)
-    {
         bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, _toAddress, _amount);
 
-        sequence = wormholeCoreBridge.publishMessage(0, message, 200);
+        sequence = wormholeCoreBridge.publishMessage{value: wormholeMessageFee}(0, message, 200);
+
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
 
     function processMessage(bytes memory _vaa) public {
@@ -177,8 +175,9 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
      * @param _fees an array of destination fees; the order must match `_destChainIds` array. Any
      *              element with a value of zero will not get updated (allows for gas-saving optionality).
      */
-    function setSendFees(uint16[] memory _destChainIds, uint256[] memory _fees) public onlyOwner {
-        for (uint256 i = 0; i < _destChainIds.length; i++) {
+    function setSendFees(uint16[] calldata _destChainIds, uint256[] calldata _fees) public onlyOwner {
+        require(_destChainIds.length == _fees.length, "Array lengths do not match");
+        for (uint256 i; i < _destChainIds.length; i++) {
             if (_fees[i] != 0) {
                 sendFeeLookup[_destChainIds[i]] = _fees[i];
             }

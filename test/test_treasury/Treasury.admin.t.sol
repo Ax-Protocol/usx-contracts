@@ -80,7 +80,7 @@ contract AdminTest is FundingHelper {
         // Setup: mint some USX so treasury has backing
         _mintForTest(DAI, DAI_AMOUNT);
 
-        for (uint256 i = 0; i < TEST_COINS.length; i++) {
+        for (uint256 i; i < TEST_COINS.length; i++) {
             // Pre-action assertions
             assertEq(
                 IERC20(TEST_COINS[i]).balanceOf(address(treasury_proxy)),
@@ -116,7 +116,7 @@ contract AdminTest is FundingHelper {
         deal(USDT, address(treasury_proxy), amount);
         deal(_3CRV, address(treasury_proxy), amount);
 
-        for (uint256 i = 0; i < TEST_COINS.length; i++) {
+        for (uint256 i; i < TEST_COINS.length; i++) {
             // Exptectations
             vm.expectRevert("Ownable: caller is not the owner");
 

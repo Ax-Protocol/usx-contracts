@@ -70,7 +70,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     {
         uint256 providedGasLimit = _getGasLimit(_adapterParams);
         uint256 minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
-        require(minGasLimit > 0, "LzApp: minGasLimit not set");
+        require(minGasLimit != 0, "LzApp: minGasLimit not set");
         require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
@@ -118,7 +118,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     function setMinDstGasLookup(uint16 _dstChainId, uint256 _type, uint256 _dstGasAmount) external onlyOwner {
-        require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
+        require(_dstGasAmount != 0, "LzApp: invalid _dstGasAmount");
         minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
         emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);
     }

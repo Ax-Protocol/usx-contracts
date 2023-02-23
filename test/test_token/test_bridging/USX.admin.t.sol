@@ -12,7 +12,7 @@ contract AdminTest is BridgingSetup {
     function testCannot_manageCrossChainTransfers_unauthorized() public {
         bool[2][4] memory trials = [[true, true], [true, false], [false, true], [false, false]];
 
-        for (uint256 i = 0; i < trials.length; i++) {
+        for (uint256 i; i < trials.length; i++) {
             // Expectations
             vm.expectRevert("Ownable: caller is not the owner");
 
@@ -96,7 +96,7 @@ contract AdminTest is BridgingSetup {
         bool[2] memory privileges = [true, true];
 
         // Iterate through privileges, each time revoking privileges for only one bridge
-        for (uint256 pausedIndex = 0; pausedIndex < privileges.length; pausedIndex++) {
+        for (uint256 pausedIndex; pausedIndex < privileges.length; pausedIndex++) {
             // Pre-action assertions
             assertEq(
                 IUSXAdmin(address(usx_proxy)).transferPrivileges(address(wormhole_bridge_proxy)),
@@ -118,7 +118,7 @@ contract AdminTest is BridgingSetup {
             );
 
             // Given this iteration's privilege settings, iterate through both bridges to ensure privileges are active
-            for (uint256 i = 0; i < bridgeContracts.length; i++) {
+            for (uint256 i; i < bridgeContracts.length; i++) {
                 if (i == pausedIndex) {
                     assertEq(
                         IUSXAdmin(address(usx_proxy)).transferPrivileges(bridgeContracts[i]), false, "Pause failed."

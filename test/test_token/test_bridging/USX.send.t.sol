@@ -19,7 +19,7 @@ contract SendTest is BridgingSetup {
         vm.deal(address(wormhole_bridge_proxy), gasFee * iterations);
 
         uint256 tokenBalance = INITIAL_TOKENS;
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
             emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
@@ -88,7 +88,7 @@ contract SendTest is BridgingSetup {
         vm.assume(transferAmount <= INITIAL_TOKENS / iterations);
 
         uint256 tokenBalance = INITIAL_TOKENS;
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
             emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
@@ -137,7 +137,7 @@ contract SendTest is BridgingSetup {
         address[2] memory bridges = [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)];
         uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-        for (uint256 i = 0; i < bridges.length; i++) {
+        for (uint256 i; i < bridges.length; i++) {
             // Expectation
             vm.expectRevert(stdError.arithmeticError);
 
@@ -156,7 +156,7 @@ contract SendTest is BridgingSetup {
         address[2] memory bridges = [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)];
         uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-        for (uint256 i = 0; i < bridges.length; i++) {
+        for (uint256 i; i < bridges.length; i++) {
             // Expectation
             vm.expectRevert("ERC20: insufficient allowance.");
 
@@ -179,7 +179,7 @@ contract SendTest is BridgingSetup {
         address[2] memory bridges = [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)];
         uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-        for (uint256 i = 0; i < bridges.length; i++) {
+        for (uint256 i; i < bridges.length; i++) {
             // Expectations
             vm.expectRevert(IUSXAdmin.Paused.selector);
 
@@ -201,7 +201,7 @@ contract SendTest is BridgingSetup {
         bool[2] memory privileges = [true, true];
 
         // Iterate through privileges, each time revoking privileges for only one bridge
-        for (uint256 pausedIndex = 0; pausedIndex < privileges.length; pausedIndex++) {
+        for (uint256 pausedIndex; pausedIndex < privileges.length; pausedIndex++) {
             privileges = [true, true];
             privileges[pausedIndex] = false;
 
@@ -209,7 +209,7 @@ contract SendTest is BridgingSetup {
                 [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], privileges
             );
 
-            for (uint256 i = 0; i < bridges.length; i++) {
+            for (uint256 i; i < bridges.length; i++) {
                 if (i == pausedIndex) {
                     // Expectation: transfer should fail because bridge is paused
                     vm.expectRevert(IUSXAdmin.Paused.selector);

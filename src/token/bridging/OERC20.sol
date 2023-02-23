@@ -29,7 +29,7 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
         sequence = IBridge(_bridgeAddress).sendMessage{value: msg.value}(_from, _dstChainId, _toAddress, _amount);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(IOERC20).interfaceId || interfaceId == type(IERC20).interfaceId
             || super.supportsInterface(interfaceId);
     }
@@ -78,7 +78,7 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
     {
         require(_bridgeAddresses.length == _privileges.length, "Arrays must be equal length.");
 
-        for (uint256 i = 0; i < _bridgeAddresses.length; i++) {
+        for (uint256 i; i < _bridgeAddresses.length; i++) {
             transferPrivileges[_bridgeAddresses[i]] = _privileges[i];
         }
     }
