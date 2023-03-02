@@ -17,17 +17,17 @@ import "../common/interfaces/IERC20.sol";
 import "../common/interfaces/IUSXAdmin.sol";
 
 contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
-    // Constants: no SLOAD to save gas
-    address public constant BACKING_TOKEN = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
-    address public constant CURVE_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
-    address public constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
-    address public constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
-    address public constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
-    address public constant CRV_DEPOSITOR = 0x8014595F2AB54cD7c604B00E9fb932176fDc86Ae;
-    address public constant CVX3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
-    address public constant CVXCRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
-    address public constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
-    uint8 public constant PID_3POOL = 9;
+    // Private Constants: no SLOAD to save users gas
+    address private constant BACKING_TOKEN = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490; // 3CRV
+    address private constant CURVE_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
+    address private constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+    address private constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+    address private constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
+    address private constant CRV_DEPOSITOR = 0x8014595F2AB54cD7c604B00E9fb932176fDc86Ae;
+    address private constant CVX3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
+    address private constant CVXCRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
+    address private constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
+    uint8 private constant PID_3POOL = 9;
 
     // Storage Variables: follow storage slot restrictions
     struct SupportedStable {
@@ -48,7 +48,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         /// @dev No constructor, so initialize Ownable explicitly.
         // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
         //       Unit tests must know this address.
-        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
         __Ownable_init();
         usx = _usx;
     }
@@ -157,13 +157,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
         uint256 lpTokenPrice = ICurve3Pool(CURVE_3POOL).get_virtual_price();
 
-        // TODO: Consider refactoring the statement below as specified in audit report
-        // Don't allow LP token price to decrease
-        if (lpTokenPrice < previousLpTokenPrice) {
-            lpTokenPrice = previousLpTokenPrice;
-        } else {
-            previousLpTokenPrice = lpTokenPrice;
-        }
+        // Curve invariant dictates that lpTokenPrice should consistently increase over time.
+        require(lpTokenPrice >= previousLpTokenPrice, "Curve invariant violation.");
 
         mintAmount = (_lpTokenAmount * lpTokenPrice) / 1e18;
     }
@@ -174,8 +169,9 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
         uint256 lpTokenPrice = ICurve3Pool(CURVE_3POOL).get_virtual_price();
 
-        // TODO: Consider refactoring the statement below as specified in audit report
-        // Don't allow LP token price to decrease
+        // Curve invariant dictates that lpTokenPrice should consistently increase over time.
+        // If invariant is ever violated, USX will decrease in price, but holders will still
+        // be able to redeem.
         if (lpTokenPrice < previousLpTokenPrice) {
             lpTokenPrice = previousLpTokenPrice;
         } else {
@@ -211,6 +207,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     /**
      * @dev Allow contract admins to swap the backing token to a supported stable, in an emergency.
+     * For example, if the Curve invariant is violated, admins may need to swap the backing token to
+     * protect the USX peg to the US dollar.
      */
     function emergencySwapBacking(address _newBackingToken) public onlyOwner {
         require(supportedStables[_newBackingToken].supported, "Token not supported.");

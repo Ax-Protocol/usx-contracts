@@ -36,7 +36,7 @@ abstract contract TreasurySetup is Test {
     address[4] TEST_COINS = [DAI, USDC, USDT, _3CRV];
 
     // Integers
-    uint8 public constant PID_3POOL = 9;
+    uint8 constant PID_3POOL = 9;
     uint256 constant ONE_WEEK = 604800;
     uint256 constant CRV_AMOUNT = 1e18;
     uint256 constant CVX_AMOUNT = 1e18;

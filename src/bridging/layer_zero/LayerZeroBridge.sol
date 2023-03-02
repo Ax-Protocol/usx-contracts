@@ -8,9 +8,9 @@ import "../../proxy/UUPSUpgradeable.sol";
 import "../../common/interfaces/IUSX.sol";
 
 contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
-    // Constants: no SLOAD
-    uint256 public constant NO_EXTRA_GAS = 0;
-    uint256 public constant FUNCTION_TYPE_SEND = 1;
+    // Private Constants: no SLOAD to save users gas
+    uint256 private constant NO_EXTRA_GAS = 0;
+    uint256 private constant FUNCTION_TYPE_SEND = 1;
 
     // Storage Variables: follow storage slot restrictions
     bool public useCustomAdapterParams;
@@ -27,8 +27,8 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         /// @dev No constructor, so initialize Ownable explicitly.
         // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
         //       Unit tests must know this address.
-        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
-        require(_lzEndpoint != address(0) && _usx != address(0), "Invalid Parameter");
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
+        require(_lzEndpoint != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         __NonBlockingLzApp_init_unchained(_lzEndpoint);
         usx = _usx;
@@ -43,6 +43,8 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         returns (uint64 sequence)
     {
         require(msg.sender == usx, "Unauthorized.");
+        require(_toAddress.length == 20, "Invalid _toAddress.");
+
         _send(_from, _dstChainId, _toAddress, _amount, address(0), bytes(""));
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);

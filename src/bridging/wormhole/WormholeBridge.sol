@@ -29,8 +29,8 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         /// @dev No constructor, so initialize Ownable explicitly.
         // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
         //       Unit tests must know this address.
-        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
-        require(_wormholeCoreBridge != address(0) && _usx != address(0), "Invalid Parameter");
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
+        require(_wormholeCoreBridge != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         wormholeCoreBridge = IWormhole(_wormholeCoreBridge);
         usx = _usx;
@@ -47,6 +47,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         uint256 wormholeMessageFee = wormholeCoreBridge.messageFee();
 
         require(msg.sender == usx, "Unauthorized.");
+        require(_toAddress.length == 20, "Invalid _toAddress.");
         require(msg.value >= sendFeeLookup[_dstChainId] + wormholeMessageFee, "Not enough native token for gas.");
 
         bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, _toAddress, _amount);

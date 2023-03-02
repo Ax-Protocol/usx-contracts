@@ -25,7 +25,7 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
         /// @dev No constructor, so initialize Ownable explicitly.
         // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
         //       Unit tests must know this address.
-        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller");
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
         __Ownable_init();
         __ERC20_init("USX", "USX");
     }
