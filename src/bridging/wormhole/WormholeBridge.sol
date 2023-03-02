@@ -52,7 +52,8 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
 
         bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, _toAddress, _amount);
 
-        sequence = wormholeCoreBridge.publishMessage{value: wormholeMessageFee}(0, message, 200);
+        // Consistency level of 1 is the most conservative (finalized)
+        sequence = wormholeCoreBridge.publishMessage{value: wormholeMessageFee}(0, message, 1);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }

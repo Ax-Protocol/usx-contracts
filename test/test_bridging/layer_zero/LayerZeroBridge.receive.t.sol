@@ -19,7 +19,7 @@ contract LayerZeroReceiveTest is BridgingSetup {
             abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)),
             address(this),
             transferAmount
-            );
+        );
 
         // Pre-action Assertions
         assertEq(

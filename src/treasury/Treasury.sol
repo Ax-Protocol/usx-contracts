@@ -160,6 +160,8 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         // Curve invariant dictates that lpTokenPrice should consistently increase over time.
         require(lpTokenPrice >= previousLpTokenPrice, "Curve invariant violation.");
 
+        previousLpTokenPrice = lpTokenPrice;
+
         mintAmount = (_lpTokenAmount * lpTokenPrice) / 1e18;
     }
 

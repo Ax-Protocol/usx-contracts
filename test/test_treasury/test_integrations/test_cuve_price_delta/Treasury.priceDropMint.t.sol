@@ -15,7 +15,7 @@ contract PriceDropMintTest is Test, MintHelper {
     /// @dev Test that mint works using a previously higher 3CRV conversion factor
     function test_mint_negative_price_delta(uint256 priceDelta) public {
         // Assumptions
-        vm.assume(priceDelta <= _3CRV_VIRTUAL_PRICE);
+        vm.assume(priceDelta > 0 && priceDelta <= _3CRV_VIRTUAL_PRICE);
         vm.startPrank(TEST_USER);
 
         uint256 testDepositAmount = TEST_DEPOSIT_AMOUNT / 2;
@@ -56,9 +56,6 @@ contract PriceDropMintTest is Test, MintHelper {
         assertEq(mintedUSX1, expectedMintAmount1, "Equivalence violation: mintedUSX1 and expectedMintAmount1");
 
         /// @dev Iteration 2, with a lower 3CRV price
-        // Expectations 2: calculate expectation before lowering 3CRV price, as it shouldn't decrease
-        (uint256 expectedMintAmount2,) = _calculateMintAmount(0, testDepositAmount, DAI);
-
         // Mock Curve 2, lowering the 3CRV price
         vm.mockCall(
             STABLE_SWAP_3POOL,
@@ -66,21 +63,13 @@ contract PriceDropMintTest is Test, MintHelper {
             abi.encode(_3CRV_VIRTUAL_PRICE - priceDelta)
         );
 
-        // Act 2
         SafeTransferLib.safeApprove(ERC20(DAI), address(treasury_proxy), testDepositAmount);
-        ITreasuryAdmin(address(treasury_proxy)).mint(DAI, testDepositAmount);
 
-        // Post-action assertions 2
-        uint256 postUserBalanceUSX2 = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
-        uint256 mintedUSX2 = postUserBalanceUSX2 - postUserBalanceUSX1;
-        // Ensure that conversion price remains at the higher 3CRV price
-        assertEq(
-            ITreasuryAdmin(address(treasury_proxy)).previousLpTokenPrice(),
-            _3CRV_VIRTUAL_PRICE,
-            "Equivalence violation: previous 3RCV price and _3CRV_VIRTUAL_PRICE"
-        );
-        // Ensure that the amount of USX minted matches expectation (using higher price)
-        assertEq(mintedUSX2, expectedMintAmount2, "Equivalence violation: mintedUSX2 and expectedMintAmount2");
+        // Expectations 2: Revert
+        vm.expectRevert("Curve invariant violation.");
+
+        // Act 2
+        ITreasuryAdmin(address(treasury_proxy)).mint(DAI, testDepositAmount);
 
         vm.stopPrank();
     }
