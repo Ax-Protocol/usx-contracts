@@ -77,5 +77,5 @@ abstract contract Proxy {
      *
      * If overridden should call `super._beforeFallback()`.
      */
-    function _beforeFallback() internal virtual {}
+    function _beforeFallback() internal virtual { }
 }

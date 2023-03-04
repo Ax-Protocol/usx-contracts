@@ -3,7 +3,8 @@ pragma solidity ^0.8.16;
 
 import "../common/TestSetup.t.sol";
 
-import "../../../src/bridging/interfaces/ILayerZeroBridge.sol";
+import { ILayerZeroBridge } from "../../../src/bridging/interfaces/ILayerZeroBridge.sol";
+import { IBridge } from "../../../src/token/interfaces/IBridge.sol";
 
 import "../../common/Constants.t.sol";
 
@@ -22,7 +23,7 @@ contract LayerZeroSendTest is BridgingSetup {
             emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Act
-            uint64 sequence = IBridge(address(layer_zero_bridge_proxy)).sendMessage{value: TEST_GAS_FEE}(
+            uint64 sequence = IBridge(address(layer_zero_bridge_proxy)).sendMessage{ value: TEST_GAS_FEE }(
                 payable(address(this)), TEST_LZ_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
             );
 

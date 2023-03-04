@@ -2,10 +2,14 @@
 
 pragma solidity >=0.8.0;
 
-import "solmate/utils/SafeTransferLib.sol";
-import "./lz_app/NonBlockingLzApp.sol";
-import "../../proxy/UUPSUpgradeable.sol";
-import "../../common/interfaces/IUSX.sol";
+// Contracts
+import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
+import { NonBlockingLzApp } from "./lz_app/NonBlockingLzApp.sol";
+import { UUPSUpgradeable } from "../../proxy/UUPSUpgradeable.sol";
+
+// Interfaces
+import { IUSX } from "../../common/interfaces/IUSX.sol";
+import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     // Private Constants: no SLOAD to save users gas
@@ -35,7 +39,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     }
 
     /// @dev Required by the UUPS module.
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner { }
 
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external
@@ -145,7 +149,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         payable(msg.sender).transfer(address(this).balance);
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

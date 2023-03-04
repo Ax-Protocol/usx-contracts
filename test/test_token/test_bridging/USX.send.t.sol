@@ -37,7 +37,7 @@ contract SendTest is BridgingSetup {
             );
 
             // Act: send money using wormhole
-            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
                 address(wormhole_bridge_proxy),
                 payable(address(this)),
                 TEST_WORMHOLE_CHAIN_ID,
@@ -73,7 +73,7 @@ contract SendTest is BridgingSetup {
         vm.expectRevert("Not enough native token for gas.");
 
         // Act: gasFee is less than required destGasFee
-        IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
+        IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
             address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
@@ -107,7 +107,7 @@ contract SendTest is BridgingSetup {
 
             // Act
             // TODO: Need to reach out to LayerZero and get the actual min fee.
-            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.001 ether}(
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: 0.001 ether }(
                 address(layer_zero_bridge_proxy),
                 payable(address(this)),
                 TEST_LZ_CHAIN_ID,
@@ -216,12 +216,12 @@ contract SendTest is BridgingSetup {
                     vm.expectRevert(IUSXAdmin.Paused.selector);
 
                     // Act: paused
-                    IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
+                    IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
                         bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
                     );
                 } else {
                     // Act: not paused
-                    IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
+                    IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
                         bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
                     );
 

@@ -5,4 +5,14 @@ libs = ['lib']
 gas_reports = ["*"]
 fuzz_max_global_rejects = 100000
 
-# See more config options https://github.com/gakonst/foundry/tree/master/config
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = true
+int_types = "long"
+multiline_func_header = "attributes_first"
+quote_style = "double"
+number_underscore = "preserve"
+override_spacing = true
+wrap_comments = false
+ignore = [".github/"]

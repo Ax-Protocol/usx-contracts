@@ -314,5 +314,5 @@ contract AdminTest is Test {
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
     }
 
-    receive() external payable {}
+    receive() external payable { }
 }

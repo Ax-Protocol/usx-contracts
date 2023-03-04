@@ -28,7 +28,7 @@ contract WormholeSendTest is BridgingSetup {
             emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
 
             // Act
-            uint64 sequence = IBridge(address(wormhole_bridge_proxy)).sendMessage{value: gasFee}(
+            uint64 sequence = IBridge(address(wormhole_bridge_proxy)).sendMessage{ value: gasFee }(
                 payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
             );
 
@@ -62,7 +62,7 @@ contract WormholeSendTest is BridgingSetup {
         vm.expectRevert("Not enough native token for gas.");
 
         // Act: gasFee is less than required destGasFee
-        IBridge(address(wormhole_bridge_proxy)).sendMessage{value: gasFee}(
+        IBridge(address(wormhole_bridge_proxy)).sendMessage{ value: gasFee }(
             payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
         );
     }

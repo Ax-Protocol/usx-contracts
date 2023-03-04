@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import "../../../common/utils/Ownable.sol";
-import "../../interfaces/ILayerZeroEndpoint.sol";
-import "../../interfaces/ILayerZeroReceiver.sol";
+import { Ownable } from "../../../common/utils/Ownable.sol";
+import { ILayerZeroEndpoint, ILayerZeroUserApplicationConfig } from "../../interfaces/ILayerZeroEndpoint.sol";
+import { ILayerZeroReceiver } from "../../interfaces/ILayerZeroReceiver.sol";
 
 /*
  * a generic LzReceiver implementation
@@ -59,7 +59,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
 
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
-        lzEndpoint.send{value: msg.value}(
+        lzEndpoint.send{ value: msg.value }(
             _dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams
         );
     }

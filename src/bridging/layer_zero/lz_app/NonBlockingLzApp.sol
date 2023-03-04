@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import "./LzApp.sol";
+import { LzApp } from "./LzApp.sol";
 
 /*
  * the default LayerZero messaging behaviour is blocking, i.e. any failed message will block the channel

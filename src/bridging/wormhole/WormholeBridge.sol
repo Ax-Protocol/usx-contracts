@@ -2,11 +2,15 @@
 
 pragma solidity >=0.8.0;
 
-import "solmate/utils/SafeTransferLib.sol";
-import "../../common/utils/Ownable.sol";
-import "../../proxy/UUPSUpgradeable.sol";
-import "../interfaces/IWormhole.sol";
-import "../../common/interfaces/IUSX.sol";
+// Contracts
+import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
+import { Ownable } from "../../common/utils/Ownable.sol";
+import { UUPSUpgradeable } from "../../proxy/UUPSUpgradeable.sol";
+
+// Interfaces
+import { IWormhole } from "../interfaces/IWormhole.sol";
+import { IUSX } from "../../common/interfaces/IUSX.sol";
+import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 contract WormholeBridge is Ownable, UUPSUpgradeable {
     // Storage Variables: follow storage slot restrictions
@@ -37,7 +41,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
     }
 
     /// @dev Required by the UUPS module.
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner { }
 
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external
@@ -53,7 +57,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, _toAddress, _amount);
 
         // Consistency level of 1 is the most conservative (finalized)
-        sequence = wormholeCoreBridge.publishMessage{value: wormholeMessageFee}(0, message, 1);
+        sequence = wormholeCoreBridge.publishMessage{ value: wormholeMessageFee }(0, message, 1);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
@@ -186,7 +190,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         }
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

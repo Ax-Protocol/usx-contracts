@@ -144,5 +144,5 @@ contract AdminTest is Test {
         ILayerZeroBridge(address(layer_zero_bridge_proxy)).extractNative();
     }
 
-    receive() external payable {}
+    receive() external payable { }
 }

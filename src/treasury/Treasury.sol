@@ -2,19 +2,19 @@
 pragma solidity ^0.8.16;
 
 // Contracts
-import "solmate/utils/SafeTransferLib.sol";
-import "../proxy/UUPSUpgradeable.sol";
-import "../common/utils/Ownable.sol";
+import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
+import { UUPSUpgradeable } from "../proxy/UUPSUpgradeable.sol";
+import { Ownable } from "../common/utils/Ownable.sol";
 
 // Interfaces
-import "./interfaces/ICurve3Pool.sol";
-import "./interfaces/IBooster.sol";
-import "./interfaces/IBaseRewardPool.sol";
-import "./interfaces/ICvxRewardPool.sol";
-import "./interfaces/ICrvDepositor.sol";
-import "./interfaces/ITreasury.sol";
-import "../common/interfaces/IERC20.sol";
-import "../common/interfaces/IUSXAdmin.sol";
+import { ICurve3Pool } from "./interfaces/ICurve3Pool.sol";
+import { IBooster } from "./interfaces/IBooster.sol";
+import { IBaseRewardPool } from "./interfaces/IBaseRewardPool.sol";
+import { ICvxRewardPool } from "./interfaces/ICvxRewardPool.sol";
+import { ICrvDepositor } from "./interfaces/ICrvDepositor.sol";
+import { ITreasury } from "./interfaces/ITreasury.sol";
+import { IERC20 } from "../common/interfaces/IERC20.sol";
+import { IUSXAdmin } from "../common/interfaces/IUSXAdmin.sol";
 
 contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     // Private Constants: no SLOAD to save users gas
@@ -54,7 +54,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     }
 
     /// @dev Required by the UUPS module.
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner { }
 
     /**
      * @dev This function deposits any one of the supported stablecoins to Curve,
@@ -360,7 +360,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
         IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).getReward();
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

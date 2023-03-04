@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./ILayerZeroReceiver.sol";
+import { ILayerZeroReceiver } from "./ILayerZeroReceiver.sol";
 
 interface ILayerZeroBridge is ILayerZeroReceiver {
     //Admin functions

@@ -2,11 +2,15 @@
 
 pragma solidity >=0.8.0;
 
-import "../introspection/ERC165.sol";
-import "../token/UERC20.sol";
-import "../../common/utils/Ownable.sol";
-import "../interfaces/IBridge.sol";
-import "../../common/interfaces/IOERC20.sol";
+// Contracts
+import { ERC165, IERC165 } from "../introspection/ERC165.sol";
+import { UERC20 } from "../token/UERC20.sol";
+import { Ownable } from "../../common/utils/Ownable.sol";
+
+// Interfaces
+import { IBridge } from "../interfaces/IBridge.sol";
+import { IOERC20 } from "../../common/interfaces/IOERC20.sol";
+import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
     // Storage Variables: follow storage slot restrictions
@@ -26,10 +30,10 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
         }
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        sequence = IBridge(_bridgeAddress).sendMessage{value: msg.value}(_from, _dstChainId, _toAddress, _amount);
+        sequence = IBridge(_bridgeAddress).sendMessage{ value: msg.value }(_from, _dstChainId, _toAddress, _amount);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
         return interfaceId == type(IOERC20).interfaceId || interfaceId == type(IERC20).interfaceId
             || super.supportsInterface(interfaceId);
     }

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
-import "../../common/interfaces/IERC20Metadata.sol";
-import "../../common/utils/Initializable.sol";
-import "../../common/utils/Context.sol";
+import { IERC20Metadata } from "../../common/interfaces/IERC20Metadata.sol";
+import { Initializable } from "../../common/utils/Initializable.sol";
+import { Context } from "../../common/utils/Context.sol";
 
 /// @notice Modern and gas efficient upgradable ERC20 + EIP-2612 implementation.
 /// @author Modified from (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)

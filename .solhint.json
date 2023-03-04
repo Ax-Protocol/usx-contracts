@@ -6,6 +6,10 @@
     "avoid-low-level-calls": ["off",">=0.8.0"],
     "not-rely-on-time": ["off",">=0.8.0"],
     "func-visibility": ["warn",{"ignoreConstructors":true}],
-    "reason-string": ["off"]
+    "reason-string": ["off"],
+    "func-name-mixedcase": ["off"],
+    "check-send-result": ["off"],
+    "no-empty-blocks": ["off"],
+    "var-name-mixedcase": ["off"]
   }
 }
