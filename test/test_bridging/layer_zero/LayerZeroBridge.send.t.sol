@@ -20,11 +20,11 @@ contract LayerZeroSendTest is BridgingSetup {
         for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
-            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Act
             uint64 sequence = IBridge(address(layer_zero_bridge_proxy)).sendMessage{ value: TEST_GAS_FEE }(
-                payable(address(this)), TEST_LZ_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
+                payable(address(this)), TEST_LZ_CHAIN_ID, abi.encode(address(this)), transferAmount
             );
 
             // Post-action Assertions:
@@ -42,7 +42,7 @@ contract LayerZeroSendTest is BridgingSetup {
         // Act: pranking as any non-USX address
         vm.prank(sender);
         IBridge(address(layer_zero_bridge_proxy)).sendMessage(
-            payable(address(this)), TEST_LZ_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
+            payable(address(this)), TEST_LZ_CHAIN_ID, abi.encode(address(this)), transferAmount
         );
     }
 }

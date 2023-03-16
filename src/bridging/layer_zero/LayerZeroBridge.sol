@@ -47,7 +47,6 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         returns (uint64 sequence)
     {
         require(msg.sender == usx, "Unauthorized.");
-        require(_toAddress.length == 20, "Invalid _toAddress.");
 
         _send(_from, _dstChainId, _toAddress, _amount, address(0), bytes(""));
 
@@ -64,7 +63,10 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) internal virtual {
-        bytes memory payload = abi.encode(_toAddress, _amount);
+        // Cast encoded _toAddress to uint256
+        uint256 toAddressUint = uint256(bytes32(_toAddress));
+
+        bytes memory payload = abi.encode(toAddressUint, _amount);
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
@@ -79,13 +81,9 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         uint64, // _nonce
         bytes memory _payload
     ) internal virtual override {
-        // decode and load toAddress
-        (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
-
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
+        // Decode and load toAddress
+        (uint256 toAddressUint, uint256 amount) = abi.decode(_payload, (uint256, uint256));
+        address toAddress = address(uint160(toAddressUint));
 
         _receiveMessage(_srcChainId, _srcAddress, toAddress, amount);
     }

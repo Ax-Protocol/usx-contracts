@@ -51,10 +51,12 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         uint256 wormholeMessageFee = wormholeCoreBridge.messageFee();
 
         require(msg.sender == usx, "Unauthorized.");
-        require(_toAddress.length == 20, "Invalid _toAddress.");
         require(msg.value >= sendFeeLookup[_dstChainId] + wormholeMessageFee, "Not enough native token for gas.");
 
-        bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, _toAddress, _amount);
+        // Cast encoded _toAddress to uint256
+        uint256 toAddressUint = uint256(bytes32(_toAddress));
+
+        bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, toAddressUint, _amount);
 
         // Consistency level of 1 is the most conservative (finalized)
         sequence = wormholeCoreBridge.publishMessage{ value: wormholeMessageFee }(0, message, 1);
@@ -63,6 +65,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
     }
 
     function processMessage(bytes memory _vaa) public {
+        // Parse and verify the VAA.
         (IWormhole.VM memory vm, bool valid, string memory reason) = wormholeCoreBridge.parseAndVerifyVM(_vaa);
 
         // Ensure message verification succeeded.
@@ -81,13 +84,10 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         processedMessages[vm.hash] = true;
 
         // The message content can now be trusted.
-        (bytes memory srcAddress,, bytes memory toAddressBytes, uint256 amount) =
-            abi.decode(vm.payload, (bytes, uint16, bytes, uint256));
+        (bytes memory srcAddress,, uint256 toAddressUint, uint256 amount) =
+            abi.decode(vm.payload, (bytes, uint16, uint256, uint256));
 
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
+        address toAddress = address(uint160(toAddressUint));
 
         // Event
         emit ReceiveFromChain(vm.emitterChainId, srcAddress, toAddress, amount);

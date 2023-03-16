@@ -22,7 +22,7 @@ contract SendTest is BridgingSetup {
         for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -41,7 +41,7 @@ contract SendTest is BridgingSetup {
                 address(wormhole_bridge_proxy),
                 payable(address(this)),
                 TEST_WORMHOLE_CHAIN_ID,
-                abi.encodePacked(address(this)),
+                abi.encode(address(this)),
                 transferAmount
             );
 
@@ -77,7 +77,7 @@ contract SendTest is BridgingSetup {
             address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
-            abi.encodePacked(address(this)),
+            abi.encode(address(this)),
             transferAmount
         );
     }
@@ -91,7 +91,7 @@ contract SendTest is BridgingSetup {
         for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
-            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -111,7 +111,7 @@ contract SendTest is BridgingSetup {
                 address(layer_zero_bridge_proxy),
                 payable(address(this)),
                 TEST_LZ_CHAIN_ID,
-                abi.encodePacked(address(this)),
+                abi.encode(address(this)),
                 transferAmount
             );
 
@@ -144,7 +144,7 @@ contract SendTest is BridgingSetup {
 
             // Act: send more than balance
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
             );
         }
     }
@@ -163,7 +163,7 @@ contract SendTest is BridgingSetup {
 
             // Act: cannot spend without allowance
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(sender), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                bridges[i], payable(sender), chainIds[i], abi.encode(address(this)), transferAmount
             );
         }
     }
@@ -186,7 +186,7 @@ contract SendTest is BridgingSetup {
 
             // Act: both bridges are paused
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
             );
         }
     }
@@ -217,12 +217,12 @@ contract SendTest is BridgingSetup {
 
                     // Act: paused
                     IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
-                        bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
                     );
                 } else {
                     // Act: not paused
                     IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
-                        bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
                     );
 
                     // Assertions
