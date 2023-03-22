@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-import "./ITreasury.sol";
+import { ITreasury } from "./ITreasury.sol";
 
 interface ITreasuryAdmin is ITreasury {
     function addSupportedStable(address _stable, int128 _curveIndex) external;

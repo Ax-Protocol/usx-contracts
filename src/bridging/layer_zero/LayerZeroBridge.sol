@@ -2,15 +2,19 @@
 
 pragma solidity >=0.8.0;
 
-import "solmate/utils/SafeTransferLib.sol";
-import "./lz_app/NonBlockingLzApp.sol";
-import "../../proxy/UUPSUpgradeable.sol";
-import "../../common/interfaces/IUSX.sol";
+// Contracts
+import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
+import { NonBlockingLzApp } from "./lz_app/NonBlockingLzApp.sol";
+import { UUPSUpgradeable } from "../../proxy/UUPSUpgradeable.sol";
+
+// Interfaces
+import { IUSX } from "../../common/interfaces/IUSX.sol";
+import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
-    // Constants: no SLOAD
-    uint256 public constant NO_EXTRA_GAS = 0;
-    uint256 public constant FUNCTION_TYPE_SEND = 1;
+    // Private Constants: no SLOAD to save users gas
+    uint256 private constant NO_EXTRA_GAS = 0;
+    uint256 private constant FUNCTION_TYPE_SEND = 1;
 
     // Storage Variables: follow storage slot restrictions
     bool public useCustomAdapterParams;
@@ -25,13 +29,17 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
 
     function initialize(address _lzEndpoint, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
+        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
+        //       Unit tests must know this address.
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
+        require(_lzEndpoint != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         __NonBlockingLzApp_init_unchained(_lzEndpoint);
         usx = _usx;
     }
 
     /// @dev Required by the UUPS module.
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner { }
 
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external
@@ -39,6 +47,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         returns (uint64 sequence)
     {
         require(msg.sender == usx, "Unauthorized.");
+
         _send(_from, _dstChainId, _toAddress, _amount, address(0), bytes(""));
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
@@ -54,7 +63,10 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         address _zroPaymentAddress,
         bytes memory _adapterParams
     ) internal virtual {
-        bytes memory payload = abi.encode(_toAddress, _amount);
+        // Cast encoded _toAddress to uint256
+        uint256 toAddressUint = uint256(bytes32(_toAddress));
+
+        bytes memory payload = abi.encode(toAddressUint, _amount);
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
@@ -69,13 +81,9 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         uint64, // _nonce
         bytes memory _payload
     ) internal virtual override {
-        // decode and load toAddress
-        (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
-
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
+        // Decode and load toAddress
+        (uint256 toAddressUint, uint256 amount) = abi.decode(_payload, (uint256, uint256));
+        address toAddress = address(uint160(toAddressUint));
 
         _receiveMessage(_srcChainId, _srcAddress, toAddress, amount);
     }
@@ -139,7 +147,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         payable(msg.sender).transfer(address(this).balance);
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

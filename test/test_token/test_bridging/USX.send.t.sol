@@ -19,10 +19,10 @@ contract SendTest is BridgingSetup {
         vm.deal(address(wormhole_bridge_proxy), gasFee * iterations);
 
         uint256 tokenBalance = INITIAL_TOKENS;
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -37,11 +37,11 @@ contract SendTest is BridgingSetup {
             );
 
             // Act: send money using wormhole
-            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
                 address(wormhole_bridge_proxy),
                 payable(address(this)),
                 TEST_WORMHOLE_CHAIN_ID,
-                abi.encodePacked(address(this)),
+                abi.encode(address(this)),
                 transferAmount
             );
 
@@ -73,11 +73,11 @@ contract SendTest is BridgingSetup {
         vm.expectRevert("Not enough native token for gas.");
 
         // Act: gasFee is less than required destGasFee
-        IUSXAdmin(address(usx_proxy)).sendFrom{value: gasFee}(
+        IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
             address(wormhole_bridge_proxy),
             payable(address(this)),
             TEST_WORMHOLE_CHAIN_ID,
-            abi.encodePacked(address(this)),
+            abi.encode(address(this)),
             transferAmount
         );
     }
@@ -88,10 +88,10 @@ contract SendTest is BridgingSetup {
         vm.assume(transferAmount <= INITIAL_TOKENS / iterations);
 
         uint256 tokenBalance = INITIAL_TOKENS;
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
-            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Pre-action Assertions
             assertEq(
@@ -106,11 +106,12 @@ contract SendTest is BridgingSetup {
             );
 
             // Act
-            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{value: 0.0001 ether}(
+            // TODO: Need to reach out to LayerZero and get the actual min fee.
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: 0.001 ether }(
                 address(layer_zero_bridge_proxy),
                 payable(address(this)),
                 TEST_LZ_CHAIN_ID,
-                abi.encodePacked(address(this)),
+                abi.encode(address(this)),
                 transferAmount
             );
 
@@ -137,13 +138,13 @@ contract SendTest is BridgingSetup {
         address[2] memory bridges = [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)];
         uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-        for (uint256 i = 0; i < bridges.length; i++) {
+        for (uint256 i; i < bridges.length; i++) {
             // Expectation
             vm.expectRevert(stdError.arithmeticError);
 
             // Act: send more than balance
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
             );
         }
     }
@@ -156,13 +157,13 @@ contract SendTest is BridgingSetup {
         address[2] memory bridges = [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)];
         uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-        for (uint256 i = 0; i < bridges.length; i++) {
+        for (uint256 i; i < bridges.length; i++) {
             // Expectation
             vm.expectRevert("ERC20: insufficient allowance.");
 
             // Act: cannot spend without allowance
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(sender), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                bridges[i], payable(sender), chainIds[i], abi.encode(address(this)), transferAmount
             );
         }
     }
@@ -179,13 +180,13 @@ contract SendTest is BridgingSetup {
         address[2] memory bridges = [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)];
         uint16[2] memory chainIds = [TEST_WORMHOLE_CHAIN_ID, TEST_LZ_CHAIN_ID];
 
-        for (uint256 i = 0; i < bridges.length; i++) {
+        for (uint256 i; i < bridges.length; i++) {
             // Expectations
             vm.expectRevert(IUSXAdmin.Paused.selector);
 
             // Act: both bridges are paused
             IUSXAdmin(address(usx_proxy)).sendFrom(
-                bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
             );
         }
     }
@@ -201,7 +202,7 @@ contract SendTest is BridgingSetup {
         bool[2] memory privileges = [true, true];
 
         // Iterate through privileges, each time revoking privileges for only one bridge
-        for (uint256 pausedIndex = 0; pausedIndex < privileges.length; pausedIndex++) {
+        for (uint256 pausedIndex; pausedIndex < privileges.length; pausedIndex++) {
             privileges = [true, true];
             privileges[pausedIndex] = false;
 
@@ -209,19 +210,19 @@ contract SendTest is BridgingSetup {
                 [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], privileges
             );
 
-            for (uint256 i = 0; i < bridges.length; i++) {
+            for (uint256 i; i < bridges.length; i++) {
                 if (i == pausedIndex) {
                     // Expectation: transfer should fail because bridge is paused
                     vm.expectRevert(IUSXAdmin.Paused.selector);
 
                     // Act: paused
-                    IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-                        bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                    IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
+                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
                     );
                 } else {
                     // Act: not paused
-                    IUSXAdmin(address(usx_proxy)).sendFrom{value: TEST_GAS_FEE}(
-                        bridges[i], payable(address(this)), chainIds[i], abi.encodePacked(address(this)), transferAmount
+                    IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
+                        bridges[i], payable(address(this)), chainIds[i], abi.encode(address(this)), transferAmount
                     );
 
                     // Assertions

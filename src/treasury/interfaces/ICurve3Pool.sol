@@ -11,6 +11,8 @@ interface ICurve3Pool {
 
     function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount) external;
 
+    function remove_liquidity(uint256 _amount, uint256[3] calldata _min_amounts) external;
+
     function get_virtual_price() external returns (uint256);
 
     function coins(uint256 i) external returns (address);

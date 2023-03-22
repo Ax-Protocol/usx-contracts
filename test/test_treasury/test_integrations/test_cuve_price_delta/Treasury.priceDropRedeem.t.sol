@@ -13,7 +13,7 @@ import "../../../common/Constants.t.sol";
 contract PriceDropRedeemTest is Test, RedeemHelper {
     function test_redeem_negative_price_delta(uint256 priceDelta) public {
         // Assumptions
-        vm.assume(priceDelta <= _3CRV_VIRTUAL_PRICE);
+        vm.assume(priceDelta > 0 && priceDelta <= _3CRV_VIRTUAL_PRICE);
 
         /// @dev Allocate funds for test
         _mintForTestCurveMocked(DAI, DAI_AMOUNT);

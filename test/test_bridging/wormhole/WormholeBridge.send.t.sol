@@ -22,14 +22,14 @@ contract WormholeSendTest is BridgingSetup {
         gasFee = bound(gasFee, destGasFee, 5e16);
         vm.deal(address(usx_proxy), gasFee * iterations);
 
-        for (uint256 i = 0; i < iterations; i++) {
+        for (uint256 i; i < iterations; i++) {
             // Expectations
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encodePacked(address(this)), transferAmount);
+            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
 
             // Act
-            uint64 sequence = IBridge(address(wormhole_bridge_proxy)).sendMessage{value: gasFee}(
-                payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
+            uint64 sequence = IBridge(address(wormhole_bridge_proxy)).sendMessage{ value: gasFee }(
+                payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encode(address(this)), transferAmount
             );
 
             // Post-action Assertions
@@ -47,7 +47,7 @@ contract WormholeSendTest is BridgingSetup {
         // Act: pranking as any non-USX address
         vm.prank(sender);
         IBridge(address(wormhole_bridge_proxy)).sendMessage(
-            payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
+            payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encode(address(this)), transferAmount
         );
     }
 
@@ -62,8 +62,8 @@ contract WormholeSendTest is BridgingSetup {
         vm.expectRevert("Not enough native token for gas.");
 
         // Act: gasFee is less than required destGasFee
-        IBridge(address(wormhole_bridge_proxy)).sendMessage{value: gasFee}(
-            payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(address(this)), transferAmount
+        IBridge(address(wormhole_bridge_proxy)).sendMessage{ value: gasFee }(
+            payable(address(this)), TEST_WORMHOLE_CHAIN_ID, abi.encode(address(this)), transferAmount
         );
     }
 }

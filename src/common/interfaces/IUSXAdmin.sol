@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0;
 
-import "./IUSX.sol";
-import "./IUERC20.sol";
+import { IUSX } from "./IUSX.sol";
+import { IUERC20 } from "./IUERC20.sol";
 
 interface IUSXAdmin is IUSX, IUERC20 {
     error Paused();

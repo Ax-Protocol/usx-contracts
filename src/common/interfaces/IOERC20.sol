@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.2;
 
-import "./IERC165.sol";
-import "../../common/interfaces/IERC20Metadata.sol";
+import { IERC165 } from "./IERC165.sol";
+import { IERC20Metadata } from "../../common/interfaces/IERC20Metadata.sol";
 
 /**
  * @dev Interface of the Omnichain ERC20 standard

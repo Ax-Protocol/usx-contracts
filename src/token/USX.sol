@@ -3,14 +3,15 @@
 pragma solidity ^0.8.16;
 
 // Contracts
-import "solmate/utils/SafeTransferLib.sol";
-import "../common/utils/Initializable.sol";
-import "../common/utils/Ownable.sol";
-import "../proxy/UUPSUpgradeable.sol";
-import "./bridging/OERC20.sol";
+import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
+import { Initializable } from "../common/utils/Initializable.sol";
+import { Ownable } from "../common/utils/Ownable.sol";
+import { UUPSUpgradeable } from "../proxy/UUPSUpgradeable.sol";
+import { OERC20 } from "./bridging/OERC20.sol";
 
 // Interfaces
-import "../common/interfaces/IUSX.sol";
+import { IUSX } from "../common/interfaces/IUSX.sol";
+import { IERC20 } from "../common/interfaces/IERC20.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     // Storage Variables: follow storage slot restrictions
@@ -23,12 +24,15 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     function initialize() public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
+        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
+        //       Unit tests must know this address.
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
         __Ownable_init();
         __ERC20_init("USX", "USX");
     }
 
     /// @dev Required by the UUPS module.
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner { }
 
     /**
      * @dev Callable by treasuries, this function mints USX.
@@ -77,6 +81,13 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     }
 
     /**
+     * @dev Allow contract admins to extract native token.
+     */
+    function extractNative() public onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
+    }
+
+    /**
      * @dev Allow a treasury to revoke its own mint and burn privileges.
      */
     function treasuryKillSwitch() public {
@@ -87,7 +98,7 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
         treasuries[msg.sender] = TreasuryPrivileges(false, false);
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

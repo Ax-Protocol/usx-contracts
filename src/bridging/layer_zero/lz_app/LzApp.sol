@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import "../../../common/utils/Ownable.sol";
-import "../../interfaces/ILayerZeroEndpoint.sol";
-import "../../interfaces/ILayerZeroReceiver.sol";
+import { Ownable } from "../../../common/utils/Ownable.sol";
+import { ILayerZeroEndpoint, ILayerZeroUserApplicationConfig } from "../../interfaces/ILayerZeroEndpoint.sol";
+import { ILayerZeroReceiver } from "../../interfaces/ILayerZeroReceiver.sol";
 
 /*
  * a generic LzReceiver implementation
@@ -59,7 +59,8 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
 
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
-        lzEndpoint.send{value: msg.value}(
+
+        lzEndpoint.send{ value: msg.value }(
             _dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams
         );
     }
@@ -70,7 +71,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     {
         uint256 providedGasLimit = _getGasLimit(_adapterParams);
         uint256 minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
-        require(minGasLimit > 0, "LzApp: minGasLimit not set");
+        require(minGasLimit != 0, "LzApp: minGasLimit not set");
         require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
@@ -118,7 +119,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     function setMinDstGasLookup(uint16 _dstChainId, uint256 _type, uint256 _dstGasAmount) external onlyOwner {
-        require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
+        require(_dstGasAmount != 0, "LzApp: invalid _dstGasAmount");
         minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
         emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);
     }

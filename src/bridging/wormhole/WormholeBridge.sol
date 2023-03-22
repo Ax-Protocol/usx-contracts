@@ -2,11 +2,15 @@
 
 pragma solidity >=0.8.0;
 
-import "solmate/utils/SafeTransferLib.sol";
-import "../../common/utils/Ownable.sol";
-import "../../proxy/UUPSUpgradeable.sol";
-import "../interfaces/IWormhole.sol";
-import "../../common/interfaces/IUSX.sol";
+// Contracts
+import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
+import { Ownable } from "../../common/utils/Ownable.sol";
+import { UUPSUpgradeable } from "../../proxy/UUPSUpgradeable.sol";
+
+// Interfaces
+import { IWormhole } from "../interfaces/IWormhole.sol";
+import { IUSX } from "../../common/interfaces/IUSX.sol";
+import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 contract WormholeBridge is Ownable, UUPSUpgradeable {
     // Storage Variables: follow storage slot restrictions
@@ -27,38 +31,41 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
 
     function initialize(address _wormholeCoreBridge, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
+        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
+        //       Unit tests must know this address.
+        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
+        require(_wormholeCoreBridge != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         wormholeCoreBridge = IWormhole(_wormholeCoreBridge);
         usx = _usx;
     }
 
     /// @dev Required by the UUPS module.
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyOwner { }
 
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external
         payable
         returns (uint64 sequence)
     {
-        require(msg.sender == usx, "Unauthorized.");
-        require(msg.value >= sendFeeLookup[_dstChainId], "Not enough native token for gas.");
+        uint256 wormholeMessageFee = wormholeCoreBridge.messageFee();
 
-        sequence = _publishMessage(_from, _dstChainId, _toAddress, _amount);
+        require(msg.sender == usx, "Unauthorized.");
+        require(msg.value >= sendFeeLookup[_dstChainId] + wormholeMessageFee, "Not enough native token for gas.");
+
+        // Cast encoded _toAddress to uint256
+        uint256 toAddressUint = uint256(bytes32(_toAddress));
+
+        bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, toAddressUint, _amount);
+
+        // Consistency level of 1 is the most conservative (finalized)
+        sequence = wormholeCoreBridge.publishMessage{ value: wormholeMessageFee }(0, message, 1);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
 
-    function _publishMessage(address _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
-        internal
-        virtual
-        returns (uint64 sequence)
-    {
-        bytes memory message = abi.encode(abi.encodePacked(_from), _dstChainId, _toAddress, _amount);
-
-        sequence = wormholeCoreBridge.publishMessage(0, message, 200);
-    }
-
     function processMessage(bytes memory _vaa) public {
+        // Parse and verify the VAA.
         (IWormhole.VM memory vm, bool valid, string memory reason) = wormholeCoreBridge.parseAndVerifyVM(_vaa);
 
         // Ensure message verification succeeded.
@@ -77,13 +84,10 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         processedMessages[vm.hash] = true;
 
         // The message content can now be trusted.
-        (bytes memory srcAddress,, bytes memory toAddressBytes, uint256 amount) =
-            abi.decode(vm.payload, (bytes, uint16, bytes, uint256));
+        (bytes memory srcAddress,, uint256 toAddressUint, uint256 amount) =
+            abi.decode(vm.payload, (bytes, uint16, uint256, uint256));
 
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
+        address toAddress = address(uint160(toAddressUint));
 
         // Event
         emit ReceiveFromChain(vm.emitterChainId, srcAddress, toAddress, amount);
@@ -177,15 +181,16 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
      * @param _fees an array of destination fees; the order must match `_destChainIds` array. Any
      *              element with a value of zero will not get updated (allows for gas-saving optionality).
      */
-    function setSendFees(uint16[] memory _destChainIds, uint256[] memory _fees) public onlyOwner {
-        for (uint256 i = 0; i < _destChainIds.length; i++) {
+    function setSendFees(uint16[] calldata _destChainIds, uint256[] calldata _fees) public onlyOwner {
+        require(_destChainIds.length == _fees.length, "Array lengths do not match");
+        for (uint256 i; i < _destChainIds.length; i++) {
             if (_fees[i] != 0) {
                 sendFeeLookup[_destChainIds[i]] = _fees[i];
             }
         }
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

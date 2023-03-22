@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
-import "../../common/interfaces/IERC20Metadata.sol";
-import "../../common/utils/Initializable.sol";
-import "../../common/utils/Context.sol";
+import { IERC20Metadata } from "../../common/interfaces/IERC20Metadata.sol";
+import { Initializable } from "../../common/utils/Initializable.sol";
+import { Context } from "../../common/utils/Context.sol";
 
 /// @notice Modern and gas efficient upgradable ERC20 + EIP-2612 implementation.
 /// @author Modified from (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
@@ -59,6 +59,8 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     // ERC20 LOGIC
 
     function approve(address spender, uint256 amount) public virtual returns (bool) {
+        require(spender != address(0), "Cannot approve zero address.");
+
         allowance[msg.sender][spender] = amount;
 
         emit Approval(msg.sender, spender, amount);
@@ -67,6 +69,8 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     }
 
     function transfer(address to, uint256 amount) public virtual returns (bool) {
+        require(to != address(0), "Cannot transfer to zero address.");
+
         balanceOf[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
@@ -81,6 +85,8 @@ abstract contract UERC20 is Initializable, Context, IERC20Metadata {
     }
 
     function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
+        require(from != address(0) && to != address(0), "Cannot transfer from or to zero address.");
+
         uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(uint256).max) {

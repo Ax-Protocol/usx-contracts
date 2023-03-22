@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import "./ILayerZeroUserApplicationConfig.sol";
+import { ILayerZeroUserApplicationConfig } from "./ILayerZeroUserApplicationConfig.sol";
 
 interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @notice send a LayerZero message to the specified address at a LayerZero endpoint.
