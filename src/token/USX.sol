@@ -14,6 +14,9 @@ import { IUSX } from "../common/interfaces/IUSX.sol";
 import { IERC20 } from "../common/interfaces/IERC20.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
+    // Private Constants: no SLOAD to save users gas
+    address private constant DEPLOYER = 0xF0A5aDDd704360D6028150836268C179a7ee5534;
+
     // Storage Variables: follow storage slot restrictions
     struct TreasuryPrivileges {
         bool mint;
@@ -24,9 +27,7 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     function initialize() public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
-        //       Unit tests must know this address.
-        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
+        // require(msg.sender == DEPLOYER, "Invalid caller.");
         __Ownable_init();
         __ERC20_init("USX", "USX");
     }
