@@ -794,7 +794,6 @@ contract RewardsTest is FundingHelper {
 
         // Setup
         ITreasuryAdmin(address(treasury_proxy)).stake3Crv(amount);
-        skip(ONE_WEEK);
 
         // Expectations
         uint256 expectedCrvRewardAmount = IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned(address(treasury_proxy));
@@ -820,6 +819,13 @@ contract RewardsTest is FundingHelper {
             IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).balanceOf(address(treasury_proxy)),
             amount,
             "Equivalence violation: treasury staked cvx3CRV balance and amount."
+        );
+
+        // Mock earned rewards value
+        vm.mockCall(
+            CVX3CRV_BASE_REWARD_POOL,
+            abi.encodeWithSelector(IBaseRewardPool(CVX3CRV_BASE_REWARD_POOL).earned.selector),
+            abi.encode(1e18)
         );
 
         // Act
