@@ -3,24 +3,22 @@ pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
 
-import "../../script/Deployer.s.sol";
+import "../../script/DeployerPeripheryChain.s.sol";
 
-contract DeployerTest is Test, DeployerUtils {
+contract DeployerPeripheryChainTest is Test, DeployerUtils {
     // Test Contracts
-    Deployer public deployer;
+    DeployerPeripheryChain public deployer;
 
     function setUp() public {
-        deployer = new Deployer();
+        deployer = new DeployerPeripheryChain();
     }
 
     function test_run() public {
         // Pre-action assertions
         assertEq(address(deployer.usx_implementation()), address(0), "Contract should have null address.");
-        assertEq(address(deployer.treasury_implementation()), address(0), "Contract should have null address.");
         assertEq(address(deployer.wormhole_bridge_implementation()), address(0), "Contract should have null address.");
         assertEq(address(deployer.layer_zero_bridge_implementation()), address(0), "Contract should have null address.");
         assertEq(address(deployer.usx_proxy()), address(0), "Contract should have null address.");
-        assertEq(address(deployer.treasury_proxy()), address(0), "Contract should have null address.");
         assertEq(address(deployer.layer_zero_bridge_proxy()), address(0), "Contract should have null address.");
         assertEq(address(deployer.wormhole_bridge_proxy()), address(0), "Contract should have null address.");
 
@@ -29,33 +27,14 @@ contract DeployerTest is Test, DeployerUtils {
 
         // Assert that contracts were deployed
         assert(address(deployer.usx_implementation()) != address(0));
-        assert(address(deployer.treasury_implementation()) != address(0));
         assert(address(deployer.wormhole_bridge_implementation()) != address(0));
         assert(address(deployer.layer_zero_bridge_implementation()) != address(0));
         assert(address(deployer.usx_proxy()) != address(0));
-        assert(address(deployer.treasury_proxy()) != address(0));
         assert(address(deployer.layer_zero_bridge_proxy()) != address(0));
         assert(address(deployer.wormhole_bridge_proxy()) != address(0));
 
-        test_treaurySetup();
         test_LayerZeroBridgeSetup();
         test_WormholeBridgeSetup();
-    }
-
-    function test_treaurySetup() private {
-        // Check mint and burn privileges
-        (bool mint, bool burn) = IUSXAdmin(address(deployer.usx_proxy())).treasuries(address(deployer.treasury_proxy()));
-        assertEq(mint, true, "Privilege failed: Treasury should have mint privileges.");
-        assertEq(burn, true, "Privilege failed: Treasury should have burn privileges.");
-
-        // Check Treasury's supported stables
-        (bool supported, int128 returnedTestCurveIndex) =
-            ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(DAI);
-        assertEq(supported, true, "Error: failed to add supported stable.");
-        (supported, returnedTestCurveIndex) = ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(USDC);
-        assertEq(supported, true, "Error: failed to add supported stable.");
-        (supported, returnedTestCurveIndex) = ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(USDT);
-        assertEq(supported, true, "Error: failed to add supported stable.");
     }
 
     function test_LayerZeroBridgeSetup() private {
@@ -96,12 +75,16 @@ contract DeployerTest is Test, DeployerUtils {
 
         // Check WormholeBridge trusted entities
         assertEq(
-            IWormholeBridge(address(deployer.wormhole_bridge_proxy())).trustedContracts(TEST_TRUSTED_EMITTER),
+            IWormholeBridge(address(deployer.wormhole_bridge_proxy())).trustedContracts(
+                bytes32(abi.encode(address(deployer.wormhole_bridge_proxy())))
+            ),
             true,
             "WormholeBridge manageTrustedContracts failed."
         );
         assertEq(
-            IWormholeBridge(address(deployer.wormhole_bridge_proxy())).trustedRelayers(TRUSTED_WORMHOLE_RELAYER),
+            IWormholeBridge(address(deployer.wormhole_bridge_proxy())).trustedRelayers(
+                vm.envAddress("WORMHOLE_TRUSTED_RELAYER")
+            ),
             true,
             "WormholeBridge manageTrustedRelayers failed."
         );

@@ -20,6 +20,7 @@ address constant TRUSTED_WORMHOLE_RELAYER = 0xC88E7fac500B7f8B3B3d4333F132bd21a0
 // LayerZero
 address constant LZ_ENDPOINT = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
 
+// Will need to remove current deployment chain
 contract DeployerUtils {
-    uint16[] public LZ_CHAIN_IDS = [101, 109, 106, 102, 112, 111, 110, 145, 138, 125, 116, 155, 151, 126, 115];
+    uint16[] public LZ_CHAIN_IDS = [101, 110, 111, 145, 102, 109, 106];
 }

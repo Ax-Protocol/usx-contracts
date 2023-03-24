@@ -14,7 +14,7 @@ import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 contract WormholeBridge is Ownable, UUPSUpgradeable {
     // Private Constants: no SLOAD to save users gas
-    address private constant DEPLOYER = 0xF0A5aDDd704360D6028150836268C179a7ee5534;
+    address private constant DEPLOYER = 0x0c3D42f8F36564AF39Ad35d83b2362736612b735;
 
     // Storage Variables: follow storage slot restrictions
     IWormhole public wormholeCoreBridge;
@@ -34,7 +34,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
 
     function initialize(address _wormholeCoreBridge, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        // require(msg.sender == DEPLOYER, "Invalid caller.");
+        require(msg.sender == DEPLOYER, "Invalid caller.");
         require(_wormholeCoreBridge != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         wormholeCoreBridge = IWormhole(_wormholeCoreBridge);

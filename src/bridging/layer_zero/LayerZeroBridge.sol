@@ -15,7 +15,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     // Private Constants: no SLOAD to save users gas
     uint256 private constant NO_EXTRA_GAS = 0;
     uint256 private constant FUNCTION_TYPE_SEND = 1;
-    address private constant DEPLOYER = 0xF0A5aDDd704360D6028150836268C179a7ee5534;
+    address private constant DEPLOYER = 0x0c3D42f8F36564AF39Ad35d83b2362736612b735;
 
     // Storage Variables: follow storage slot restrictions
     bool public useCustomAdapterParams;
@@ -30,7 +30,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
 
     function initialize(address _lzEndpoint, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        // require(msg.sender == DEPLOYER, "Invalid caller.");
+        require(msg.sender == DEPLOYER, "Invalid caller.");
         require(_lzEndpoint != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         __NonBlockingLzApp_init_unchained(_lzEndpoint);
