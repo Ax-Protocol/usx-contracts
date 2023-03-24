@@ -5,6 +5,9 @@ on:
       - main
   pull_request:
 
+env:
+  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+
 jobs:
   run-ci:
     runs-on: ubuntu-latest

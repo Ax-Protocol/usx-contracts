@@ -27,6 +27,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     address private constant CVX3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
     address private constant CVXCRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
     address private constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
+    address private constant DEPLOYER = 0xF0A5aDDd704360D6028150836268C179a7ee5534;
     uint8 private constant PID_3POOL = 9;
 
     // Storage Variables: follow storage slot restrictions
@@ -46,9 +47,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     function initialize(address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        // TODO: Replace 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496 with prod contract deployer address.
-        //       Unit tests must know this address.
-        require(msg.sender == address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496), "Invalid caller.");
+        // require(msg.sender == DEPLOYER, "Invalid caller.");
         __Ownable_init();
         usx = _usx;
     }
