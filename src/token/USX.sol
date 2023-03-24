@@ -27,7 +27,7 @@ contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
 
     function initialize() public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        require(msg.sender == DEPLOYER, "Invalid caller.");
+        //require(msg.sender == DEPLOYER, "Invalid caller.");
         __Ownable_init();
         __ERC20_init("USX", "USX");
     }

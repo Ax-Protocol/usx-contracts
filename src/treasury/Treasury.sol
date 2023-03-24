@@ -47,7 +47,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     function initialize(address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        require(msg.sender == DEPLOYER, "Invalid caller.");
+        //require(msg.sender == DEPLOYER, "Invalid caller.");
         __Ownable_init();
         usx = _usx;
     }
