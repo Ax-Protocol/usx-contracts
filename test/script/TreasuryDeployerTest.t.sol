@@ -47,11 +47,13 @@ contract TreasuryDeployerTest is Test, DeployerUtils {
 
         // Check Treasury's supported stables
         (bool supported, int128 returnedTestCurveIndex) =
-            ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(DAI);
+            ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(vm.envAddress("DAI"));
         assertEq(supported, true, "Error: failed to add supported stable.");
-        (supported, returnedTestCurveIndex) = ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(USDC);
+        (supported, returnedTestCurveIndex) =
+            ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(vm.envAddress("USDC"));
         assertEq(supported, true, "Error: failed to add supported stable.");
-        (supported, returnedTestCurveIndex) = ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(USDT);
+        (supported, returnedTestCurveIndex) =
+            ITreasuryAdmin(address(deployer.treasury_proxy())).supportedStables(vm.envAddress("USDT"));
         assertEq(supported, true, "Error: failed to add supported stable.");
     }
 }

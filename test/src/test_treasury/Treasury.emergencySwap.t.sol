@@ -84,4 +84,22 @@ contract EmergencySwapTest is RedeemHelper {
         // Act: attempt to perform emergency swap to an unsupported token
         ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(_3CRV);
     }
+
+    function testCannot_emergency_swap_unauthorized(uint256 amountMultiplier, address sender) public {
+        vm.assume(amountMultiplier > 0 && amountMultiplier < 1e7);
+        vm.assume(sender != address(this));
+
+        // Allocate funds for test
+        _mintForTest(DAI, DAI_AMOUNT * amountMultiplier);
+
+        // Excluding last index (3CRV)
+        for (uint256 i; i < TEST_COINS.length - 1; i++) {
+            // Expectations
+            vm.expectRevert("Ownable: caller is not the owner");
+
+            // Act
+            vm.prank(sender);
+            ITreasuryAdmin(address(treasury_proxy)).emergencySwapBacking(TEST_COINS[i]);
+        }
+    }
 }
