@@ -34,7 +34,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
 
     function initialize(address _wormholeCoreBridge, address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        require(msg.sender == DEPLOYER, "Invalid caller.");
+        // require(msg.sender == DEPLOYER, "Invalid caller.");
         require(_wormholeCoreBridge != address(0) && _usx != address(0), "Invalid parameter.");
         __Ownable_init();
         wormholeCoreBridge = IWormhole(_wormholeCoreBridge);
