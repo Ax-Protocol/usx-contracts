@@ -16,7 +16,7 @@ contract TreasuryDeployer is Script, DeployerUtils {
     ERC1967Proxy public treasury_proxy;
 
     function run(address usx_proxy) public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("TREASURY_DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy contracts
@@ -24,8 +24,6 @@ contract TreasuryDeployer is Script, DeployerUtils {
 
         // Configure contracts
         configureTreasury(usx_proxy);
-
-        vm.stopBroadcast();
     }
 
     function deploy(address usx_proxy) private {
@@ -36,12 +34,16 @@ contract TreasuryDeployer is Script, DeployerUtils {
     }
 
     function configureTreasury(address usx_proxy) private {
-        // Set burn and mint privileges
-        IUSXAdmin(usx_proxy).manageTreasuries(address(treasury_proxy), true, true);
-
         // Set supported stables
         ITreasuryAdmin(address(treasury_proxy)).addSupportedStable(vm.envAddress("DAI"), 0);
         ITreasuryAdmin(address(treasury_proxy)).addSupportedStable(vm.envAddress("USDC"), 1);
         ITreasuryAdmin(address(treasury_proxy)).addSupportedStable(vm.envAddress("USDT"), 2);
+        vm.stopBroadcast();
+
+        // Set burn and mint privileges
+        uint256 deployerPrivateKey = vm.envUint("USX_DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        IUSXAdmin(usx_proxy).manageTreasuries(address(treasury_proxy), true, true);
+        vm.stopBroadcast();
     }
 }

@@ -27,7 +27,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
     address private constant CVX3CRV_BASE_REWARD_POOL = 0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8;
     address private constant CVXCRV_BASE_REWARD_POOL = 0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e;
     address private constant CVX_REWARD_POOL = 0xCF50b810E57Ac33B91dCF525C6ddd9881B139332;
-    address private constant DEPLOYER = 0x0c3D42f8F36564AF39Ad35d83b2362736612b735;
+    address private constant DEPLOYER = 0xd3e7A213D97D8C9630Cef49e715E1156B0385603;
     uint8 private constant PID_3POOL = 9;
 
     // Storage Variables: follow storage slot restrictions
@@ -47,7 +47,7 @@ contract Treasury is Ownable, UUPSUpgradeable, ITreasury {
 
     function initialize(address _usx) public initializer {
         /// @dev No constructor, so initialize Ownable explicitly.
-        //require(msg.sender == DEPLOYER, "Invalid caller.");
+        // require(msg.sender == DEPLOYER, "Invalid caller.");
         __Ownable_init();
         usx = _usx;
     }

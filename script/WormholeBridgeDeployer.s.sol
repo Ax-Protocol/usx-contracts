@@ -16,8 +16,7 @@ contract WormholeBridgeDeployer is Script, DeployerUtils {
     ERC1967Proxy public wormhole_bridge_proxy;
 
     function run(address usx_proxy) public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-
+        uint256 deployerPrivateKey = vm.envUint("WH_BRIDGE_DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy contracts
@@ -25,8 +24,6 @@ contract WormholeBridgeDeployer is Script, DeployerUtils {
 
         // Configure contracts
         configureBridge(usx_proxy);
-
-        vm.stopBroadcast();
     }
 
     function deploy(address usx_proxy) private {
@@ -37,9 +34,6 @@ contract WormholeBridgeDeployer is Script, DeployerUtils {
     }
 
     function configureBridge(address usx_proxy) private {
-        // Set burn and mint privileges
-        IUSXAdmin(usx_proxy).manageTreasuries(address(wormhole_bridge_proxy), true, false);
-
         // Set Trusted Entities for Wormhole
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(
             bytes32(abi.encode(address(wormhole_bridge_proxy))), true
@@ -47,5 +41,12 @@ contract WormholeBridgeDeployer is Script, DeployerUtils {
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(
             vm.envAddress("WORMHOLE_TRUSTED_RELAYER"), true
         );
+        vm.stopBroadcast();
+
+        // Set burn and mint privileges
+        uint256 deployerPrivateKey = vm.envUint("USX_DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        IUSXAdmin(usx_proxy).manageTreasuries(address(wormhole_bridge_proxy), true, false);
+        vm.stopBroadcast();
     }
 }

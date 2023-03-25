@@ -14,7 +14,7 @@ import { IERC20 } from "../../common/interfaces/IERC20.sol";
 
 contract WormholeBridge is Ownable, UUPSUpgradeable {
     // Private Constants: no SLOAD to save users gas
-    address private constant DEPLOYER = 0x0c3D42f8F36564AF39Ad35d83b2362736612b735;
+    address private constant DEPLOYER = 0xcf1FB53BC91410a909a4fFF521dBa6ABF25d4931;
 
     // Storage Variables: follow storage slot restrictions
     IWormhole public wormholeCoreBridge;

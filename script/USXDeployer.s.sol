@@ -13,7 +13,7 @@ contract USXDeployer is Script, DeployerUtils {
     ERC1967Proxy public usx_proxy;
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("USX_DEPLOYER_PRIVATE_KEY");
 
         vm.startBroadcast(deployerPrivateKey);
 

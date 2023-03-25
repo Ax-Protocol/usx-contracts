@@ -17,8 +17,7 @@ contract LayerZeroBridgeDeployer is Script, DeployerUtils {
     ERC1967Proxy public layer_zero_bridge_proxy;
 
     function run(address usx_proxy) public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-
+        uint256 deployerPrivateKey = vm.envUint("LZ_BRIDGE_DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy contracts
@@ -26,8 +25,6 @@ contract LayerZeroBridgeDeployer is Script, DeployerUtils {
 
         // Configure contracts
         configureBridge(usx_proxy);
-
-        vm.stopBroadcast();
     }
 
     function deploy(address usx_proxy) private {
@@ -38,14 +35,18 @@ contract LayerZeroBridgeDeployer is Script, DeployerUtils {
     }
 
     function configureBridge(address usx_proxy) private {
-        // Set burn and mint privileges
-        IUSXAdmin(usx_proxy).manageTreasuries(address(layer_zero_bridge_proxy), true, false);
-
         // Set Trusted Remote for LayerZero (remove deployment chain's id from list)
         for (uint256 i; i < LZ_CHAIN_IDS.length; i++) {
             ILayerZeroBridge(address(layer_zero_bridge_proxy)).setTrustedRemote(
                 LZ_CHAIN_IDS[i], abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy))
             );
         }
+        vm.stopBroadcast();
+
+        // Set burn and mint privileges
+        uint256 deployerPrivateKey = vm.envUint("USX_DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        IUSXAdmin(usx_proxy).manageTreasuries(address(layer_zero_bridge_proxy), true, false);
+        vm.stopBroadcast();
     }
 }
