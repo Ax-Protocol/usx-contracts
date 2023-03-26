@@ -15,7 +15,7 @@ import { IERC20 } from "../common/interfaces/IERC20.sol";
 
 contract USX is Initializable, UUPSUpgradeable, Ownable, OERC20, IUSX {
     // Private Constants: no SLOAD to save users gas
-    address private constant DEPLOYER = 0x0c3D42f8F36564AF39Ad35d83b2362736612b735;
+    address private constant DEPLOYER = 0x5AfAE3d2B0dCEe1833BB947faC15D4f2d2D5d523;
 
     // Storage Variables: follow storage slot restrictions
     struct TreasuryPrivileges {
