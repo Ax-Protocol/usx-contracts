@@ -15,7 +15,7 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     // Private Constants: no SLOAD to save users gas
     uint256 private constant NO_EXTRA_GAS = 0;
     uint256 private constant FUNCTION_TYPE_SEND = 1;
-    address private constant DEPLOYER = 0xF0A5aDDd704360D6028150836268C179a7ee5534;
+    address private constant DEPLOYER = 0x4bb324aDef9f60D611D140Ef9407fdF5E026cE77;
 
     // Storage Variables: follow storage slot restrictions
     bool public useCustomAdapterParams;
