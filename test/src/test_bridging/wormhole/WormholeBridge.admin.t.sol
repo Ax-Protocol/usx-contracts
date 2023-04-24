@@ -228,11 +228,42 @@ contract AdminTest is Test {
         IWormholeBridge(address(wormhole_bridge_proxy)).extractNative();
     }
 
+    function test_setFeeSetter() public {
+        // Pre-action assertions
+        assertEq(
+            IWormholeBridge(address(wormhole_bridge_proxy)).feeSetter(),
+            address(0),
+            "Equivalence violation: default address and null address"
+        );
+
+        // Act: update feeSetter
+        IWormholeBridge(address(wormhole_bridge_proxy)).setFeeSetter(FEE_SETTER);
+
+        // Post-action assertions
+        assertEq(
+            IWormholeBridge(address(wormhole_bridge_proxy)).feeSetter(),
+            FEE_SETTER,
+            "Equivalence violation: feeSetter address and FEE_SETTER"
+        );
+    }
+
+    function testCannot_setFeeSetter_unauthorized(address sender) public {
+        // Setup
+        vm.assume(sender != address(this));
+
+        // Exptectations
+        vm.expectRevert("Ownable: caller is not the owner");
+
+        vm.prank(sender);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setFeeSetter(FEE_SETTER);
+    }
+
     function test_setSendFees_update_all(uint256 fee) public {
         // Assumptions
         vm.assume(fee >= 1e15 && fee < 5e16);
 
         // Setup
+        IWormholeBridge(address(wormhole_bridge_proxy)).setFeeSetter(FEE_SETTER);
         uint256 testCases = 4;
 
         for (uint256 i = 1; i < (testCases + 1); i++) {
@@ -247,6 +278,7 @@ contract AdminTest is Test {
         }
 
         // Act: update
+        vm.prank(FEE_SETTER);
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions
@@ -261,6 +293,7 @@ contract AdminTest is Test {
         vm.assume(fee >= 1e15 && fee < 5e16);
 
         // Setup
+        IWormholeBridge(address(wormhole_bridge_proxy)).setFeeSetter(FEE_SETTER);
         uint256 testCases = 4;
 
         for (uint256 i = 1; i < (testCases + 1); i++) {
@@ -268,6 +301,7 @@ contract AdminTest is Test {
             fees.push(fee);
         }
 
+        vm.prank(FEE_SETTER);
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         uint256[] memory old_fees = fees;
@@ -281,6 +315,7 @@ contract AdminTest is Test {
         }
 
         // Act: update, with some fees as zero
+        vm.prank(FEE_SETTER);
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions
@@ -297,9 +332,10 @@ contract AdminTest is Test {
     function testCannot_setSendFees_unauthorized(uint256 fee, address sender) public {
         // Assumptions
         vm.assume(fee >= 1e15 && fee < 5e16);
-        vm.assume(sender != address(this));
+        vm.assume(sender != FEE_SETTER);
 
         // Setup
+        IWormholeBridge(address(wormhole_bridge_proxy)).setFeeSetter(FEE_SETTER);
         uint256 testCases = 4;
 
         for (uint256 i = 1; i < (testCases + 1); i++) {
@@ -308,7 +344,7 @@ contract AdminTest is Test {
         }
 
         // Exptectations
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert("Unauthorized.");
 
         vm.prank(sender);
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);

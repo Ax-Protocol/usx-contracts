@@ -62,6 +62,7 @@ abstract contract BridgingSetup is Test {
         // Set Trusted Entities for Wormhole
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedRelayers(TRUSTED_WORMHOLE_RELAYER, true);
+        IWormholeBridge(address(wormhole_bridge_proxy)).setFeeSetter(FEE_SETTER);
 
         // Set Destination Gas Fees for Wormhole
         _setDestinationFees();
@@ -80,6 +81,8 @@ abstract contract BridgingSetup is Test {
             destChainIds.push(uint16(i));
             fees.push(i * 1e15);
         }
+
+        vm.prank(FEE_SETTER);
 
         // Act: update
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);

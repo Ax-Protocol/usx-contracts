@@ -12,6 +12,8 @@ interface IWormholeBridge {
 
     function trustedRelayers(address) external returns (bool);
 
+    function feeSetter() external returns (address);
+
     // Admin functions
     function manageTrustedContracts(bytes32 _contract, bool _isTrusted) external;
 
@@ -20,6 +22,8 @@ interface IWormholeBridge {
     function getTrustedContracts() external returns (bytes32[] memory);
 
     function getTrustedRelayers() external returns (address[] memory);
+
+    function setFeeSetter(address _feeSetter) external;
 
     function setSendFees(uint16[] calldata _destChainIds, uint256[] calldata _fees) external;
 
