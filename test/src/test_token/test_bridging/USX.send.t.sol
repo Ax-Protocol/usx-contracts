@@ -107,7 +107,7 @@ contract SendTest is BridgingSetup {
 
             // Act
             // TODO: Need to reach out to LayerZero and get the actual min fee.
-            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: 0.001 ether }(
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
                 address(layer_zero_bridge_proxy),
                 payable(address(this)),
                 TEST_LZ_CHAIN_ID,

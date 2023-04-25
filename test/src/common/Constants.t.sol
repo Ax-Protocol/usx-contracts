@@ -31,3 +31,10 @@ uint256 constant _3CRV_AMOUNT = 1e18;
 
 // bytes
 bytes32 constant TEST_TRUSTED_EMITTER = bytes32(abi.encode(0xc144b96b42924EBb9e5f7eF7B27957E576A6D102));
+
+contract TestUtils {
+    uint16[] LZ_TEST_CHAIN_IDS = [102, 109, 106, 112, 125, 110, 111, 145];
+    uint16[] WH_TEST_CHAIN_IDS = [4, 5, 6, 10, 14, 20];
+    bool[] LZ_TEST_PRIVILEGES = [true, true, true, true, true, true, true, true];
+    bool[] WH_TEST_PRIVILEGES = [true, true, true, true, true, true];
+}

@@ -71,6 +71,24 @@ abstract contract BridgingSetup is Test {
         IUSXAdmin(address(usx_proxy)).manageCrossChainTransfers(
             [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
+
+        // Enable test route
+        _setRoutes();
+    }
+
+    function _setRoutes() internal {
+        // Setup
+        uint16[] memory lzDstChainIds = new uint16[](1);
+        uint16[] memory whDstChainIds = new uint16[](1);
+        bool[] memory privileges = new bool[](1);
+
+        lzDstChainIds[0] = TEST_LZ_CHAIN_ID;
+        whDstChainIds[0] = TEST_WORMHOLE_CHAIN_ID;
+        privileges[0] = true;
+
+        // Act: update
+        IUSXAdmin(address(usx_proxy)).manageRoutes(address(layer_zero_bridge_proxy), lzDstChainIds, privileges);
+        IUSXAdmin(address(usx_proxy)).manageRoutes(address(wormhole_bridge_proxy), whDstChainIds, privileges);
     }
 
     function _setDestinationFees() internal {

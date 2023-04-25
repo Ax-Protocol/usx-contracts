@@ -15,6 +15,7 @@ import { IERC20 } from "../../common/interfaces/IERC20.sol";
 abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
     // Storage Variables: follow storage slot restrictions
     mapping(address => bool) public transferPrivileges;
+    mapping(address => mapping(uint16 => bool)) public routes;
 
     error Paused();
 
@@ -25,7 +26,7 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
         bytes memory _toAddress,
         uint256 _amount
     ) public payable virtual override returns (uint64 sequence) {
-        if (!transferPrivileges[_bridgeAddress]) {
+        if (!transferPrivileges[_bridgeAddress] || !routes[_bridgeAddress][_dstChainId]) {
             revert Paused();
         }
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
@@ -88,10 +89,27 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
     }
 
     /**
+     * @dev Manages cross-chain routes privileges for each message passing protocol.
+     * @param _bridgeAddress - Bridge contract address.
+     * @param _dstChainIds - An array of bridge-specific destination chain IDs; the order must match `_privileges` array.
+     * @param _privileges - An array of protocol privileges; the order must match `_dstChainIds` array.
+     */
+    function manageRoutes(address _bridgeAddress, uint16[] calldata _dstChainIds, bool[] calldata _privileges)
+        public
+        onlyOwner
+    {
+        require(_dstChainIds.length == _privileges.length, "Arrays must be equal length.");
+
+        for (uint256 i; i < _dstChainIds.length; i++) {
+            routes[_bridgeAddress][_dstChainIds[i]] = _privileges[i];
+        }
+    }
+
+    /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage slots in the inheritance chain.
      * Storage slot management is necessary, as we're using an upgradable proxy contract.
      * For details, see: https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint256[49] private __gap;
 }
