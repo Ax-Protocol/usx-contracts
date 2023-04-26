@@ -301,7 +301,7 @@ contract AdminTest is Test {
             fees.push(fee);
         }
 
-        vm.prank(FEE_SETTER);
+        vm.startPrank(FEE_SETTER);
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         uint256[] memory old_fees = fees;
@@ -315,7 +315,6 @@ contract AdminTest is Test {
         }
 
         // Act: update, with some fees as zero
-        vm.prank(FEE_SETTER);
         IWormholeBridge(address(wormhole_bridge_proxy)).setSendFees(destChainIds, fees);
 
         // Post-action assertions

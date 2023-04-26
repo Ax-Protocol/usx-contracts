@@ -66,5 +66,5 @@ jobs:
       - uses: codecov/codecov-action@v2
 
       # Too slow to run regularly
-      #  name: Run audit
+      #- name: Run audit
       #  run: poetry run slither --solc-remaps @openzeppelin=lib/openzeppelin-contracts --solc-args optimize src/

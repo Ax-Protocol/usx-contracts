@@ -179,7 +179,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
 
     /**
      * @dev This function allows contract admins to set the address of the feeSetter account.
-     * @param _feeSetter The address of the account to update the feeSetter state variable with.
+     * @param _feeSetter The address of the account that's allowed to update destination fees.
      */
     function setFeeSetter(address _feeSetter) public onlyOwner {
         feeSetter = _feeSetter;

@@ -13,7 +13,7 @@ import "../../../../../src/bridging/interfaces/ILayerZeroBridge.sol";
 
 import "../../../common/Constants.t.sol";
 
-abstract contract BridgingSetup is Test {
+abstract contract BridgingSetup is Test, TestUtils {
     // Test Contracts
     USX public usx_implementation;
     LayerZeroBridge public layer_zero_bridge;
@@ -55,9 +55,7 @@ abstract contract BridgingSetup is Test {
         IUSXAdmin(address(usx_proxy)).mint(address(this), INITIAL_TOKENS);
 
         // Set Trusted Remote for LayerZero
-        ILayerZeroBridge(address(layer_zero_bridge_proxy)).setTrustedRemote(
-            TEST_LZ_CHAIN_ID, abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy))
-        );
+        _setTrustedRemote();
 
         // Set Trusted Entities for Wormhole
         IWormholeBridge(address(wormhole_bridge_proxy)).manageTrustedContracts(TEST_TRUSTED_EMITTER, true);
@@ -72,23 +70,22 @@ abstract contract BridgingSetup is Test {
             [address(wormhole_bridge_proxy), address(layer_zero_bridge_proxy)], [true, true]
         );
 
-        // Enable test route
-        _setRoutes();
+        // Enable routes
+        IUSXAdmin(address(usx_proxy)).manageRoutes(
+            address(layer_zero_bridge_proxy), LZ_TEST_CHAIN_IDS, LZ_TEST_PRIVILEGES
+        );
+        IUSXAdmin(address(usx_proxy)).manageRoutes(
+            address(wormhole_bridge_proxy), WH_TEST_CHAIN_IDS, WH_TEST_PRIVILEGES
+        );
     }
 
-    function _setRoutes() internal {
-        // Setup
-        uint16[] memory lzDstChainIds = new uint16[](1);
-        uint16[] memory whDstChainIds = new uint16[](1);
-        bool[] memory privileges = new bool[](1);
-
-        lzDstChainIds[0] = TEST_LZ_CHAIN_ID;
-        whDstChainIds[0] = TEST_WORMHOLE_CHAIN_ID;
-        privileges[0] = true;
-
-        // Act: update
-        IUSXAdmin(address(usx_proxy)).manageRoutes(address(layer_zero_bridge_proxy), lzDstChainIds, privileges);
-        IUSXAdmin(address(usx_proxy)).manageRoutes(address(wormhole_bridge_proxy), whDstChainIds, privileges);
+    function _setTrustedRemote() internal {
+        for (uint256 i; i < LZ_TEST_CHAIN_IDS.length; i++) {
+            ILayerZeroBridge(address(layer_zero_bridge_proxy)).setTrustedRemote(
+                LZ_TEST_CHAIN_IDS[i],
+                abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy))
+            );
+        }
     }
 
     function _setDestinationFees() internal {

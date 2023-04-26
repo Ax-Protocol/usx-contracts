@@ -89,10 +89,10 @@ abstract contract OERC20 is IOERC20, ERC165, UERC20, Ownable {
     }
 
     /**
-     * @dev Manages cross-chain routes privileges for each message passing protocol.
+     * @dev Manages privileges for bridge-specific routes.
      * @param _bridgeAddress - Bridge contract address.
      * @param _dstChainIds - An array of bridge-specific destination chain IDs; the order must match `_privileges` array.
-     * @param _privileges - An array of protocol privileges; the order must match `_dstChainIds` array.
+     * @param _privileges - An array of route privileges (boolean); the order must match `_dstChainIds` array.
      */
     function manageRoutes(address _bridgeAddress, uint16[] calldata _dstChainIds, bool[] calldata _privileges)
         public
