@@ -4,6 +4,8 @@ pragma solidity >=0.8.0;
 import { ITreasury } from "./ITreasury.sol";
 
 interface ITreasuryAdmin is ITreasury {
+    function upgradeTo(address newImplementation) external;
+
     function addSupportedStable(address _stable, int128 _curveIndex) external;
 
     function removeSupportedStable(address _stable) external;
