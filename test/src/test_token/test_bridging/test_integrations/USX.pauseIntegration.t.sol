@@ -12,6 +12,7 @@ contract PauseIntegrationTest is BridgingSetup {
     /// @dev Integration tests.
 
     function test_pause_wormhole_integration(uint256 transferAmount) public {
+        // Assumptions
         vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS / 2);
 
         // Test Variables
@@ -109,6 +110,7 @@ contract PauseIntegrationTest is BridgingSetup {
     }
 
     function test_pause_layer_zero_integration(uint256 transferAmount) public {
+        // Assumptions
         vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS / 2);
 
         // Test Variables
@@ -206,7 +208,9 @@ contract PauseIntegrationTest is BridgingSetup {
     }
 
     function test_pause_all_integration(uint256 transferAmount) public {
+        // Assumptions
         vm.assume(transferAmount > 0 && transferAmount <= INITIAL_TOKENS / 2);
+
         // Test Variables
         uint256 BALANCE_AFTER_FIRST_TRANSFER = INITIAL_TOKENS - transferAmount;
         uint256 BALANCE_AFTER_SECOND_TRANSFER = BALANCE_AFTER_FIRST_TRANSFER - transferAmount;
@@ -337,5 +341,166 @@ contract PauseIntegrationTest is BridgingSetup {
             BALANCE_AFTER_SECOND_TRANSFER,
             "Equivalence violation: sender balance and BALANCE_AFTER_SECOND_TRANSFER (WM)."
         );
+    }
+
+    function test_pause_layerzero_routes_integration(uint256 transferAmount) public {
+        // Assumptions
+        vm.assume(transferAmount <= INITIAL_TOKENS / LZ_TEST_CHAIN_IDS.length);
+
+        // Setup
+        uint256 tokenBalance = INITIAL_TOKENS;
+        IUSXAdmin(address(usx_proxy)).manageRoutes(
+            address(layer_zero_bridge_proxy), LZ_TEST_CHAIN_IDS, LZ_TEST_PRIVILEGES
+        );
+
+        // Pre-action Assertions
+        for (uint256 i; i < LZ_TEST_CHAIN_IDS.length; i++) {
+            vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
+            emit SendToChain(LZ_TEST_CHAIN_IDS[i], address(this), abi.encode(address(this)), transferAmount);
+
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).routes(address(layer_zero_bridge_proxy), LZ_TEST_CHAIN_IDS[i]),
+                true,
+                "Equivalence violation: LZ_TEST_CHAIN_IDS[i] is not initially true"
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance,
+                "Equivalence violation: total supply and initially minted tokens."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance,
+                "Equivalence violation: user balance and initially minted tokens."
+            );
+
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
+                address(layer_zero_bridge_proxy),
+                payable(address(this)),
+                LZ_TEST_CHAIN_IDS[i],
+                abi.encode(address(this)),
+                transferAmount
+            );
+
+            assertEq(sequence, 0); // should stay zero for layer zero
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance - transferAmount,
+                "Equivalence violation: total supply must decrease by amount transferred."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance - transferAmount,
+                "Equivalence violation: user balance must decrease by amount transferred."
+            );
+            tokenBalance -= transferAmount;
+        }
+
+        for (uint256 i; i < LZ_TEST_CHAIN_IDS.length; i++) {
+            // Act
+            LZ_TEST_PRIVILEGES[i] = false;
+            IUSXAdmin(address(usx_proxy)).manageRoutes(
+                address(layer_zero_bridge_proxy), LZ_TEST_CHAIN_IDS, LZ_TEST_PRIVILEGES
+            );
+
+            // Post-action assertions
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).routes(address(layer_zero_bridge_proxy), LZ_TEST_CHAIN_IDS[i]),
+                false,
+                "Equivalence violation: LZ_TEST_CHAIN_IDS[i] was not updated to false"
+            );
+
+            vm.expectRevert(IUSXAdmin.Paused.selector);
+
+            IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
+                address(layer_zero_bridge_proxy),
+                payable(address(this)),
+                LZ_TEST_CHAIN_IDS[i],
+                abi.encode(address(this)),
+                transferAmount
+            );
+        }
+    }
+
+    function test_pause_wormhole_routes_integration(uint256 transferAmount, uint256 gasFee) public {
+        // Assumptions
+        vm.assume(transferAmount <= INITIAL_TOKENS / WH_TEST_CHAIN_IDS.length);
+
+        // Setup
+        uint256 tokenBalance = INITIAL_TOKENS;
+        IUSXAdmin(address(usx_proxy)).manageRoutes(
+            address(wormhole_bridge_proxy), WH_TEST_CHAIN_IDS, WH_TEST_PRIVILEGES
+        );
+
+        // Pre-action Assertions
+        for (uint256 i; i < WH_TEST_CHAIN_IDS.length; i++) {
+            uint256 destGasFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(WH_TEST_CHAIN_IDS[i]);
+            gasFee = bound(gasFee, destGasFee, 5e16);
+
+            vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
+            emit SendToChain(WH_TEST_CHAIN_IDS[i], address(this), abi.encode(address(this)), transferAmount);
+
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).routes(address(wormhole_bridge_proxy), WH_TEST_CHAIN_IDS[i]),
+                true,
+                "Equivalence violation: WH_TEST_CHAIN_IDS[i] is not initially true"
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance,
+                "Equivalence violation: total supply and initially minted tokens."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance,
+                "Equivalence violation: user balance and initially minted tokens."
+            );
+
+            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
+                address(wormhole_bridge_proxy),
+                payable(address(this)),
+                WH_TEST_CHAIN_IDS[i],
+                abi.encode(address(this)),
+                transferAmount
+            );
+
+            assertEq(sequence, i);
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).totalSupply(),
+                tokenBalance - transferAmount,
+                "Equivalence violation: total supply must decrease by amount transferred."
+            );
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).balanceOf(address(this)),
+                tokenBalance - transferAmount,
+                "Equivalence violation: user balance must decrease by amount transferred."
+            );
+            tokenBalance -= transferAmount;
+        }
+
+        for (uint256 i; i < WH_TEST_CHAIN_IDS.length; i++) {
+            // Act
+            WH_TEST_PRIVILEGES[i] = false;
+            IUSXAdmin(address(usx_proxy)).manageRoutes(
+                address(wormhole_bridge_proxy), WH_TEST_CHAIN_IDS, WH_TEST_PRIVILEGES
+            );
+
+            // Post-action assertions
+            assertEq(
+                IUSXAdmin(address(usx_proxy)).routes(address(wormhole_bridge_proxy), WH_TEST_CHAIN_IDS[i]),
+                false,
+                "Equivalence violation: WH_TEST_CHAIN_IDS[i] was not updated to false"
+            );
+
+            vm.expectRevert(IUSXAdmin.Paused.selector);
+
+            IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
+                address(wormhole_bridge_proxy),
+                payable(address(this)),
+                WH_TEST_CHAIN_IDS[i],
+                abi.encode(address(this)),
+                transferAmount
+            );
+        }
     }
 }

@@ -7,6 +7,7 @@ address constant WORMHOLE_CORE_BRIDGE = 0x98f3c9e6E3fAce36bAAd05FE09d375Ef146428
 address constant TRUSTED_WORMHOLE_RELAYER = 0xC88E7fac500B7f8B3B3d4333F132bd21a02b4a1A;
 address constant TEST_ADDRESS = 0x7e51587F7edA1b583Fde9b93ED92B289f985fe25;
 address constant TEST_USER = 0xe45dEeA6301901727ef13CA11F7cae79bE6d5056;
+address constant FEE_SETTER = 0x2394B04B38657aF2F4Fce0E2598f49cc24322501;
 address constant TREASURY = 0xD6884bfD7f67FF747FBC6334b5718c255235Bc1E;
 address constant _3CRV = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 address constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
@@ -30,3 +31,10 @@ uint256 constant _3CRV_AMOUNT = 1e18;
 
 // bytes
 bytes32 constant TEST_TRUSTED_EMITTER = bytes32(abi.encode(0xc144b96b42924EBb9e5f7eF7B27957E576A6D102));
+
+contract TestUtils {
+    uint16[] LZ_TEST_CHAIN_IDS = [102, 109, 106, 112, 125, 110, 111, 145];
+    uint16[] WH_TEST_CHAIN_IDS = [4, 5, 6, 10, 14, 23];
+    bool[] LZ_TEST_PRIVILEGES = [true, true, true, true, true, true, true, true];
+    bool[] WH_TEST_PRIVILEGES = [true, true, true, true, true, true];
+}

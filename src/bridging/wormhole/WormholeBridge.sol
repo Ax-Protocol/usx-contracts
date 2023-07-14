@@ -25,6 +25,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
     mapping(bytes32 => bool) public processedMessages;
     bytes32[] private __trustedContractsList;
     address[] private __trustedRelayersList;
+    address public feeSetter;
 
     // Events
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
@@ -177,12 +178,21 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
     }
 
     /**
+     * @dev This function allows contract admins to set the address of the feeSetter account.
+     * @param _feeSetter The address of the account that's allowed to update destination fees.
+     */
+    function setFeeSetter(address _feeSetter) public onlyOwner {
+        feeSetter = _feeSetter;
+    }
+
+    /**
      * @dev This function allows contract admins to update send fees.
      * @param _destChainIds an array of destination chain IDs; the order must match `_fees` array.
      * @param _fees an array of destination fees; the order must match `_destChainIds` array. Any
      *              element with a value of zero will not get updated (allows for gas-saving optionality).
      */
-    function setSendFees(uint16[] calldata _destChainIds, uint256[] calldata _fees) public onlyOwner {
+    function setSendFees(uint16[] calldata _destChainIds, uint256[] calldata _fees) public {
+        require(msg.sender == feeSetter, "Unauthorized.");
         require(_destChainIds.length == _fees.length, "Array lengths do not match");
         for (uint256 i; i < _destChainIds.length; i++) {
             if (_fees[i] != 0) {

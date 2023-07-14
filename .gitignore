@@ -8,4 +8,6 @@ package-lock.json
 
 .vscode/
 
+# Included to prevent storing sensitive information in Github Secrets.
+# The tests actally run the scripts, which require sensitive information.
 test/script/
