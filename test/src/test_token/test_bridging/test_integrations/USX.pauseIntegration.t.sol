@@ -376,14 +376,6 @@ contract PauseIntegrationTest is BridgingSetup {
 
         // Pre-action Assertions
         for (uint256 i; i < LZ_TEST_CHAIN_IDS.length; i++) {
-            uint64 preActNonce =
-                ILayerZeroEndpoint(LZ_ENDPOINT).getOutboundNonce(LZ_TEST_CHAIN_IDS[i], address(layer_zero_bridge_proxy));
-            uint64 expectedNonce = preActNonce + 1;
-            vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
-            emit SendToChain(
-                LZ_TEST_CHAIN_IDS[i], address(this), abi.encode(address(this)), transferAmount, expectedNonce
-            );
-
             assertEq(
                 IUSXAdmin(address(usx_proxy)).routes(address(layer_zero_bridge_proxy), LZ_TEST_CHAIN_IDS[i]),
                 true,
@@ -400,6 +392,16 @@ contract PauseIntegrationTest is BridgingSetup {
                 "Equivalence violation: user balance and initially minted tokens."
             );
 
+            // Expectations
+            uint64 preActNonce =
+                ILayerZeroEndpoint(LZ_ENDPOINT).getOutboundNonce(LZ_TEST_CHAIN_IDS[i], address(layer_zero_bridge_proxy));
+            uint64 expectedNonce = preActNonce + 1;
+            vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
+            emit SendToChain(
+                LZ_TEST_CHAIN_IDS[i], address(this), abi.encode(address(this)), transferAmount, expectedNonce
+            );
+
+            // Act
             uint64 nonce = IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
                 address(layer_zero_bridge_proxy),
                 payable(address(this)),
@@ -463,12 +465,6 @@ contract PauseIntegrationTest is BridgingSetup {
             uint256 destGasFee = IWormholeBridge(address(wormhole_bridge_proxy)).sendFeeLookup(WH_TEST_CHAIN_IDS[i]);
             gasFee = bound(gasFee, destGasFee, 5e16);
 
-            uint64 expectedSequence = uint64(i);
-            vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-            emit SendToChain(
-                WH_TEST_CHAIN_IDS[i], address(this), abi.encode(address(this)), transferAmount, expectedSequence
-            );
-
             assertEq(
                 IUSXAdmin(address(usx_proxy)).routes(address(wormhole_bridge_proxy), WH_TEST_CHAIN_IDS[i]),
                 true,
@@ -485,6 +481,14 @@ contract PauseIntegrationTest is BridgingSetup {
                 "Equivalence violation: user balance and initially minted tokens."
             );
 
+            // Expectations
+            uint64 expectedSequence = uint64(i);
+            vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
+            emit SendToChain(
+                WH_TEST_CHAIN_IDS[i], address(this), abi.encode(address(this)), transferAmount, expectedSequence
+            );
+
+            // Act
             uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
                 address(wormhole_bridge_proxy),
                 payable(address(this)),

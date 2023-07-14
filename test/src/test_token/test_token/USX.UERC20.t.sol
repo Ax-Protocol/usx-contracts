@@ -117,13 +117,13 @@ contract UERC20Test is Test {
     function test_transferFrom(uint256 approvalAmount) public {
         vm.assume(approvalAmount > 0 && approvalAmount <= INITIAL_TOKENS);
 
-        // Expectations
-        vm.expectEmit(true, true, true, true, address(usx_proxy));
-        emit Transfer(address(this), TEST_ADDRESS, approvalAmount);
-
         // Setup
         IUSX(address(usx_proxy)).approve(TEST_ADDRESS, approvalAmount);
         uint256 preActionAllowance = IUSX(address(usx_proxy)).allowance(address(this), TEST_ADDRESS);
+
+        // Expectations
+        vm.expectEmit(true, true, true, true, address(usx_proxy));
+        emit Transfer(address(this), TEST_ADDRESS, approvalAmount);
 
         // Pre-action Assertions
         assertEq(
