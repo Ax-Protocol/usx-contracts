@@ -24,8 +24,11 @@ contract WormholeSendTest is BridgingSetup {
 
         for (uint256 i; i < iterations; i++) {
             // Expectations
+            uint64 expectedSequence = uint64(i);
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(
+                TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount, expectedSequence
+            );
 
             // Act
             uint64 sequence = IBridge(address(wormhole_bridge_proxy)).sendMessage{ value: gasFee }(

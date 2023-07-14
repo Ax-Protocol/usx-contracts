@@ -15,6 +15,8 @@ address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 address constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
 // Integers
+uint64 constant WH_TEST_SEQUENCE = 1;
+uint64 constant LZ_TEST_NONCE = 1;
 uint16 constant TEST_LZ_CHAIN_ID = 109;
 uint16 constant TEST_WORMHOLE_CHAIN_ID = 5;
 uint256 constant TEST_MINT_AMOUNT = 100e18;

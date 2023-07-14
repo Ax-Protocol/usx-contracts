@@ -28,9 +28,15 @@ abstract contract BridgingSetup is Test, TestUtils {
 
     // Events
     event ReceiveFromChain(
-        uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
+        uint16 indexed _srcChainId,
+        bytes indexed _srcAddress,
+        address indexed _toAddress,
+        uint256 _amount,
+        uint64 _messageId
     );
-    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
+    event SendToChain(
+        uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount, uint64 _messageId
+    );
 
     function setUp() public {
         // Deploy USX implementation, and link to proxy

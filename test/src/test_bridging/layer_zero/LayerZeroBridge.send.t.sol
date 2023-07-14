@@ -5,6 +5,7 @@ import "../common/TestSetup.t.sol";
 
 import { ILayerZeroBridge } from "../../../../src/bridging/interfaces/ILayerZeroBridge.sol";
 import { IBridge } from "../../../../src/token/interfaces/IBridge.sol";
+import { ILayerZeroEndpoint } from "../../../../src/bridging/interfaces/ILayerZeroEndpoint.sol";
 
 import "../../common/Constants.t.sol";
 
@@ -19,16 +20,19 @@ contract LayerZeroSendTest is BridgingSetup {
         vm.deal(address(usx_proxy), TEST_GAS_FEE * iterations);
         for (uint256 i; i < iterations; i++) {
             // Expectations
+            uint64 preActNonce =
+                ILayerZeroEndpoint(LZ_ENDPOINT).getOutboundNonce(TEST_LZ_CHAIN_ID, address(layer_zero_bridge_proxy));
+            uint64 expectedNonce = preActNonce + 1;
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
-            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount, expectedNonce);
 
             // Act
-            uint64 sequence = IBridge(address(layer_zero_bridge_proxy)).sendMessage{ value: TEST_GAS_FEE }(
+            uint64 nonce = IBridge(address(layer_zero_bridge_proxy)).sendMessage{ value: TEST_GAS_FEE }(
                 payable(address(this)), TEST_LZ_CHAIN_ID, abi.encode(address(this)), transferAmount
             );
 
             // Post-action Assertions:
-            assertEq(sequence, 0);
+            assertEq(nonce, expectedNonce);
         }
         vm.stopPrank();
     }

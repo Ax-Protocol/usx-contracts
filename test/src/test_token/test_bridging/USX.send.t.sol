@@ -5,6 +5,7 @@ import "../../../../src/token/USX.sol";
 
 import "../../../../src/common/interfaces/IUSXAdmin.sol";
 import "../../../../src/bridging/interfaces/IWormholeBridge.sol";
+import { ILayerZeroEndpoint } from "../../../../src/bridging/interfaces/ILayerZeroEndpoint.sol";
 
 import "./common/TestSetup.t.sol";
 import "../../common/Constants.t.sol";
@@ -23,8 +24,11 @@ contract SendTest is BridgingSetup {
         uint256 tokenBalance = INITIAL_TOKENS;
         for (uint256 i; i < iterations; i++) {
             // Expectations
+            uint64 expectedSequence = uint64(i);
             vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-            emit SendToChain(TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(
+                TEST_WORMHOLE_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount, expectedSequence
+            );
 
             // Pre-action Assertions
             assertEq(
@@ -94,8 +98,11 @@ contract SendTest is BridgingSetup {
         uint256 tokenBalance = INITIAL_TOKENS;
         for (uint256 i; i < iterations; i++) {
             // Expectations
+            uint64 preActNonce =
+                ILayerZeroEndpoint(LZ_ENDPOINT).getOutboundNonce(TEST_LZ_CHAIN_ID, address(layer_zero_bridge_proxy));
+            uint64 expectedNonce = preActNonce + 1;
             vm.expectEmit(true, true, true, true, address(layer_zero_bridge_proxy));
-            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount);
+            emit SendToChain(TEST_LZ_CHAIN_ID, address(this), abi.encode(address(this)), transferAmount, expectedNonce);
 
             // Pre-action Assertions
             assertEq(
@@ -110,17 +117,16 @@ contract SendTest is BridgingSetup {
             );
 
             // Act
-            // TODO: Need to reach out to LayerZero and get the actual min fee.
-            uint64 sequence = IUSXAdmin(address(usx_proxy)).sendFrom{ value: TEST_GAS_FEE }(
-                address(layer_zero_bridge_proxy),
-                payable(address(this)),
-                TEST_LZ_CHAIN_ID,
-                abi.encode(address(this)),
-                transferAmount
+            bytes memory toAddress = abi.encode(address(this));
+            (uint256 gasFee,) = ILayerZeroEndpoint(LZ_ENDPOINT).estimateFees(
+                TEST_LZ_CHAIN_ID, address(this), abi.encode(uint256(bytes32(toAddress)), transferAmount), false, ""
+            );
+            uint64 nonce = IUSXAdmin(address(usx_proxy)).sendFrom{ value: gasFee }(
+                address(layer_zero_bridge_proxy), payable(address(this)), TEST_LZ_CHAIN_ID, toAddress, transferAmount
             );
 
             // Post-action Assertions
-            assertEq(sequence, 0); // should stay zero for layer zero
+            assertEq(nonce, expectedNonce);
             assertEq(
                 IUSXAdmin(address(usx_proxy)).totalSupply(),
                 tokenBalance - transferAmount,
