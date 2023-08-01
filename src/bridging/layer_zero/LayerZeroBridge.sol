@@ -6,6 +6,7 @@ pragma solidity >=0.8.0;
 import { SafeTransferLib, ERC20 } from "solmate/utils/SafeTransferLib.sol";
 import { NonBlockingLzApp } from "./lz_app/NonBlockingLzApp.sol";
 import { UUPSUpgradeable } from "../../proxy/UUPSUpgradeable.sol";
+import { ILayerZeroEndpoint } from "../interfaces/ILayerZeroEndpoint.sol";
 
 // Interfaces
 import { IUSX } from "../../common/interfaces/IUSX.sol";
@@ -22,9 +23,15 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     address public usx;
 
     // Events
-    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
+    event SendToChain(
+        uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount, uint64 _messageId
+    );
     event ReceiveFromChain(
-        uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
+        uint16 indexed _srcChainId,
+        bytes indexed _srcAddress,
+        address indexed _toAddress,
+        uint256 _amount,
+        uint64 _messageId
     );
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
@@ -43,15 +50,15 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
     function sendMessage(address payable _from, uint16 _dstChainId, bytes memory _toAddress, uint256 _amount)
         external
         payable
-        returns (uint64 sequence)
+        returns (uint64 nonce)
     {
         require(msg.sender == usx, "Unauthorized.");
 
         _send(_from, _dstChainId, _toAddress, _amount, address(0), bytes(""));
 
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+        nonce = ILayerZeroEndpoint(lzEndpoint).getOutboundNonce(_dstChainId, address(this));
 
-        sequence = 0;
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount, nonce);
     }
 
     function _send(
@@ -74,27 +81,29 @@ contract LayerZeroBridge is NonBlockingLzApp, UUPSUpgradeable {
         _lzSend(_dstChainId, payload, _from, _zroPaymentAddress, _adapterParams);
     }
 
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64, // _nonce
-        bytes memory _payload
-    ) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload)
+        internal
+        virtual
+        override
+    {
         // Decode and load toAddress
         (uint256 toAddressUint, uint256 amount) = abi.decode(_payload, (uint256, uint256));
         address toAddress = address(uint160(toAddressUint));
 
-        _receiveMessage(_srcChainId, _srcAddress, toAddress, amount);
+        _receiveMessage(_srcChainId, _srcAddress, toAddress, amount, _nonce);
     }
 
-    function _receiveMessage(uint16 _srcChainId, bytes memory _srcAddress, address _toAddress, uint256 _amount)
-        internal
-        virtual
-    {
+    function _receiveMessage(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        address _toAddress,
+        uint256 _amount,
+        uint64 _nonce
+    ) internal virtual {
         // Privileges needed
         IUSX(usx).mint(_toAddress, _amount);
 
-        emit ReceiveFromChain(_srcChainId, _srcAddress, _toAddress, _amount);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, _toAddress, _amount, _nonce);
     }
 
     /**

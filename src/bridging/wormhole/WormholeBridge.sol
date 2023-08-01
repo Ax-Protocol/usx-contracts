@@ -28,9 +28,15 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
     address public feeSetter;
 
     // Events
-    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount);
+    event SendToChain(
+        uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint256 _amount, uint64 _messageId
+    );
     event ReceiveFromChain(
-        uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint256 _amount
+        uint16 indexed _srcChainId,
+        bytes indexed _srcAddress,
+        address indexed _toAddress,
+        uint256 _amount,
+        uint64 _messageId
     );
 
     function initialize(address _wormholeCoreBridge, address _usx) public initializer {
@@ -63,7 +69,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         // Consistency level of 1 is the most conservative (finalized)
         sequence = wormholeCoreBridge.publishMessage{ value: wormholeMessageFee }(0, message, 1);
 
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount, sequence);
     }
 
     function processMessage(bytes memory _vaa) public {
@@ -92,7 +98,7 @@ contract WormholeBridge is Ownable, UUPSUpgradeable {
         address toAddress = address(uint160(toAddressUint));
 
         // Event
-        emit ReceiveFromChain(vm.emitterChainId, srcAddress, toAddress, amount);
+        emit ReceiveFromChain(vm.emitterChainId, srcAddress, toAddress, amount, vm.sequence);
 
         // Needs admin privlieges on USX
         IUSX(usx).mint(toAddress, amount);

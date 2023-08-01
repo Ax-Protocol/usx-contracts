@@ -30,11 +30,7 @@ contract MintTest is MintHelper {
         for (uint256 i; i < TEST_COINS.length; i++) {
             // Setup
             uint256 amount = TEST_AMOUNTS[i] * amountMultiplier;
-
-            // Expectations
-            (uint256 expectedMintAmount, uint256 lpTokens) = _calculateMintAmount(i, amount, TEST_COINS[i]);
-            vm.expectEmit(true, true, true, true, address(treasury_proxy));
-            emit Mint(TEST_USER, expectedMintAmount);
+            SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
 
             // Pre-action assertions
             uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
@@ -45,8 +41,12 @@ contract MintTest is MintHelper {
             );
             assertEq(preUserBalanceUSX, totalMinted, "Equivalence violation: preUserBalanceUSX and totalMinted");
 
+            // Expectations
+            (uint256 expectedMintAmount, uint256 lpTokens) = _calculateMintAmount(i, amount, TEST_COINS[i]);
+            vm.expectEmit(true, true, true, true, address(treasury_proxy));
+            emit Mint(TEST_USER, expectedMintAmount);
+
             // Act
-            SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
             ITreasuryAdmin(address(treasury_proxy)).mint(TEST_COINS[i], amount);
 
             // Post-action assertions
@@ -108,11 +108,7 @@ contract MintTest is MintHelper {
         for (uint256 i; i < TEST_COINS.length; i++) {
             // Setup
             uint256 amount = TEST_AMOUNTS[i] * amountMultiplier;
-
-            // Expectations
-            (uint256 expectedMintAmount, uint256 lpTokens) = _calculateMintAmount(i, amount, TEST_COINS[i]);
-            vm.expectEmit(true, true, true, true, address(treasury_proxy));
-            emit Mint(TEST_USER, expectedMintAmount);
+            SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
 
             // Pre-action assertions
             uint256 preUserBalanceUSX = IUSXAdmin(address(usx_proxy)).balanceOf(TEST_USER);
@@ -123,9 +119,13 @@ contract MintTest is MintHelper {
             );
             assertEq(preUserBalanceUSX, 0, "Equivalence violation: preUserBalanceUSX is not zero");
 
+            // Expectations
+            (uint256 expectedMintAmount, uint256 lpTokens) = _calculateMintAmount(i, amount, TEST_COINS[i]);
+            vm.expectEmit(true, true, true, true, address(treasury_proxy));
+            emit Mint(TEST_USER, expectedMintAmount);
+
             // Act
             uint256 id = vm.snapshot();
-            SafeTransferLib.safeApprove(ERC20(TEST_COINS[i]), address(treasury_proxy), amount);
             ITreasuryAdmin(address(treasury_proxy)).mint(TEST_COINS[i], amount);
 
             /// Post-action data extraction

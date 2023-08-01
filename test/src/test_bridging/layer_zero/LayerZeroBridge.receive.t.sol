@@ -22,7 +22,8 @@ contract LayerZeroReceiveTest is BridgingSetup {
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)),
             address(this),
-            transferAmount
+            transferAmount,
+            LZ_TEST_NONCE
         );
 
         // Pre-action Assertions
@@ -42,7 +43,7 @@ contract LayerZeroReceiveTest is BridgingSetup {
         ILayerZeroBridge(address(layer_zero_bridge_proxy)).lzReceive(
             TEST_LZ_CHAIN_ID,
             abi.encodePacked(address(layer_zero_bridge_proxy), address(layer_zero_bridge_proxy)),
-            1,
+            LZ_TEST_NONCE,
             payload
         );
 

@@ -26,7 +26,9 @@ contract WormholeReceiveTest is BridgingSetup {
 
         // Expectations
         vm.expectEmit(true, true, true, true, address(wormhole_bridge_proxy));
-        emit ReceiveFromChain(TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(TEST_USER), TEST_USER, transferAmount);
+        emit ReceiveFromChain(
+            TEST_WORMHOLE_CHAIN_ID, abi.encodePacked(TEST_USER), TEST_USER, transferAmount, WH_TEST_SEQUENCE
+        );
 
         // Pre-action Assertions
         assertEq(IUSXAdmin(address(usx_proxy)).totalSupply(), INITIAL_TOKENS);
